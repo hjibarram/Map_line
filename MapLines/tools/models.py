@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import MapLines.tools.tools as tol
 import numpy as np
+#Definition
 
 def line_model_hb(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
     A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
