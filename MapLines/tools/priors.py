@@ -25,7 +25,7 @@ def lnprior_gauss_Lin(theta,At=0.05,dv1t=200,sim=False):
     dv2s=50.0
     if sim:
         dv1i=-dv1t
-        dv1s=dv1t
+        dv1s=0#dv1t
         dv2i=-dv1t
         dv2s=dv1t    
     dA=At*0.3
