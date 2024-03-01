@@ -109,22 +109,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                #if hbfit:
                 data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12)
-                #else:
-                #    data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12)
                 nwalkers=240
                 niter=1024
                 if single:
-                    #if hbfit:
                     initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0])
-                    #else:
-                    #    initial = np.array([0.04, 0.06, -20.0, 150.0, 1000.0, fluxp, 0.0])
                 else:
-                    #if hbfit:
                     initial = np.array([0.04, 0.09, 0.75, -500.0, -80.0, 150.0, 1000.0, fluxp, 0.0])
-                    #else:
-                    #    initial = np.array([0.04, 0.06, 0.75, -500.0, -80.0, 150.0, 1000.0, fluxp, 0.0])
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
                 if plot_f:
@@ -139,10 +130,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
                 if single:
                     A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                    #if hbfit:
                     model,m2B,mHB,m1B,mHBR=mod.line_model_s(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12)
-                    #else:
-                    #    model,m2B,mHB,m1B,mHBR=mod.line_model_s(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12)
                     model_all[:,i,j]=model
                     model_Blue[:,i,j]=m2B+m1B+mHB
                     model_Broad[:,i,j]=mHBR
@@ -167,10 +155,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         A1_f=A1_f*fac_f
                         A3_f=A3_f*fac_f
                         theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f    
-                    #if hbfit:
                     model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12)
-                    #else:
-                    #    model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, ret_com=True, lfac12=lfac12)
                     model_all[:,i,j]=model
                     model_Blue[:,i,j]=m2B+m1B+mHB
                     model_Red[:,i,j]=m2R+m1R+mHR
@@ -251,10 +236,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    #if hbfit:
                     med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12)
-                    #else:
-                    #    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12)
                     
                     
                     import matplotlib.pyplot as plt
