@@ -170,7 +170,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                         A3_f=A3_f*fac_f
                         theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f    
                     if hbfit:
-                        model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model_hb(theta_max, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, ret_com=True)
+                        model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, ret_com=True, lfac12=lfac12)
                     else:
                         model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, ret_com=True, lfac12=lfac12)
                     model_all[:,i,j]=model
