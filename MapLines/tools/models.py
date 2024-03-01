@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import MapLines.tools.tools as tol
 import numpy as np
-#Definition
+
 
 def line_model_hb(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
     A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
@@ -40,7 +40,7 @@ def line_model_hb(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
     else:
         return lin
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
+def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93):
     A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
     ct=299792.458
     sigma1=fwhm1/ct*xo1/(2.0*np.sqrt(2.0*np.log(2.0)))
@@ -60,8 +60,8 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
     sigma3=fwhm1/ct*xo3/(2.0*np.sqrt(2.0*np.log(2.0)))
     xo_b=xo3*(1.0+dv1/ct)
     xo_r=xo3*(1.0+dv2/ct)
-    A5=A1/2.93
-    A6=A2/2.93
+    A5=A1/lfac12
+    A6=A2/lfac12
     nGb=tol.gauss_M(x,sigma=sigma3,xo=xo_b,A1=A5)
     nGr=tol.gauss_M(x,sigma=sigma3,xo=xo_r,A1=A6)
     

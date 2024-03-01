@@ -2,13 +2,15 @@
 import MapLines.tools.models as mod
 import numpy as np
 
+'''
 def lnlike_gauss_Lin_hb(theta, spec, specE , x, xo1, xo2, xo3):
     model=mod.line_model_hb(theta, x=x, xo1=xo1, xo2=xo2, xo3=xo3)
     LnLike = -0.5*np.nansum(((spec-model)/specE)**2.0)#/np.float(len(theta))
     return LnLike
+'''
 
-def lnlike_gauss_Lin(theta, spec, specE , x, xo1, xo2, xo3):
-    model=mod.line_model(theta, x=x, xo1=xo1, xo2=xo2, xo3=xo3)
+def lnlike_gauss_Lin(theta, spec, specE , x, xo1, xo2, xo3, lfac12):
+    model=mod.line_model(theta, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12)
     LnLike = -0.5*np.nansum(((spec-model)/specE)**2.0)#/np.float(len(theta))
     return LnLike
 
@@ -60,19 +62,21 @@ def lnprior_gauss_Lin_s(theta,At=0.05,dv1t=200,sim=False):
     else:
         return -np.inf    
 
+'''
 def lnprob_gauss_Lin_Hb(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim):
     lp = lnprior_gauss_Lin(theta,At=At, dv1t=dv1t,sim=sim)
     if not np.isfinite(lp):
         return -np.inf
     else:
         return lp + lnlike_gauss_Lin_hb(theta, spec, specE, x, xo1, xo2, xo3) 
+'''
 
-def lnprob_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim):
+def lnprob_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim, lfac12):
     lp = lnprior_gauss_Lin(theta,At=At, dv1t=dv1t,sim=sim)
     if not np.isfinite(lp):
         return -np.inf
     else:
-        return lp + lnlike_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3) 
+        return lp + lnlike_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, lfac12) 
 
 def lnprob_gauss_Lin_s(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim, lfac12):
     lp = lnprior_gauss_Lin_s(theta,At=At, dv1t=dv1t, sim=sim)

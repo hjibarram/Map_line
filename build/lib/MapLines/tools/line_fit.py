@@ -58,6 +58,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
     Lnii2=6585.278
     LnrHa=6564.632
     Lnii1=6549.859
+    if hbfit:
+        lfac12=3.0
+    else:
+        lfac12=2.93
     hdr["CRVAL3"]=wave_i[0]
     try:
         hdr["CD3_3"]=cdelt
@@ -98,16 +102,16 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                if single:
-                    if hbfit:
-                        data = (fluxt, fluxtE, wave_i, Loiii2, LnrHb, Loiii1, fluxp, dv1t, sim, 3.0)
-                    else:
-                        data = (fluxt, fluxtE, wave_i, Lnii2, LnrHa, Lnii1, fluxp, dv1t, sim, 2.93)
+                #if single:
+                if hbfit:
+                    data = (fluxt, fluxtE, wave_i, Loiii2, LnrHb, Loiii1, fluxp, dv1t, sim, lfac12)
                 else:
-                    if hbfit:
-                        data = (fluxt, fluxtE, wave_i, Loiii2, LnrHb, Loiii1, fluxp, dv1t, sim)
-                    else:
-                        data = (fluxt, fluxtE, wave_i, Lnii2, LnrHa, Lnii1, fluxp, dv1t, sim)
+                    data = (fluxt, fluxtE, wave_i, Lnii2, LnrHa, Lnii1, fluxp, dv1t, sim, lfac12)
+                #else:
+                #    if hbfit:
+                #        data = (fluxt, fluxtE, wave_i, Loiii2, LnrHb, Loiii1, fluxp, dv1t, sim, lfac12)
+                #    else:
+                #        data = (fluxt, fluxtE, wave_i, Lnii2, LnrHa, Lnii1, fluxp, dv1t, sim, lfac12)
                 nwalkers=240
                 niter=1024
                 if single:
@@ -129,23 +133,21 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                 if single:
                     sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin_s,data,tim=tim,ncpu=ncpu)
                 else:
-                    if hbfit:
-                        sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin_Hb,data,tim=tim,ncpu=ncpu)
-                    else:
-                        sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)    
+                    #if hbfit:
+                    sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)
+                    #else:
+                    #    sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)    
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
                 if single:
                     A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
                     if hbfit:
-                    	model,m2B,mHaB,m1B,mHaBR=mod.line_model_s(theta_max, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, ret_com=True, lfac12=3.0)
-                    	lfac12=3.0
+                    	model,m2B,mHB,m1B,mHBR=mod.line_model_s(theta_max, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, ret_com=True, lfac12=lfac12)
                     else:
-                        model,m2B,mHaB,m1B,mHaBR=mod.line_model_s(theta_max, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, ret_com=True, lfac12=2.93)
-                        lfac12=2.93
+                        model,m2B,mHB,m1B,mHBR=mod.line_model_s(theta_max, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, ret_com=True, lfac12=lfac12)
                     model_all[:,i,j]=model
-                    model_Blue[:,i,j]=m2B+m1B+mHaB
-                    model_Broad[:,i,j]=mHaBR
+                    model_Blue[:,i,j]=m2B+m1B+mHB
+                    model_Broad[:,i,j]=mHBR
                     model_param[0,i,j]=A1_f
                     model_param[1,i,j]=A1_f/lfac12
                     model_param[2,i,j]=A3_f
@@ -158,64 +160,37 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                     if cont:
                         model_param[9,i,j]=fluxpt
                 else:
+                    A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
+                    if dv2_f < dv1_f:
+                        fac_f=1/fac_f
+                        dt=np.copy(dv2_f)
+                        dv2_f=np.copy(dv1_f)
+                        dv1_f=dt
+                        A1_f=A1_f*fac_f
+                        A3_f=A3_f*fac_f
+                        theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f    
                     if hbfit:
-                        A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                        if dv2_f < dv1_f:
-                            fac_f=1/fac_f
-                            dt=np.copy(dv2_f)
-                            dv2_f=np.copy(dv1_f)
-                            dv1_f=dt
-                            A1_f=A1_f*fac_f
-                            A3_f=A3_f*fac_f
-                            theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f
-                        model,m2B,m2R,mHbB,mHbR,m1B,m1R,mHbBR=mod.line_model_hb(theta_max, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, ret_com=True)
-                        model_all[:,i,j]=model
-                        model_Blue[:,i,j]=m2B+m1B+mHbB
-                        model_Red[:,i,j]=m2R+m1R+mHbR
-                        model_Broad[:,i,j]=mHbBR
-                        model_param[0,i,j]=A1_f#*flux_f
-                        model_param[1,i,j]=A1_f/3.0#*flux_f
-                        model_param[2,i,j]=A3_f#*flux_f
-                        model_param[3,i,j]=A7_f#*flux_f
-                        model_param[4,i,j]=fac_f
-                        model_param[5,i,j]=A1_f/fac_f#*flux_f
-                        model_param[6,i,j]=A1_f/fac_f/3.0#*flux_f
-                        model_param[7,i,j]=A3_f/fac_f#*flux_f
-                        model_param[8,i,j]=dv1_f
-                        model_param[9,i,j]=dv2_f
-                        model_param[10,i,j]=dv3_f
-                        model_param[11,i,j]=fwhm1_f
-                        model_param[12,i,j]=fwhm2_f
-                        model_param[13,i,j]=fluxe_t
+                        model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model_hb(theta_max, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, ret_com=True)
                     else:
-                        A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                        if dv2_f < dv1_f:
-                            fac_f=1/fac_f
-                            dt=np.copy(dv2_f)
-                            dv2_f=np.copy(dv1_f)
-                            dv1_f=dt
-                            A1_f=A1_f*fac_f
-                            A3_f=A3_f*fac_f
-                            theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f
-                        model,m2B,m2R,mHaB,mHaR,m1B,m1R,mHaBR=mod.line_model(theta_max, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, ret_com=True)
-                        model_all[:,i,j]=model
-                        model_Blue[:,i,j]=m2B+m1B+mHaB
-                        model_Red[:,i,j]=m2R+m1R+mHaR
-                        model_Broad[:,i,j]=mHaBR
-                        model_param[0,i,j]=A1_f#*flux_f
-                        model_param[1,i,j]=A1_f/2.93#*flux_f
-                        model_param[2,i,j]=A3_f#*flux_f
-                        model_param[3,i,j]=A7_f#*flux_f
-                        model_param[4,i,j]=fac_f
-                        model_param[5,i,j]=A1_f/fac_f#*flux_f
-                        model_param[6,i,j]=A1_f/fac_f/2.93#*flux_f
-                        model_param[7,i,j]=A3_f/fac_f#*flux_f
-                        model_param[8,i,j]=dv1_f
-                        model_param[9,i,j]=dv2_f
-                        model_param[10,i,j]=dv3_f
-                        model_param[11,i,j]=fwhm1_f
-                        model_param[12,i,j]=fwhm2_f
-                        model_param[13,i,j]=fluxe_t
+                        model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, ret_com=True, lfac12=lfac12)
+                    model_all[:,i,j]=model
+                    model_Blue[:,i,j]=m2B+m1B+mHB
+                    model_Red[:,i,j]=m2R+m1R+mHR
+                    model_Broad[:,i,j]=mHBR
+                    model_param[0,i,j]=A1_f
+                    model_param[1,i,j]=A1_f/lfac12
+                    model_param[2,i,j]=A3_f
+                    model_param[3,i,j]=A7_f
+                    model_param[4,i,j]=fac_f
+                    model_param[5,i,j]=A1_f/fac_f
+                    model_param[6,i,j]=A1_f/fac_f/lfac12
+                    model_param[7,i,j]=A3_f/fac_f
+                    model_param[8,i,j]=dv1_f
+                    model_param[9,i,j]=dv2_f
+                    model_param[10,i,j]=dv3_f
+                    model_param[11,i,j]=fwhm1_f
+                    model_param[12,i,j]=fwhm2_f
+                    model_param[13,i,j]=fluxe_t
                     if cont:
                         model_param[14,i,j]=fluxpt    
                 if plot_f:
@@ -231,30 +206,30 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                     #    ax1.plot(wave_i,mHaBR,linewidth=1,color='red',label=r'Ha_n_BR')
                     if single:
                         if hbfit:
-                            ax1.plot(wave_i,mHaBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_NR')
-                            ax1.plot(wave_i,mHaB,linewidth=1,color='blue',label=r'Hb_n_NR')
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_NR')
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_NR')
                         else:
-                            ax1.plot(wave_i,mHaBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
-                            ax1.plot(wave_i,mHaB,linewidth=1,color='blue',label=r'Ha_n_NR')
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
                     else:
                         if hbfit:
-                            ax1.plot(wave_i,mHbBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_b')
                             ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'OIII_2_r')
-                            ax1.plot(wave_i,mHbB,linewidth=1,color='blue',label=r'Hb_n_b')
-                            ax1.plot(wave_i,mHbR,linewidth=1,color='red',label=r'Hb_n_r')
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_b')
+                            ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'Hb_n_r')
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_b')
                             ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'OIII_1_r')
                         else:
-                            ax1.plot(wave_i,mHaBR,linewidth=1,color='red',label=r'Ha_n_BR')
+                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Ha_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_b')
                             ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'NII_2_r')
-                            ax1.plot(wave_i,mHaB,linewidth=1,color='blue',label=r'Ha_n_b')
-                            ax1.plot(wave_i,mHaR,linewidth=1,color='red',label=r'Ha_n_r')
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_b')
+                            ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'Ha_n_r')
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_b')
                             ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'NII_1_r')
                     fontsize=14
@@ -284,7 +259,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                 
                     
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, single=single)
+                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, single=single, lfac12=lfac12)
                     
                     
                     import matplotlib.pyplot as plt
@@ -372,15 +347,26 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
             h[keys[i]]=hdr[keys[i]]
             h.comments[keys[i]]=hdr.comments[keys[i]]
     if single:
-        h['Val_0'] ='NII_6585_Amplitude'
-        h['Val_1'] ='NII_6549_Amplitude'
-        h['Val_2'] ='H_alpha_Amplitude'
-        h['Val_3'] ='H_alpha_Broad_Amplitude'
-        h['Val_4'] ='Narrow_vel'
-        h['Val_5'] ='Broad_vel'
-        h['Val_6'] ='FWHM_Narrow'
-        h['Val_7'] ='FWHM_Broad' 
-        h['Val_8'] ='Noise_Median'
+        if hbfit:
+            h['Val_0'] ='OIII_5007_Amplitude'
+            h['Val_1'] ='OIII_4959Amplitude'
+            h['Val_2'] ='H_beta_Amplitude'
+            h['Val_3'] ='H_beta_Broad_Amplitude'
+            h['Val_4'] ='Narrow_vel'
+            h['Val_5'] ='Broad_vel'
+            h['Val_6'] ='FWHM_Narrow'
+            h['Val_7'] ='FWHM_Broad' 
+            h['Val_8'] ='Noise_Median'
+        else:
+            h['Val_0'] ='NII_6585_Amplitude'
+            h['Val_1'] ='NII_6549_Amplitude'
+            h['Val_2'] ='H_alpha_Amplitude'
+            h['Val_3'] ='H_alpha_Broad_Amplitude'
+            h['Val_4'] ='Narrow_vel'
+            h['Val_5'] ='Broad_vel'
+            h['Val_6'] ='FWHM_Narrow'
+            h['Val_7'] ='FWHM_Broad' 
+            h['Val_8'] ='Noise_Median'
         if cont:
             h['Val_9'] ='Continum' 
     else:
@@ -422,9 +408,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
         del h['CDELT3']    
     except:
         print('No vals')
-        #del h['CRVAL3']
-        #del h['CRPIX3']
-        #del h['CD3_3'] 
+
     h.update()        
     hlist=fits.HDUList([h1])
     hlist.update_extend()
