@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 
 def version(fn):
-    v = ''
+    v = '1.0.1'
     with open(fn, 'r') as f:
         for l in f.readlines():
             if '__version__' in l:
@@ -15,11 +15,11 @@ def version(fn):
 #       return f.read()
 
 requirements = [
-#    'astropy>=3.2.1',
-#    'matplotlib>=3.1.1',
-#    'numpy>=1.17.2',
-#    'scipy>=1.3.0',
-#    'seaborn>=0.9.0',
+    'astropy',#>=3.2.1',
+    'matplotlib',#>=3.1.1',
+    'numpy',#>=1.17.2',
+    'scipy',#>=1.3.0',
+    'cloup',
 ]
 
 DATA_DIRNAME = 'data'

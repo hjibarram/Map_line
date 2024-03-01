@@ -3,6 +3,7 @@ MapLine.egg-info/PKG-INFO
 MapLine.egg-info/SOURCES.txt
 MapLine.egg-info/dependency_links.txt
 MapLine.egg-info/not-zip-safe
+MapLine.egg-info/requires.txt
 MapLine.egg-info/top_level.txt
 MapLines/__init__.py
 MapLines/common/__init__.py
