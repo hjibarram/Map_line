@@ -9,7 +9,7 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7]):
         sigma=fwhm[i]/ct*xo/(2.0*np.sqrt(2.0*np.log(2.0)))
         xm=xo*(1.0+dv[i]/ct)
         if i > 0:
-            A=A/fac[i-1]
+            A1=A/fac[i-1]
         model=tol.gauss_M(x,sigma=sigma,xo=xm,A1=A1)
         model_out.extend([model])
     return model_out
