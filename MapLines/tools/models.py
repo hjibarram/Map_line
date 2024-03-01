@@ -27,7 +27,7 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93):
     #xo_b=xo1*(1.0+dv1/ct)
     #Gb=tol.gauss_M(x,sigma=sigma1,xo=xo_b,A1=A1)
     #xo_r=xo1*(1.0+dv2/ct)
-    #A2=A1/fac
+    A2=A1/fac
     #Gr=tol.gauss_M(x,sigma=sigma1,xo=xo_r,A1=A2)
     
 
