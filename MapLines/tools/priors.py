@@ -72,7 +72,7 @@ def lnprob_gauss_Lin_Hb(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim):
 '''
 
 def lnprob_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim, lfac12):
-    lp = lnprior_gauss_Lin(theta,At=At, dv1t=dv1t,sim=sim)
+    lp = lnprior_gauss_Lin(theta,At=At, dv1t=dv1t, sim=sim)
     if not np.isfinite(lp):
         return -np.inf
     else:

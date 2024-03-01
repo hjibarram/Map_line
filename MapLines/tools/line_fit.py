@@ -11,7 +11,7 @@ import os.path as ptt
 import sys
 from tqdm import tqdm
 
-def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
         pdl_cubeE =fits.getdata(file1, 1, header=False)
@@ -107,11 +107,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                     data = (fluxt, fluxtE, wave_i, Loiii2, LnrHb, Loiii1, fluxp, dv1t, sim, lfac12)
                 else:
                     data = (fluxt, fluxtE, wave_i, Lnii2, LnrHa, Lnii1, fluxp, dv1t, sim, lfac12)
-                #else:
-                #    if hbfit:
-                #        data = (fluxt, fluxtE, wave_i, Loiii2, LnrHb, Loiii1, fluxp, dv1t, sim, lfac12)
-                #    else:
-                #        data = (fluxt, fluxtE, wave_i, Lnii2, LnrHa, Lnii1, fluxp, dv1t, sim, lfac12)
                 nwalkers=240
                 niter=1024
                 if single:
@@ -121,9 +116,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                         initial = np.array([0.04, 0.06, -20.0, 150.0, 1000.0, fluxp, 0.0])
                 else:
                     if hbfit:
-                        initial = np.array([0.04, 0.09, 0.75, -200.0, 40.0, 150.0, 1000.0, fluxp, 0.0])
+                        initial = np.array([0.04, 0.09, 0.75, -500.0, -80.0, 150.0, 1000.0, fluxp, 0.0])
                     else:
-                        initial = np.array([0.04, 0.06, 0.75, -200.0, 40.0, 150.0, 1000.0, fluxp, 0.0])
+                        initial = np.array([0.04, 0.06, 0.75, -500.0, -80.0, 150.0, 1000.0, fluxp, 0.0])
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
                 if plot_f:
@@ -133,10 +128,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                 if single:
                     sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin_s,data,tim=tim,ncpu=ncpu)
                 else:
-                    #if hbfit:
-                    sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)
-                    #else:
-                    #    sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)    
+                    sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
                 if single:
@@ -195,15 +187,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                         model_param[14,i,j]=fluxpt    
                 if plot_f:
                     import matplotlib.pyplot as plt
-                    fig = plt.figure(figsize=(7,5))#(22,6))
+                    fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
                     ax1.plot(wave_i,fluxtE,linewidth=0.5,color='grey',label=r'$1\sigma$ Error')
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-                    #if hbfit:
-                    #    ax1.plot(wave_i,mHbBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                    #else:
-                    #    ax1.plot(wave_i,mHaBR,linewidth=1,color='red',label=r'Ha_n_BR')
                     if single:
                         if hbfit:
                             ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
@@ -247,19 +235,20 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                             labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']#,"FWHM_B","A7","dv3"]
                     else:
                         labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3"]
-                        labels2 = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3"]
+                        if hbfit:
+                            labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
+                        else:
+                            labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
                     import corner  
-                    #fig = corner.corner(samples,show_titles=True,labels=labels,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84])
-                    #fig.set_size_inches(6.8, 6.8)
-                    #plt.show()
-                    #print(samples.shape)
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-                    fig.savefig('corners_NAME.pdf')#.replace('NAME',name)
+                    fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, single=single, lfac12=lfac12)
+                    if hbfit:
+                        med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=Loiii2, xo2=LnrHb, xo3=Loiii1, single=single, lfac12=lfac12)
+                    else:
+                        med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=Lnii2, xo2=LnrHa, xo3=Lnii1, single=single, lfac12=lfac12)
                     
                     
                     import matplotlib.pyplot as plt
@@ -276,7 +265,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                     ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
                     ax1.legend(fontsize=14)
                     plt.tight_layout()
-                    plt.savefig('spectra_mod.pdf')
+                    plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
                     #plt.show()
                 if pgr_bar == False:  
                     if single:  
@@ -286,7 +275,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,z=0.05536,j_t=0,i_t=0,lA1=6450
                 if test:        
                     sys.exit()        
             if pgr_bar:
-                #progress2.update(i)
                 pbar.update(1)
     
     if single:

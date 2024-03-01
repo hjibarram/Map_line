@@ -2,7 +2,7 @@
 import MapLines.tools.tools as tol
 import numpy as np
 
-
+'''
 def line_model_hb(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
     A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
     ct=299792.458
@@ -39,6 +39,7 @@ def line_model_hb(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False):
         return lin,Gb,Gr,hGb,hGr,nGb,nGr,hGbr
     else:
         return lin
+'''        
 
 def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93):
     A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
