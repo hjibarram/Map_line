@@ -11,7 +11,7 @@ import os.path as ptt
 import sys
 from tqdm import tqdm
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
         pdl_cubeE =fits.getdata(file1, 1, header=False)
@@ -43,14 +43,26 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     model_Broad=np.zeros([len(nw),nx,ny])
     if single:
         if cont:
-            model_param=np.zeros([10,nx,ny])
+            if skew:
+                model_param=np.zeros([12,nx,ny])
+            else:
+                model_param=np.zeros([10,nx,ny])
         else:
-            model_param=np.zeros([9,nx,ny])
+            if skew:
+                model_param=np.zeros([11,nx,ny])
+            else:
+                model_param=np.zeros([9,nx,ny])
     else:
         if cont:
-            model_param=np.zeros([15,nx,ny])
+            if skew:
+                model_param=np.zeros([17,nx,ny])
+            else:
+                model_param=np.zeros([15,nx,ny])
         else:
-            model_param=np.zeros([14,nx,ny])
+            if skew:
+                model_param=np.zeros([16,nx,ny])
+            else:
+                model_param=np.zeros([14,nx,ny])
     model_param[:,:,:]=np.nan    
     Loiii1=4960.36 
     LnrHb=4862.68 
@@ -109,13 +121,19 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single)
+                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew)
                 nwalkers=240
                 niter=1024
                 if single:
-                    initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0])
+                    if skew:
+                        initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
+                    else:
+                        initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0])
                 else:
-                    initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0])
+                    if skew:
+                        initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
+                    else:
+                        initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0])
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
                 if plot_f:
@@ -126,8 +144,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
                 if single:
-                    A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                    model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single)
+                    if skew:
+                        A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
+                    else:
+                        A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
+                    model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew)
                     model_all[:,i,j]=model
                     model_Blue[:,i,j]=m2B+m1B+mHB
                     model_Broad[:,i,j]=mHBR
@@ -142,8 +163,17 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[8,i,j]=fluxe_t
                     if cont:
                         model_param[9,i,j]=fluxpt
+                        ind=9
+                    else:
+                        ind=8
+                    if skew:
+                        model_param[ind+1,i,j]=alph1_f
+                        model_param[ind+2,i,j]=alphB_f
                 else:
-                    A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
+                    if skew:
+                        A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
+                    else:
+                        A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
                     if dv2_f < dv1_f:
                         fac_f=1/fac_f
                         dt=np.copy(dv2_f)
@@ -151,8 +181,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         dv1_f=dt
                         A1_f=A1_f*fac_f
                         A3_f=A3_f*fac_f
-                        theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f    
-                    model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single)
+                        if skew:
+                            theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f
+                        else:
+                            theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f    
+                    model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew)
                     model_all[:,i,j]=model
                     model_Blue[:,i,j]=m2B+m1B+mHB
                     model_Red[:,i,j]=m2R+m1R+mHR
@@ -172,7 +205,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[12,i,j]=fwhm2_f
                     model_param[13,i,j]=fluxe_t
                     if cont:
-                        model_param[14,i,j]=fluxpt    
+                        model_param[14,i,j]=fluxpt
+                        ind=14
+                    else:
+                        ind=13
+                    if skew:
+                        model_param[ind+1,i,j]=alph1_f
+                        model_param[ind+2,i,j]=alphB_f
                 if plot_f:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
@@ -216,24 +255,42 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     plt.tight_layout()
                     plt.show()
                     if single:
-                        labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3"]
-                        if hbfit:
-                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']#,"FWHM_B","A7","dv3"]
+                        if skew:
+                            labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3", "alph1", "alphB"]
                         else:
-                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']#,"FWHM_B","A7","dv3"]
+                            labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3"]
+                        if hbfit:
+                            if skew:
+                                labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
+                            else:
+                                labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
+                        else:
+                            if skew:
+                                labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
+                            else:
+                                labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
                     else:
-                        labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3"]
-                        if hbfit:
-                            labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
+                        if skew:
+                            labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3", "alph1", "alphB"]
                         else:
-                            labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
+                            labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3"]
+                        if hbfit:
+                            if skew:
+                                labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
+                            else:
+                                labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
+                        else:
+                            if skew:
+                                labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
+                            else:
+                                labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
                     import corner  
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12)
+                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew)
                     
                     
                     import matplotlib.pyplot as plt
@@ -251,9 +308,15 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     #plt.show()
                 if pgr_bar == False:  
                     if single:  
-                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
+                        if skew:
+                            print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
+                        else:
+                            print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
                     else:
-                        print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
+                        if skew:
+                            print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
+                        else:    
+                            print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
                 if test:        
                     sys.exit()        
             if pgr_bar:
@@ -338,7 +401,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             h['Val_7'] ='FWHM_Broad' 
             h['Val_8'] ='Noise_Median'
         if cont:
-            h['Val_9'] ='Continum' 
+            h['Val_9'] ='Continum'
+            ind=9
+        else:
+            ind=8
+        if skew:
+            h['Val_'+str(ind+1)]='Alpha_Narrow'
+            h['Val_'+str(ind+2)]='Alpha_Broad' 
     else:
         if hbfit:      
             h['Val_0'] ='OIII_5007_Amplitude_blue'
@@ -371,7 +440,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             h['Val_12'] ='FWHM_Broad'  
             h['Val_13'] ='Noise_Median' 
         if cont:
-            h['Val_14'] ='Continum'     
+            h['Val_14'] ='Continum'
+            ind=14
+        else:
+            ind=13  
+        if skew:
+            h['Val_'+str(ind+1)]='Alpha_Narrow'
+            h['Val_'+str(ind+2)]='Alpha_Broad'    
     try:    
         del h['CRVAL3']
         del h['CRPIX3']

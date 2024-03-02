@@ -2,7 +2,7 @@
 import MapLines.tools.tools as tol
 import numpy as np
 
-def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7]):
+def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=[0.0], skew=False):
     ct=299792.458
     model_out=[]
     for i in range(len(dv)):
@@ -12,7 +12,11 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7]):
             A1=A/fac[i-1]
         else:
             A1=A
-        model=tol.gauss_M(x,sigma=sigma,xo=xm,A1=A1)
+        if skew:
+            alp=alph[i]
+            model=tol.gauss_K(x,sigma=sigma,xo=xm,A1=A1,alp=alp)
+        else:
+            model=tol.gauss_M(x,sigma=sigma,xo=xm,A1=A1)
         model_out.extend([model])
     if len(model_out) == 1:
         return model_out[0]
@@ -20,18 +24,32 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7]):
         return model_out
         
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False):
+def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False):
     '''Model for the line complex'''
 
     if single:
-        A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
+        if skew:
+            A1,A3,dv1,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
+            alph=[alp1]
+            alphb=[alpb]
+        else:
+            A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
+            alph=[0]
+            alphb=[0]
         dv=[dv1]
         dvb=[dv3]
         fwhm=[fwhm1]
         fwhmb=[fwhm2]
         fact=[]
     else:
-        A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
+        if skew:
+            A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
+            alph=[alp1,alp1]
+            alphb=[alpb]
+        else:
+            A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
+            alph=[0]
+            alphb=[0]            
         dv=[dv1,dv2]
         dvb=[dv3]
         fwhm=[fwhm1,fwhm1]
@@ -40,10 +58,10 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
         
     
     A5=A1/lfac12
-    ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact)
-    ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact)
-    ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact)
-    ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb)
+    ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+    ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+    ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+    ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew)
     
     lin=0
     if single:
@@ -73,7 +91,7 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     else:
         return lin
 
-
+'''
 def line_model_s(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93):
     A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
     ct=299792.458
@@ -99,3 +117,4 @@ def line_model_s(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93):
         return lin,Gb,hGb,nGb,hGbr
     else:
         return lin
+'''

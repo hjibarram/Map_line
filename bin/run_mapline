@@ -23,6 +23,7 @@ def cli():
 @click.option('-y', '--path_out', type=str, default='outputs/', help='path of the output files')
 @click.option('-c', '--ncpus', type=int, default=10, help='number of CPUs')
 @click.option('-d', '--double', is_flag=True, default=False,help='flag to run double peak mode')
+@click.option('-k', '--kskew', is_flag=True, default=False,help='flag to run skew line profile mode')
 @click.option('-t', '--test', is_flag=True, default=False,help='flag to run the full analysis')
 @click.option('-e', '--error', is_flag=True, default=False,help='flag to run autocalculate the error vector')
 @click.option('-z', '--zt', type=float, default=0, help='redshift of the object')
@@ -33,7 +34,7 @@ def cli():
 @click.option('-j', '--jt', type=int, default=0, help='j index for test, default ny/2')
 @click.option('-h', '--hbet', is_flag=True, default=False,help='fit the hb region')
 
-def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out):
+def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew):
     
 
     if name_out == 'None':
@@ -72,6 +73,12 @@ def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,spro
         lA2=6850.0
         lbh='_ha' 
         hbfit=False
+    if kskew:
+        skew=True
+        skl='_skew'
+    else:
+        skew=False
+        skl=''    
 
     dirt=path
     dir_out=path_out
@@ -80,11 +87,11 @@ def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,spro
     file3=dirt+'NAMEM.fits.gz'.replace('NAMEM',mask)  
     if ptt.exists(dir_out) == False:
         tol.sycall('mkdir -p '+dir_out)
-    file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh
-    file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh
-    name_out2=name_out+lab+lbh
+    file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh+skl
+    file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl
+    name_out2=name_out+lab+lbh+skl
     line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,pgr_bar=pgr_bar,ncpu=ncpus,
-         single=single,flux_f=1.0,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,test=test,error_c=error_c,i_t=it,j_t=jt)
+         single=single,skew=skew,flux_f=1.0,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,test=test,error_c=error_c,i_t=it,j_t=jt)
     
 cli.add_command(run)
 

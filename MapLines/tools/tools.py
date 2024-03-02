@@ -27,12 +27,13 @@ def conv(xt,ke=2.5):
     return xf
 
 def gauss_K(x,sigma=1.0,xo=0.0,A1=1.0,alp=0):
-    dt=alp/np.sqrt(1+alp**2)
+    dt=alp/np.sqrt(np.abs(1+alp**2))
     xot=xo-sigma*dt*np.sqrt(2/np.pi)
     t=(x-xot)/sigma
     Phi=(1+errf(alp*t/np.sqrt(2.0)))
     Ghi=np.exp(-0.5*t**2.0)
-    y=A1*Phi*Ghi
+    y=A1*Ghi*Phi
+    return y
 
 def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*np.exp(-0.5*(x-xo)**2.0/sigma**2.0)
