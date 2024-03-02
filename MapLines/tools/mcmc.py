@@ -53,10 +53,7 @@ def sample_walkers(nsamples,flattened_chain,x=0,xo1=0,xo2=0,xo3=0,single=False, 
     draw = np.floor(np.random.uniform(0,len(flattened_chain),size=nsamples)).astype(int)
     thetas = flattened_chain[draw]
     for i in thetas:
-        if single:
-            modt = mod.line_model_s(i, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12)#model(i)
-        else:
-            modt = mod.line_model(i, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12)#model(i)
+        modt = mod.line_model(i, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12, single=single)
         models.append(modt)
     spread = np.std(models,axis=0)
     med_model = np.median(models,axis=0)

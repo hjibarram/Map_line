@@ -40,34 +40,36 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
         
     
     A5=A1/lfac12
-    #ModA
-    Gb,Gr=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact)
-    #ModH
-    hGb,hGr=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact)
-    #ModB
-    nGb,nGr=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact)
-    #ModHB
-    hGbr=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb)
+    ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact)
+    ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact)
+    ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact)
+    ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb)
     
-    '''
-    for i in range(len(ModA)):
-        lin=ModA[i]+ModH[i]+ModB[i]
+    lin=0
+    if single:
+        lin=ModA+ModH+ModB
+    else:
+        for i in range(len(ModA)):
+            lin=ModA[i]+ModH[i]+ModB[i]+lin
     lin=lin+ModHB    
     outvect=[]
     outvect.extend([lin])
-    for i in range(len(ModA)):
-        outvect.extend([ModA[i]])
-    for i in range(len(ModH)):
-        outvect.extend([ModH[i]])
-    for i in range(len(ModA)):
-        outvect.extend([ModB[i]])
-    outvect.extend([ModHB])            
-    '''
-
-    lin=Gb+Gr+hGb+hGr+nGb+nGr+hGbr
+    if single:
+        outvect.extend([ModA])
+        outvect.extend([ModH])
+        outvect.extend([ModB])
+        outvect.extend([ModHB])
+    else:
+        for i in range(len(ModA)):
+            outvect.extend([ModA[i]])
+        for i in range(len(ModH)):
+            outvect.extend([ModH[i]])
+        for i in range(len(ModA)):
+            outvect.extend([ModB[i]])
+        outvect.extend([ModHB])            
+    
     if ret_com:
-        #return outvect#lin,Gb,Gr,hGb,hGr,nGb,nGr,hGbr
-        return lin,Gb,Gr,hGb,hGr,nGb,nGr,hGbr
+        return outvect
     else:
         return lin
 
