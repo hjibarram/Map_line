@@ -43,7 +43,7 @@ setup(
     description='A Python implementation of the 3D emission line fitting code',
     #long_description=readme(),
     classifiers=[
-        'Development Status :: 1 - Production/Stable',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Astronomy',
