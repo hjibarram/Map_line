@@ -63,4 +63,6 @@ setup(
     zip_safe=False,
     test_suite='nose.collector',
     tests_require=['nose'],
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
 )
