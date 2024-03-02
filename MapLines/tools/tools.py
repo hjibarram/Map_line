@@ -3,6 +3,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d as filt1d
 import os
 import os.path as ptt
+from scipy.special import erf as errf
 
 
 def wfits_ext(name,hlist):
@@ -24,6 +25,17 @@ def conv(xt,ke=2.5):
     krn=ke
     xf=filt1d(xt,ke)
     return xf
+
+def gauss_K(x,sigma=1.0,xo=0.0,A1=1.0,alp=0):
+    dt=alp/np.sqrt(np.abs(1+alp**2))
+    xot=xo-sigma*dt*np.sqrt(2/np.pi)
+    omega=np.sqrt(sigma**2.0/(1-2*dt**2/np.pi))
+    #omega=sigma
+    t=(x-xot)/omega
+    Phi=(1+errf(alp*t/np.sqrt(2.0)))
+    Ghi=np.exp(-0.5*t**2.0)
+    y=A1*Ghi*Phi
+    return y
 
 def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*np.exp(-0.5*(x-xo)**2.0/sigma**2.0)
