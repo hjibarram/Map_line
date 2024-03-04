@@ -66,10 +66,10 @@ def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,spro
         error_c=True
     if abroad:
         broad=False
-        br='broad'
+        br=''
     else:
         broad=True    
-        br=''
+        br='_broad'
     if hbet:
         lA1=4700.0
         lA2=5050.0
