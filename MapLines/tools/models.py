@@ -24,7 +24,7 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=
         return model_out
         
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False):
+def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True):
     '''Model for the line complex'''
 
     if single:
@@ -61,15 +61,19 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
     ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
     ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-    ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew)
-    
+    if broad:
+        ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew)
+    else:
+        ModHB=np.copy(ModA)*0
+
     lin=0
     if single:
         lin=ModA+ModH+ModB
     else:
         for i in range(len(ModA)):
             lin=ModA[i]+ModH[i]+ModB[i]+lin
-    lin=lin+ModHB    
+    if broad:        
+        lin=lin+ModHB    
     outvect=[]
     outvect.extend([lin])
     if single:
