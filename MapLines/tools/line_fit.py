@@ -248,18 +248,21 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
                     if single:
                         if hbfit:
-                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                            if broad:
+                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_NR')
                             ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_NR')
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_NR')
                         else:
-                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                            if broad:
+                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
                             ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
                     else:
                         if hbfit:
-                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                            if broad:
+                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_b')
                             ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'OIII_2_r')
                             ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_b')
@@ -267,7 +270,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_b')
                             ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'OIII_1_r')
                         else:
-                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Ha_n_BR')
+                            if broad:
+                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Ha_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_b')
                             ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'NII_2_r')
                             ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_b')
