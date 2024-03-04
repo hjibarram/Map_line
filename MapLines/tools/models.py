@@ -33,29 +33,36 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
             alph=[alp1]
             alphb=[alpb]
         else:
-            A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
+            if broad:
+                A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
+                alphb=[0]
+            else:
+                A1,A3,dv1,fwhm1=theta
             alph=[0]
-            alphb=[0]
         dv=[dv1]
-        dvb=[dv3]
         fwhm=[fwhm1]
-        fwhmb=[fwhm2]
         fact=[]
+        if broad:
+            dvb=[dv3]
+            fwhmb=[fwhm2]
     else:
         if skew:
             A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
             alph=[alp1,alp1]
             alphb=[alpb]
         else:
-            A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
+            if broad:
+                A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
+                alphb=[0]
+            else:
+                A1,A3,fac,dv1,dv2,fwhm1=theta        
             alph=[0]
-            alphb=[0]            
         dv=[dv1,dv2]
-        dvb=[dv3]
         fwhm=[fwhm1,fwhm1]
-        fwhmb=[fwhm2]
         fact=[fac]
-        
+        if broad:
+            fwhmb=[fwhm2]
+            dvb=[dv3]
     
     A5=A1/lfac12
     ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
@@ -63,9 +70,7 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
     if broad:
         ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew)
-    else:
-        ModHB=np.copy(ModA)*0
-
+    
     lin=0
     if single:
         lin=ModA+ModH+ModB
@@ -80,7 +85,8 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
         outvect.extend([ModA])
         outvect.extend([ModH])
         outvect.extend([ModB])
-        outvect.extend([ModHB])
+        if broad:
+            outvect.extend([ModHB])
     else:
         for i in range(len(ModA)):
             outvect.extend([ModA[i]])
@@ -88,7 +94,8 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
             outvect.extend([ModH[i]])
         for i in range(len(ModA)):
             outvect.extend([ModB[i]])
-        outvect.extend([ModHB])            
+        if broad:
+            outvect.extend([ModHB])            
     
     if ret_com:
         return outvect
