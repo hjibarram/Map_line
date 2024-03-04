@@ -110,7 +110,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     if hbfit:
                         nwt=np.where((wave_f[nw] >= 5035.0) & (wave_f[nw] <= 5055.0))[0]
                     else:
-                        nwt=np.where((wave_f[nw] >= 6380.0) & (wave_f[nw] <= 6400.0))[0]  
+                        if broad:
+                            nwt=np.where((wave_f[nw] >= 6380.0) & (wave_f[nw] <= 6400.0))[0]  
+                        else:
+                            nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]  
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
                 if hbfit:
