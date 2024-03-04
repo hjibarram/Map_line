@@ -64,7 +64,7 @@ def lnprior_gauss_Lin(theta,At=0.05,dv1t=200,sim=False, single=False, skew=False
                     return -np.inf
             else:
                 A1,A3,fac,dv1,dv2,fwhm1=theta
-                if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((fac >= 0.0) and (fac <=30.0)) and ((fwhm1 >= 100.0) and (fwhm1 <= 800.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv2 >= dv2i) and (dv2 <= dv2s)): 
+                if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((fac >= 1.0) and (fac <=30.0)) and ((fwhm1 >= 10.0) and (fwhm1 <= 800.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv2 >= dv2i) and (dv2 <= dv2s)): 
                     return 0.0
                 else:
                     return -np.inf 
