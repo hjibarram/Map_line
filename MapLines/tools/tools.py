@@ -5,6 +5,7 @@ import os
 import os.path as ptt
 from scipy.special import erf as errf
 import yaml
+import sys
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
@@ -72,9 +73,13 @@ def step_vect(fluxi,sp=20,pst=True,sigma=10):
     return flux_t
 
 def read_config_file(file):
-    with open(file, 'r') as stream:
-        try:
-            data = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-    return data
+    try:
+        with open(file, 'r') as stream:
+            try:
+                data = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+        return data
+    except:
+        print('Config File not found')
+        sys.exit()
