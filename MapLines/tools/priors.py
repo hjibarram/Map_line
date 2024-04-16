@@ -4,9 +4,9 @@ import numpy as np
 '''This module contains the functions to calculate the likelihood and prior of the models'''
 
 
-def lnlike_gauss_Lin(theta, spec, specE , x, xo1, xo2, xo3, lfac12, single, skew, broad):
+def lnlike_gauss_Lin(theta, spec, specE , x, xo1, xo2, xo3, lfac12, single, skew, broad, lorentz):
     '''This function calculates the likelihood of a double model for the spectrum'''
-    model=mod.line_model(theta, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12, single=single, skew=skew, broad=broad)
+    model=mod.line_model(theta, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
     LnLike = -0.5*np.nansum(((spec-model)/specE)**2.0)
     return LnLike
 
@@ -69,13 +69,13 @@ def lnprior_gauss_Lin(theta,At=0.05,dv1t=200,sim=False, single=False, skew=False
                 else:
                     return -np.inf 
 
-def lnprob_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim, lfac12, single, skew, broad):
+def lnprob_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim, lfac12, single, skew, broad, lorentz):
     '''This function calculates the posterior of the double model for the spectrum'''
     lp = lnprior_gauss_Lin(theta,At=At, dv1t=dv1t, sim=sim, single=single, skew=skew, broad=broad)
     if not np.isfinite(lp):
         return -np.inf
     else:
-        return lp + lnlike_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, lfac12, single, skew, broad) 
+        return lp + lnlike_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, lfac12, single, skew, broad, lorentz) 
 
     
 #def lnlike_gauss_Lin_s(theta, spec, specE , x, xo1, xo2, xo3, lfac12, single):

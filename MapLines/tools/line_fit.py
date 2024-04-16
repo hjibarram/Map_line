@@ -11,7 +11,7 @@ import os.path as ptt
 import sys
 from tqdm import tqdm
 
-def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,broad=True,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     
     if input_format == 'TableFits':
         hdu_list = fits.open(file1)
@@ -134,24 +134,9 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
         L2wave=Lnii2
         LHwave=LnrHa
         LHBwave=LnrHa
-    #hdr["CRVAL3"]=wave_i[0]
-    #try:
-    #    hdr["CD3_3"]=cdelt
-    #except:
-    #    hdr["CDELT3"]=cdelt/(1+z)
-    #if pgr_bar:
-    #    pbar=tqdm(total=nz)
     for i in range(0, 1):
         for j in range(0, 1):
-            #val=mask[i,j]
             val=1
-            #if test:
-            #    if j_t*i_t == 0:
-            #        j_t=int(ny/2)
-            #        i_t=int(nx/2)
-            #    i=i_t
-            #    j=j_t
-            #    print('testing spaxel '+str(i)+' , '+str(j))
             if val == 1:
                 fluxt=pdl_data[nw]
                 if error_c:
@@ -176,7 +161,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad)
+                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz)
                 nwalkers=240
                 niter=1024
                 if single:
@@ -211,7 +196,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
                     else:
                         if broad:
                             A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                            model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
+                            model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
                         else:
                             A1_f,A3_f,dv1_f,fwhm1_f=theta_max
                             model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
@@ -263,7 +248,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
                     else:
                         if broad:
                             theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f
-                            model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
+                            model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
                         else:
                             theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f    
                             model,m2B,m2R,mHB,mHR,m1B,m1R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)                   
@@ -394,7 +379,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad)
+                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz)
                     
                     
                     import matplotlib.pyplot as plt
@@ -542,7 +527,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,broad=True,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
         pdl_cubeE =fits.getdata(file1, 1, header=False)
@@ -655,7 +640,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad)
+                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz)
                 nwalkers=240
                 niter=1024
                 if single:
@@ -690,7 +675,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     else:
                         if broad:
                             A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                            model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
+                            model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
                         else:
                             A1_f,A3_f,dv1_f,fwhm1_f=theta_max
                             model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
@@ -742,7 +727,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     else:
                         if broad:
                             theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f
-                            model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
+                            model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
                         else:
                             theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f    
                             model,m2B,m2R,mHB,mHR,m1B,m1R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)                   
@@ -873,7 +858,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad)
+                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz)
                     
                     
                     import matplotlib.pyplot as plt

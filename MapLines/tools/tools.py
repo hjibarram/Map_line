@@ -26,6 +26,10 @@ def conv(xt,ke=2.5):
     xf=filt1d(xt,ke)
     return xf
 
+def lorentz(x,sigma=1.0,xo=0.0,A1=1.0):
+    y=A1*(0.5*sigma)**2.0/((x-xo)**2.0+(0.5*sigma)**2.0) 
+    return y
+
 def gauss_K(x,sigma=1.0,xo=0.0,A1=1.0,alp=0):
     dt=alp/np.sqrt(np.abs(1+alp**2))
     xot=xo-sigma*dt*np.sqrt(2/np.pi)

@@ -34,8 +34,9 @@ def cli():
 @click.option('-j', '--jt', type=int, default=0, help='j index for test, default ny/2')
 @click.option('-h', '--hbet', is_flag=True, default=False,help='fit the hb region')
 @click.option('-a', '--abroad', is_flag=True, default=False,help='deactivate the broad component')
+@click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant broad profile')
 
-def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad):
+def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad,lorentz):
     
 
     if name_out == 'None':
@@ -101,7 +102,7 @@ def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,spro
     name_out2=name_out+lab+lbh+skl+br
     line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,pgr_bar=pgr_bar,ncpu=ncpus,
          single=single,skew=skew,flux_f=1.0,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,test=test,error_c=error_c,
-         broad=broad,i_t=it,j_t=jt)
+         broad=broad,i_t=it,j_t=jt,lorentz=lorentz)
     
 cli.add_command(run)
 
@@ -120,8 +121,9 @@ cli.add_command(run)
 @click.option('-h', '--hbet', is_flag=True, default=False,help='fit the hb region')
 @click.option('-a', '--abroad', is_flag=True, default=False,help='deactivate the broad component')
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
+@click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant broad profile')
 
-def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf):
+def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf,lorentz):
 
     if name_out == 'None':
         name_out=name
@@ -173,7 +175,7 @@ def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,ks
     file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh+skl
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl
     name_out2=name_out+lab+lbh+skl+br
-    line_fit_single(file1,file_out,file_out2,name_out2,input_format='CSV',z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,
+    line_fit_single(file1,file_out,file_out2,name_out2,input_format='CSV',z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,lorentz=lorentz,
          single=single,skew=skew,flux_f=flux_f,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,error_c=error_c,broad=broad)
 
 
