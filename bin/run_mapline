@@ -107,6 +107,7 @@ def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,spro
 cli.add_command(run)
 
 @cli.command('runoned', short_help='obtain the spectra model')
+@click.option('-g', '--config_file', type=str, default='', help='name of the config file')
 @click.option('-n', '--name', type=str, help='name of the spectra file')
 @click.option('-o', '--name_out', type=str, default='None', help='name of the output files')
 @click.option('-p', '--path',     type=str, default='', help='path to the data cubes')
@@ -122,8 +123,46 @@ cli.add_command(run)
 @click.option('-a', '--abroad', is_flag=True, default=False,help='deactivate the broad component')
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
 @click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant broad profile')
+@click.option('-i', '--input_format', type=str, default='CSV', help='input of the spectra file')
 
-def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf,lorentz):
+def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf,lorentz,input_format):
+ 
+    lA1hb=4700.0
+    lA2hb=5050.0
+    lA1ha=6350.0
+    lA2hab=6850.0
+    lA2ha=6650.0    
+
+    data=tol.read_config_file(config_file)
+    if data:
+        typeF=data['files'][0]['object_type']
+        if 'OneD' in typeF:
+            name=data['files'][0]['object_name']
+            name_out=data['files'][0]['name_out']
+            path=data['files'][0]['path']
+            path_out=data['files'][0]['path_out']
+            ncpus=data['files'][0]['ncpus']
+            double=data['files'][0]['double']
+            kskew=data['files'][0]['kskew']
+            error=data['files'][0]['error']
+            zt=data['files'][0]['zt']
+            rvel=data['files'][0]['rvel']
+            bcont=data['files'][0]['bcont']
+            waveR=data['files'][0]['wave_range']
+            if 'Hbeta' in waveR:
+                hbet=True
+            elif 'Halfa' in waveR:
+                hbet=False
+            else:
+                hbet=False
+
+            abroad=data['files'][0]['abroad']
+            fluxf=data['files'][0]['fluxf']
+            lorentz=data['files'][0]['lorentz']
+            input_format=data['files'][0]['input_format']
+        else:
+            print('Error: The config file is not for 1D spectra')
+            return
 
     if name_out == 'None':
         name_out=name
@@ -148,16 +187,16 @@ def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,ks
         broad=True    
         br='_broad'
     if hbet:
-        lA1=4700.0
-        lA2=5050.0
+        lA1=lA1hb
+        lA2=lA2hb
         lbh='_hb'
         hbfit=True
     else:
-        lA1=6350.0
+        lA1=lA1ha
         if broad:
-            lA2=6850.0
+            lA2=lA2hab
         else:
-            lA2=6650.0    
+            lA2=lA2ha   
         lbh='_ha' 
         hbfit=False
     if kskew:
@@ -169,13 +208,23 @@ def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,ks
     flux_f=fluxf        
     dirt=path
     dir_out=path_out
-    file1=dirt+'NAME.csv'.replace('NAME',name)
+    if input_format == 'CSV':
+        file1=dirt+'NAME.csv'.replace('NAME',name)
+    elif input_format == 'ASCII':
+        file1=dirt+'NAME.txt'.replace('NAME',name)
+    elif input_format == 'IrafFits' or input_format == 'TableFits':
+        file1=dirt+'NAME.fits'.replace('NAME',name)            
+    else:
+        file1=dirt+'NAME'
     if ptt.exists(dir_out) == False:
         tol.sycall('mkdir -p '+dir_out)
+
+    TableFits, IrafFits, CSV, ASCII
+
     file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh+skl
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl
     name_out2=name_out+lab+lbh+skl+br
-    line_fit_single(file1,file_out,file_out2,name_out2,input_format='CSV',z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,lorentz=lorentz,
+    line_fit_single(file1,file_out,file_out2,name_out2,input_format=input_format,z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,lorentz=lorentz,
          single=single,skew=skew,flux_f=flux_f,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,error_c=error_c,broad=broad)
 
 
