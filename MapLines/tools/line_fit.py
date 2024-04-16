@@ -11,7 +11,7 @@ import os.path as ptt
 import sys
 from tqdm import tqdm
 
-def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format='TableFits',z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,broad=True,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,broad=True,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     
     if input_format == 'TableFits':
         hdu_list = fits.open(file1)
@@ -35,41 +35,47 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
         crval=hdr["CRVAL3"]
         wave=crval+cdelt*(np.arange(nz)+1-crpix)  
     elif input_format == 'CSV':
-        ft=open(file1,'r'):
+        ft=open(file1,'r')
         wave=[]
         pdl_data=[]
         if error_c:
             pdl_dataE=[]
         for line in ft:
-            data=line.replace('\n','')
-            data=data.split(',')
-            data=list(filter(None,data))
-            wave.extend([float(data[0])])
-            pdl_data.extend([float(data[1])])
-            if error_c:
-                pdl_dataE.extend([float(data[2])])
+            if not 'Wave' in line:
+                data=line.replace('\n','')
+                data=data.split(',')
+                data=list(filter(None,data))
+                if len(data) > 1:
+                    wave.extend([float(data[0])])
+                    pdl_data.extend([float(data[1])])
+                    if error_c:
+                        pdl_dataE.extend([float(data[2])])
         wave=np.array(wave)
         pdl_data=np.array(pdl_data)
-        pdl_dataE=np.array(pdl_dataE)
-        pdl_dataE=pdl_dataE*flux_f*erft
+        if error_c:
+            pdl_dataE=np.array(pdl_dataE)
+            pdl_dataE=pdl_dataE*flux_f*erft
     elif input_format == 'ASCII':
-        ft=open(file1,'r'):
+        ft=open(file1,'r')
         wave=[]
         pdl_data=[]
         if error_c:
             pdl_dataE=[]
         for line in ft:
-            data=line.replace('\n','')
-            data=data.split(' ')
-            data=list(filter(None,data))
-            wave.extend([float(data[0])])
-            pdl_data.extend([float(data[1])])
-            if error_c:
-                pdl_dataE.extend([float(data[2])])
+            if not 'Wave' in line:
+                data=line.replace('\n','')
+                data=data.split(' ')
+                data=list(filter(None,data))
+                if len(data) > 1:
+                    wave.extend([float(data[0])])
+                    pdl_data.extend([float(data[1])])
+                    if error_c:
+                        pdl_dataE.extend([float(data[2])])
         wave=np.array(wave)
         pdl_data=np.array(pdl_data)
-        pdl_dataE=np.array(pdl_dataE)
-        pdl_dataE=pdl_dataE*flux_f*erft
+        if error_c:
+            pdl_dataE=np.array(pdl_dataE)
+            pdl_dataE=pdl_dataE*flux_f*erft
     else:
         print('Error: input_format not recognized')
         print('Options are: TableFits, IrafFits, CSV, ASCII')
@@ -191,10 +197,10 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
                             initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0])
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
-                if plot_f:
-                    tim=True
-                else:
-                    tim=False
+                #if plot_f:
+                tim=True
+                #else:
+                #    tim=False
                 sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
@@ -288,7 +294,7 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
                     if skew:
                         model_param[ind+1]=alph1_f
                         model_param[ind+2]=alphB_f
-                if plot_f:
+                if True:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
@@ -404,7 +410,7 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
                     plt.tight_layout()
                     plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
                     #plt.show()
-                if pgr_bar == False:  
+                if True:  
                     if single:  
                         if skew:
                             print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
@@ -421,10 +427,7 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
                                 print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
                             else:    
                                 print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
-                if test:        
-                    sys.exit()        
-            if pgr_bar:
-                pbar.update(1)
+               
     
     if single:
         h1=fits.PrimaryHDU(model_all)
@@ -436,36 +439,20 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
         h3=fits.ImageHDU(model_Red)
         h4=fits.ImageHDU(model_Broad)
     h_k=h1.header
-    #keys=list(hdr.keys())
-    #for i in range(0, len(keys)):
-    #    h_k[keys[i]]=hdr[keys[i]]
-    #    h_k.comments[keys[i]]=hdr.comments[keys[i]]
     h_k['EXTNAME'] ='Model'    
     h_k.update()
     if single:
         h_t=h2.header
-        #for i in range(0, len(keys)):
-        #    h_t[keys[i]]=hdr[keys[i]]
-        #    h_t.comments[keys[i]]=hdr.comments[keys[i]]
         h_t['EXTNAME'] ='Narrow_Component'
         h_t.update()  
     else:
         h_t=h2.header
-        #for i in range(0, len(keys)):
-        #    h_t[keys[i]]=hdr[keys[i]]
-        #    h_t.comments[keys[i]]=hdr.comments[keys[i]]
         h_t['EXTNAME'] ='Blue_Component'
         h_t.update()
         h_r=h3.header
-        #for i in range(0, len(keys)):
-        #    h_r[keys[i]]=hdr[keys[i]]
-        #    h_r.comments[keys[i]]=hdr.comments[keys[i]]
         h_r['EXTNAME'] ='Red_Component'
         h_r.update()    
     h_y=h4.header
-    #for i in range(0, len(keys)):
-    #    h_y[keys[i]]=hdr[keys[i]]
-    #    h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='Broad_Component'
     h_y.update()   
     if single:
@@ -478,11 +465,6 @@ def line_fit_single(file1,file2,file3,file_out,file_out2,name_out2,input_format=
     
     h1=fits.PrimaryHDU(model_param)
     h=h1.header
-    keys=list(hdr.keys())
-    #for i in range(0, len(keys)):
-    #    if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
-    #        h[keys[i]]=hdr[keys[i]]
-    #        h.comments[keys[i]]=hdr.comments[keys[i]]
     if single:
         if hbfit:
             h['Val_0'] ='OIII_5007_Amplitude'
