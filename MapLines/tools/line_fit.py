@@ -533,12 +533,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
         if skew:
             h['Val_'+str(ind+1)]='Alpha_Narrow'
             h['Val_'+str(ind+2)]='Alpha_Broad'    
-    try:    
-        del h['CRVAL3']
-        del h['CRPIX3']
-        del h['CDELT3']    
-    except:
-        print('No vals')
+    
 
     h.update()        
     hlist=fits.HDUList([h1])

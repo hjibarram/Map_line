@@ -119,8 +119,9 @@ cli.add_command(run)
 @click.option('-b', '--bcont', is_flag=True, default=False,help='flag to run deactivate autosubstract continum')
 @click.option('-h', '--hbet', is_flag=True, default=False,help='fit the hb region')
 @click.option('-a', '--abroad', is_flag=True, default=False,help='deactivate the broad component')
+@click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
 
-def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad):
+def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf):
 
     if name_out == 'None':
         name_out=name
@@ -162,7 +163,8 @@ def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,ks
         skl='_skew'
     else:
         skew=False
-        skl=''    
+        skl=''
+    flux_f=fluxf        
     dirt=path
     dir_out=path_out
     file1=dirt+'NAME.csv'.replace('NAME',name)
@@ -172,7 +174,7 @@ def runoned(name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,ks
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl
     name_out2=name_out+lab+lbh+skl+br
     line_fit_single(file1,file_out,file_out2,name_out2,input_format='CSV',z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,
-         single=single,skew=skew,flux_f=1.0,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,error_c=error_c,broad=broad)
+         single=single,skew=skew,flux_f=flux_f,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,error_c=error_c,broad=broad)
 
 
 

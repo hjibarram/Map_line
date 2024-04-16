@@ -22,7 +22,7 @@ def lnprior_gauss_Lin(theta,At=0.05,dv1t=200,sim=False, single=False, skew=False
         dv1s=dv1t
         dv2i=-dv1t
         dv2s=dv1t    
-    dA=At*0.3
+    dA=At*0.7#0.3
     if At-dA < 0:
         Am1=0.0
     else:
