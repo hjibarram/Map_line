@@ -82,4 +82,4 @@ def read_config_file(file):
         return data
     except:
         print('Config File not found')
-        sys.exit()
+        return None
