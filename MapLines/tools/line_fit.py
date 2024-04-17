@@ -551,7 +551,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
         pdl_cubeE =fits.getdata(file1, 1, header=False)
