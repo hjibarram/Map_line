@@ -133,6 +133,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         wavec2=data['continum'][0]['wave2']
         waveb1=data['continum'][0]['waveb1']
         waveb2=data['continum'][0]['waveb2']
+        valsp=data['priors']
     else:
         print('No configuration line model file')
         return
@@ -184,7 +185,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz)
+                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp)
                 nwalkers=240
                 niter=1024
                 if single:
@@ -603,6 +604,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             else:
                 model_param=np.zeros([14,nx,ny])
     model_param[:,:,:]=np.nan    
+
+    data_lines=tol.read_config_file(config_lines)
+    if data_lines:
+        valsp=data['priors']
+    else:
+        print('No configuration line model file')
+        return
+
     Loiii1=4960.36 
     LnrHb=4862.68 
     Loiii2=5008.22
@@ -663,7 +672,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz)
+                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp)
                 nwalkers=240
                 niter=1024
                 if single:
