@@ -210,7 +210,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 tim=True
                 #else:
                 #    tim=False
-                pri.lnprob_gauss_Lin(data)
+                pri.lnprob_gauss_Lin(fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp)
                 sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
