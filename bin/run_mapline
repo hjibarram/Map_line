@@ -132,6 +132,7 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
     lA1ha=6350.0
     lA2hab=6850.0
     lA2ha=6650.0    
+    wave_AB=False
 
     data=tol.read_config_file(config_file)
     if data:
@@ -146,7 +147,7 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
             kskew=data['files'][0]['kskew']
             error=data['files'][0]['error']
             zt=data['files'][0]['zt']
-            rvel=data['files'][0]['rvel']
+            #rvel=data['files'][0]['rvel']
             bcont=data['files'][0]['bcont']
             waveR=data['files'][0]['wave_range']
             if 'Hbeta' in waveR:
@@ -155,7 +156,11 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
                 hbet=False
             else:
                 hbet=False
-
+            wave_ini=data['files'][0]['wave_ini']
+            wave_fin=data['files'][0]['wave_fin']
+            if not 'None' in str(wave_ini) and wave_ini > 0:
+                if not 'None' in str(wave_fin) and wave_fin > 0:
+                    wave_AB=True
             abroad=data['files'][0]['abroad']
             fluxf=data['files'][0]['fluxf']
             lorentz=data['files'][0]['lorentz']
@@ -205,6 +210,9 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
     else:
         skew=False
         skl=''
+    if wave_AB:
+        lA1=wave_ini
+        lA2=wave_fin  
     flux_f=fluxf        
     dirt=path
     dir_out=path_out
@@ -218,8 +226,6 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
         file1=dirt+'NAME'
     if ptt.exists(dir_out) == False:
         tol.sycall('mkdir -p '+dir_out)
-
-    TableFits, IrafFits, CSV, ASCII
 
     file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh+skl
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl

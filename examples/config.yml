@@ -34,7 +34,6 @@ files:
   - object_name: None #name of the specfile
     object_type: OneD #type of the specfile: IFS for datacube or OneD for single spectra
     name_out: None #name of the output files
-    mask: None #name of the mask map
     path: '' #path to the data cubes
     path_out: outputs/ #path of the output files
     ncpus: 10 #number of CPUs'

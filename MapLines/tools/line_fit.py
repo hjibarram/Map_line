@@ -11,7 +11,7 @@ import os.path as ptt
 import sys
 from tqdm import tqdm
 
-def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     
     if input_format == 'TableFits':
         hdu_list = fits.open(file1)
@@ -116,24 +116,45 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
             else:
                 model_param=np.zeros(14)
     model_param[:]=np.nan    
-    Loiii1=4960.36 
-    LnrHb=4862.68 
-    Loiii2=5008.22
-    Lnii2=6585.278
-    LnrHa=6564.632
-    Lnii1=6549.859
-    if hbfit:
-        lfac12=3.0
-        L1wave=Loiii1
-        L2wave=Loiii2
-        LHwave=LnrHb
-        LHBwave=LnrHb
+    data_lines=tol.read_config_file(config_lines)
+    if data_lines:
+        n_lines=len(data['lines'])
+        L1name=data['lines'][0]['name']
+        L1wave=data['lines'][0]['wave']
+        lfac12=data['lines'][0]['fac']
+        L2wave=data['lines'][1]['wave']
+        L2name=data['lines'][1]['name']
+        LHwave=data['lines'][2]['wave']
+        LHname=data['lines'][2]['name']
+        LHBwave=data['lines'][3]['wave']
+        LHBname=data['lines'][3]['name']
+        region=data['continum'][0]['region']
+        wavec1=data['continum'][0]['wave1']
+        wavec2=data['continum'][0]['wave2']
+        waveb1=data['continum'][0]['waveb1']
+        waveb2=data['continum'][0]['waveb2']
     else:
-        lfac12=2.93
-        L1wave=Lnii1
-        L2wave=Lnii2
-        LHwave=LnrHa
-        LHBwave=LnrHa
+        print('No configuration line model file')
+        return
+
+    #Loiii1=4960.36 
+    #LnrHb=4862.68 
+    #Loiii2=5008.22
+    #Lnii2=6585.278
+    #LnrHa=6564.632
+    #Lnii1=6549.859
+    #if hbfit:
+    #    lfac12=3.0
+    #    L1wave=Loiii1
+    #    L2wave=Loiii2
+    #    LHwave=LnrHb
+    #    LHBwave=LnrHb
+    #else:
+    #    lfac12=2.93
+    #    L1wave=Lnii1
+    #    L2wave=Lnii2
+    #    LHwave=LnrHa
+    #    LHBwave=LnrHa
     for i in range(0, 1):
         for j in range(0, 1):
             val=1
@@ -144,19 +165,21 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
                 else:
                     fluxtE=tol.step_vect(fluxt,sp=50)
                 if cont:
-                    if hbfit:
-                        nwt=np.where((wave_f[nw] >= 5035.0) & (wave_f[nw] <= 5055.0))[0]
-                    else:
-                        if broad:
-                            nwt=np.where((wave_f[nw] >= 6380.0) & (wave_f[nw] <= 6400.0))[0]  
-                        else:
-                            nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]  
+                    #if hbfit:
+                    #    nwt=np.where((wave_f[nw] >= 5035.0) & (wave_f[nw] <= 5055.0))[0]
+                    #else:
+                    #    if broad:
+                    #        nwt=np.where((wave_f[nw] >= 6380.0) & (wave_f[nw] <= 6400.0))[0]  
+                    #    else:
+                    #        nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]
+                    nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
-                if hbfit:
-                    nwt=np.where((wave_f[nw] >= 4880.0) & (wave_f[nw] <= 4890.0))[0]
-                else:    
-                    nwt=np.where((wave_f[nw] >= 6569.0) & (wave_f[nw] <= 6572.0))[0]
+                #if hbfit:
+                #    nwt=np.where((wave_f[nw] >= 4880.0) & (wave_f[nw] <= 4890.0))[0]
+                #else:    
+                #    nwt=np.where((wave_f[nw] >= 6569.0) & (wave_f[nw] <= 6572.0))[0]
+                nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb1))[0]
                 fluxp=np.nanmean(fluxt[nwt])
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
@@ -287,18 +310,18 @@ def line_fit_single(file1,file_out,file_out2,name_out2,input_format='TableFits',
                     ax1.plot(wave_i,fluxtE,linewidth=0.5,color='grey',label=r'$1\sigma$ Error')
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
                     if single:
-                        if hbfit:
+                        if True:#hbfit:
                             if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_NR')
-                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_NR')
-                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_NR')
-                        else:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
-                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
-                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
+                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
+                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'$')
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'$')
+                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'$')
+                        #else:
+                        #    if broad:
+                        #        ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
+                        #    ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
+                        #    ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
+                        #    ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
                     else:
                         if hbfit:
                             if broad:

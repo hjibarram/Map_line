@@ -1,60 +1,20 @@
 --- 
-# Input Output Info
-files:
-  - object_name: None #name of the specfile
-    object_type: IFS #type of the specfile: IFS for datacube or OneD for single spectra
-    test: False #flag to run the full analysis
-    it: 0 #i index for test, default nx/2
-    jt: 0 #j index for test, default ny/2
-    name_out: None #name of the output files
-    mask: None #name of the mask map
-    path: '' #path to the data cubes
-    path_out: outputs/ #path of the output files
-    ncpus: 10 #number of CPUs'
-    sprogressd: False #fdeactivate the progress bar
-    
-    # Wavelenght Range
-    wave_ini: 4700.0 #initial wave vale, it overrides wave_range if not None
-    wave_fin: 5050.0 #final wave vale, it overrides wave_range if not None
-    wave_range: Hbeta #name of the spectral range, options are Hbeta, Halpha and None
-
-    # Model Components
-    abroad: False #deactivate the broad component
-    kskew: False #flag to run skew line profile mode
-    lorentz: False #activate the lorenztiant broad profile
-    double: False #flag to run double peak mode
-    error: False #flag to run autocalculate the error vector  
-    rvel: 500.0 #narrow velocity shift range
-
-    # Object Info
-    zt: 0.0 #redshift of the object
-    fluxf: 1.0 #flux scale factor  
-    bcont: False #flag to run deactivate autosubstract continum
-
-  - object_name: None #name of the specfile
-    object_type: OneD #type of the specfile: IFS for datacube or OneD for single spectra
-    name_out: None #name of the output files
-    mask: None #name of the mask map
-    path: '' #path to the data cubes
-    path_out: outputs/ #path of the output files
-    ncpus: 10 #number of CPUs'
-    input_format: CSV #format of the input file, options are TableFits, IrafFits, CSV, ASCII
-    
-    # Wavelenght Range
-    wave_ini: 4700.0 #initial wave vale, it overrides wave_range if not None
-    wave_fin: 5050.0 #final wave vale, it overrides wave_range if not None
-    wave_range: Hbeta #name of the spectral range, options are Hbeta, Halpha and None
-
-    # Model Components
-    abroad: False #deactivate the broad component
-    kskew: False #flag to run skew line profile mode
-    lorentz: False #activate the lorenztiant broad profile
-    double: False #flag to run double peak mode
-    error: False #flag to run autocalculate the error vector  
-    rvel: 500.0 #narrow velocity shift range
-
-    # Object Info
-    zt: 0.0 #redshift of the object
-    fluxf: 1.0 #flux scale factor  
-    bcont: False #flag to run deactivate autosubstract continum
+# Input line config
+lines:
+  - name: OIII #name of the line
+    wave: 4960.36  #central wavelenght 
+    fac_Name: OIIIB
+    fac: 3.0 
+  - name: OIII #name of the line
+    wave: 5008.22  #central wavelenght 
+  - name: H\beta_{NA} #name of the line
+    wave: 4862.68  #central wavelenght
+  - name: H\beta_{Br} #name of the line
+    wave: 4862.68  #central wavelenght 
+continum:
+  - region: Hbeta
+    wave1: 5035.0
+    wave2: 5055.0
+    waveb1: 4880.0
+    waveb2: 4890.0
 ...
