@@ -118,22 +118,22 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     model_param[:]=np.nan    
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
-        n_lines=len(data['lines'])
-        L1name=data['lines'][0]['name']
-        L1wave=data['lines'][0]['wave']
-        lfac12=data['lines'][0]['fac']
-        L2wave=data['lines'][1]['wave']
-        L2name=data['lines'][1]['name']
-        LHwave=data['lines'][2]['wave']
-        LHname=data['lines'][2]['name']
-        LHBwave=data['lines'][3]['wave']
-        LHBname=data['lines'][3]['name']
-        region=data['continum'][0]['region']
-        wavec1=data['continum'][0]['wave1']
-        wavec2=data['continum'][0]['wave2']
-        waveb1=data['continum'][0]['waveb1']
-        waveb2=data['continum'][0]['waveb2']
-        valsp=data['priors']
+        n_lines=len(data_lines['lines'])
+        L1name=data_lines['lines'][0]['name']
+        L1wave=data_lines['lines'][0]['wave']
+        lfac12=data_lines['lines'][0]['fac']
+        L2wave=data_lines['lines'][1]['wave']
+        L2name=data_lines['lines'][1]['name']
+        LHwave=data_lines['lines'][2]['wave']
+        LHname=data_lines['lines'][2]['name']
+        LHBwave=data_lines['lines'][3]['wave']
+        LHBname=data_lines['lines'][3]['name']
+        region=data_lines['continum'][0]['region']
+        wavec1=data_lines['continum'][0]['wave1']
+        wavec2=data_lines['continum'][0]['wave2']
+        waveb1=data_lines['continum'][0]['waveb1']
+        waveb2=data_lines['continum'][0]['waveb2']
+        valsp=data_lines['priors']
     else:
         print('No configuration line model file')
         return
@@ -607,7 +607,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
 
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
-        valsp=data['priors']
+        valsp=data_lines['priors']
     else:
         print('No configuration line model file')
         return
