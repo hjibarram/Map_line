@@ -38,6 +38,48 @@ def cli():
 
 def run(name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad,lorentz):
     
+    
+    lA1hb=4700.0
+    lA2hb=5050.0
+    lA1ha=6350.0
+    lA2hab=6850.0
+    lA2ha=6650.0    
+    wave_AB=False
+
+    data=tol.read_config_file(config_file)
+    if data:
+        typeF=data['files'][0]['object_type']
+        if 'OneD' in typeF:
+            name=data['files'][0]['object_name']
+            name_out=data['files'][0]['name_out']
+            path=data['files'][0]['path']
+            path_out=data['files'][0]['path_out']
+            ncpus=data['files'][0]['ncpus']
+            double=data['files'][0]['double']
+            kskew=data['files'][0]['kskew']
+            error=data['files'][0]['error']
+            zt=data['files'][0]['zt']
+            #rvel=data['files'][0]['rvel']
+            bcont=data['files'][0]['bcont']
+            waveR=data['files'][0]['wave_range']
+            if 'Hbeta' in waveR:
+                hbet=True
+            elif 'Halfa' in waveR:
+                hbet=False
+            else:
+                hbet=False
+            wave_ini=data['files'][0]['wave_ini']
+            wave_fin=data['files'][0]['wave_fin']
+            if not 'None' in str(wave_ini) and wave_ini > 0:
+                if not 'None' in str(wave_fin) and wave_fin > 0:
+                    wave_AB=True
+            abroad=data['files'][0]['abroad']
+            fluxf=data['files'][0]['fluxf']
+            lorentz=data['files'][0]['lorentz']
+            input_format=data['files'][0]['input_format']
+        else:
+            print('Error: The config file is not for 1D spectra')
+            return
 
     if name_out == 'None':
         name_out=name
