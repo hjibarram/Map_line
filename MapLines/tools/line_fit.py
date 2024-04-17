@@ -180,7 +180,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 #    nwt=np.where((wave_f[nw] >= 4880.0) & (wave_f[nw] <= 4890.0))[0]
                 #else:    
                 #    nwt=np.where((wave_f[nw] >= 6569.0) & (wave_f[nw] <= 6572.0))[0]
-                nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb1))[0]
+                nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
                 fluxp=np.nanmean(fluxt[nwt])
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
