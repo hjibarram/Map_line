@@ -37,8 +37,10 @@ def cli():
 @click.option('-a', '--abroad', is_flag=True, default=False,help='deactivate the broad component')
 @click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant broad profile')
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
+@click.option('-q', '--line_config', type=str, default='line_prop.yml', help='line model configuration file')
+@click.option('-w', '--line_config_path', type=str, default='', help='path to the line model configuration file')
 
-def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad,lorentz,fluxf):
+def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad,lorentz,fluxf,line_config,line_config_path):
     
 
     lA1hb=4700.0
@@ -82,6 +84,8 @@ def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcon
                 if not 'None' in str(wave_fin) and wave_fin > 0:
                     wave_AB=True
             fluxf=data['files'][0]['fluxf']
+            line_config=data['files'][0]['line_config']
+            line_config_path=data['files'][0]['line_config_path']
         else:
             print('Error: The config file is not for IFS spectra')
             return
@@ -150,9 +154,10 @@ def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcon
     file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh+skl
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl
     name_out2=name_out+lab+lbh+skl+br
+    config_lines=line_config_path+line_config
     line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,pgr_bar=pgr_bar,ncpu=ncpus,
          single=single,skew=skew,flux_f=fluxf,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,test=test,error_c=error_c,
-         broad=broad,i_t=it,j_t=jt,lorentz=lorentz)
+         broad=broad,i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines)
     
 cli.add_command(run)
 
@@ -174,8 +179,10 @@ cli.add_command(run)
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
 @click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant broad profile')
 @click.option('-i', '--input_format', type=str, default='CSV', help='input of the spectra file')
+@click.option('-q', '--line_config', type=str, default='line_prop.yml', help='line model configuration file')
+@click.option('-w', '--line_config_path', type=str, default='', help='path to the line model configuration file')
 
-def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf,lorentz,input_format):
+def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet,name_out,kskew,abroad,fluxf,lorentz,input_format,line_config,line_config_path):
  
     lA1hb=4700.0
     lA2hb=5050.0
@@ -215,6 +222,8 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
             fluxf=data['files'][0]['fluxf']
             lorentz=data['files'][0]['lorentz']
             input_format=data['files'][0]['input_format']
+            line_config=data['files'][0]['line_config']
+            line_config_path=data['files'][0]['line_config_path']
         else:
             print('Error: The config file is not for 1D spectra')
             return
@@ -280,8 +289,10 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
     file_out=dir_out+'NAME_modelsV2'.replace('NAME',name_out)+lab+lbh+skl
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+lab+lbh+skl
     name_out2=name_out+lab+lbh+skl+br
+    config_lines=line_config_path+line_config
     line_fit_single(file1,file_out,file_out2,name_out2,input_format=input_format,z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,lorentz=lorentz,
-         single=single,skew=skew,flux_f=flux_f,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,error_c=error_c,broad=broad)
+         single=single,skew=skew,flux_f=flux_f,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,error_c=error_c,broad=broad,
+         config_lines=config_lines)
 
 
 

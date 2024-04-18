@@ -25,6 +25,8 @@ files:
     double: False #flag to run double peak mode
     error: False #flag to run autocalculate the error vector  
     rvel: 500.0 #narrow velocity shift range
+    line_config: line_prop.yml #configuration file of the emision lines
+    line_config_path: '' #path to the configuration file of the emision lines
 
     # Object Info
     zt: 0.0 #redshift of the object
@@ -50,8 +52,8 @@ files:
     lorentz: False #activate the lorenztiant broad profile
     double: False #flag to run double peak mode
     error: False #flag to run autocalculate the error vector
-    line_config: line_prop.yml #line model configuration file
-    line_config_path: '' #path to the line model configuration file
+    line_config: line_prop.yml #configuration file of the emision lines
+    line_config_path: '' #path to the configuration file of the emision lines
     #rvel: 500.0 #narrow velocity shift range
 
     # Object Info

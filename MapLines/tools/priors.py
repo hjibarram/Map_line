@@ -36,11 +36,12 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
     #    dv1s=dv1t
     #    dv2i=-dv1t
     #    dv2s=dv1t    
-    dA=At*0.7#0.3
-    if At-dA < 0:
+    dA=At*0.3#0.3
+    if At-dA*3 < 0:
         Am1=0.0
     else:
-        Am1=At-dA
+        Am1=At-dA*3
+    #Am1=0.0
     Am2=At+dA
     if single:
         if skew:
