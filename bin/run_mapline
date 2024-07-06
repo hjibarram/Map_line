@@ -86,6 +86,7 @@ def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcon
                     wave_AB=True
             nline=data['files'][0]['n_line']
             fluxf=data['files'][0]['fluxf']
+            fluxf=float(fluxf)
             line_config=data['files'][0]['line_config']
             line_config_path=data['files'][0]['line_config_path']
         else:
