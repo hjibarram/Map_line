@@ -37,10 +37,11 @@ def cli():
 @click.option('-a', '--abroad', is_flag=True, default=False,help='deactivate the broad component')
 @click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant broad profile')
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
+@click.option('-u', '--nline', is_flag=True, default=False,help='activate the one line fit')
 @click.option('-q', '--line_config', type=str, default='line_prop.yml', help='line model configuration file')
 @click.option('-w', '--line_config_path', type=str, default='', help='path to the line model configuration file')
 
-def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad,lorentz,fluxf,line_config,line_config_path):
+def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcont,it,jt,sprogressd,hbet,name_out,kskew,abroad,lorentz,fluxf,nline,line_config,line_config_path):
     
 
     lA1hb=4700.0
@@ -143,7 +144,11 @@ def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcon
         skl=''
     if wave_AB:
         lA1=wave_ini
-        lA2=wave_fin          
+        lA2=wave_fin    
+    if nline:
+        n_line=True
+    else:
+        n_line=False   
     dirt=path
     dir_out=path_out
     file1=dirt+'NAME.fits.gz'.replace('NAME',name)
@@ -157,7 +162,7 @@ def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcon
     config_lines=line_config_path+line_config
     line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,pgr_bar=pgr_bar,ncpu=ncpus,
          single=single,skew=skew,flux_f=fluxf,erft=0.75,dv1t=rvel,sim=True,cont=cont,hbfit=hbfit,test=test,error_c=error_c,
-         broad=broad,i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines)
+         broad=broad,i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines,n_line=n_line)
     
 cli.add_command(run)
 

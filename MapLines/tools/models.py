@@ -27,7 +27,7 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=
         return model_out
         
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False):
+def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False, n_line=False):
     '''Model for the line complex'''
 
     if single:
@@ -40,7 +40,11 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                 A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
                 alphb=[0]
             else:
-                A1,A3,dv1,fwhm1=theta
+                if n_line:
+                    A1,dv1,fwhm1=theta
+                    A3=[0]
+                else:
+                    A1,A3,dv1,fwhm1=theta
             alph=[0]
         dv=[dv1]
         fwhm=[fwhm1]
@@ -58,7 +62,11 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                 A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
                 alphb=[0]
             else:
-                A1,A3,fac,dv1,dv2,fwhm1=theta        
+                if n_line:
+                    A1,fac,dv1,dv2,fwhm1=theta
+                    A3=[0]
+                else:
+                    A1,A3,fac,dv1,dv2,fwhm1=theta        
             alph=[0]
         dv=[dv1,dv2]
         fwhm=[fwhm1,fwhm1]
@@ -68,15 +76,21 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
             dvb=[dv3]
     
     A5=A1/lfac12
-    ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-    ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-    ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+    if n_line:
+        ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+    else:
+        ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+        ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
+        ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
     if broad:
         ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew, lorentz=lorentz)
     
     lin=0
     if single:
-        lin=ModA+ModH+ModB
+        if n_line:
+            lin=ModA
+        else:
+            lin=ModA+ModH+ModB
     else:
         for i in range(len(ModA)):
             lin=ModA[i]+ModH[i]+ModB[i]+lin
@@ -85,18 +99,25 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     outvect=[]
     outvect.extend([lin])
     if single:
-        outvect.extend([ModA])
-        outvect.extend([ModH])
-        outvect.extend([ModB])
+        if n_line:
+            outvect.extend([ModA])
+        else:
+            outvect.extend([ModA])
+            outvect.extend([ModH])
+            outvect.extend([ModB])
         if broad:
             outvect.extend([ModHB])
     else:
-        for i in range(len(ModA)):
-            outvect.extend([ModA[i]])
-        for i in range(len(ModH)):
-            outvect.extend([ModH[i]])
-        for i in range(len(ModA)):
-            outvect.extend([ModB[i]])
+        if n_line:
+            for i in range(len(ModA)):
+                outvect.extend([ModA[i]])
+        else:
+            for i in range(len(ModA)):
+                outvect.extend([ModA[i]])
+            for i in range(len(ModH)):
+                outvect.extend([ModH[i]])
+            for i in range(len(ModA)):
+                outvect.extend([ModB[i]])
         if broad:
             outvect.extend([ModHB])            
     
