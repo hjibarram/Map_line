@@ -697,7 +697,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         L2wave=Lnii2
         LHwave=LnrHa
         LHBwave=LnrHa
-    if n_line:
+#    if n_line:
 
     hdr["CRVAL3"]=wave_i[0]
     try:
