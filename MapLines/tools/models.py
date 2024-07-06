@@ -88,13 +88,13 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     lin=0
     if single:
         if n_line:
-            lin=ModA
+            lin=ModA*0
         else:
             lin=ModA+ModH+ModB
     else:
         for i in range(len(ModA)):
             if n_line:
-                lin=ModA[i]#+lin
+                lin=ModA[i]+lin
             else:
                 lin=ModA[i]+ModH[i]+ModB[i]+lin
     if broad:        
