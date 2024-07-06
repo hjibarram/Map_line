@@ -84,6 +84,7 @@ def run(config_file,name,mask,path,path_out,zt,rvel,ncpus,test,error,double,bcon
             if not 'None' in str(wave_ini) and wave_ini > 0:
                 if not 'None' in str(wave_fin) and wave_fin > 0:
                     wave_AB=True
+            nline=data['files'][0]['n_line']
             fluxf=data['files'][0]['fluxf']
             line_config=data['files'][0]['line_config']
             line_config_path=data['files'][0]['line_config_path']
