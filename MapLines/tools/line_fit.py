@@ -731,9 +731,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     #    else:
                     #        nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
-                    print(nwt,wavec1,wavec2,lA1,lA2)
                     fluxpt=np.nanmean(fluxt[nwt])  
-                    print(fluxpt)
                     fluxt=fluxt-fluxpt
                 #if hbfit:
                 #    nwt=np.where((wave_f[nw] >= 4880.0) & (wave_f[nw] <= 4890.0))[0]
@@ -894,9 +892,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1 = fig.add_subplot(1,1,1)
                     print(fluxt)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
-                   # ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-                   # ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-                  #  ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')
+                    ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
+                    ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
+                    ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')
                     if single:
                         if hbfit:
                             if broad:
@@ -908,10 +906,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         else:
                             if broad:
                                 ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                            #ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
-                            #if not n_line:
-                            #    ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
-                            #    ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
+                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
+                            if not n_line:
+                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
+                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
                     else:
                         if hbfit:
                             if broad:
