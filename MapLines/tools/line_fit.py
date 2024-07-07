@@ -906,7 +906,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             if broad:
                                 ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
                             ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
-                            if not_line:
+                            if not n_line:
                                 ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
                                 ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
                     else:
