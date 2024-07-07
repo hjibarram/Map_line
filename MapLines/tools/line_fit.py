@@ -890,7 +890,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
-                    print(fluxt)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
                     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
