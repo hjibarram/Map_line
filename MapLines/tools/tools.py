@@ -4,7 +4,8 @@ from scipy.ndimage import gaussian_filter1d as filt1d
 import os
 import os.path as ptt
 from scipy.special import erf as errf
-
+import yaml
+import sys
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
@@ -25,6 +26,10 @@ def conv(xt,ke=2.5):
     krn=ke
     xf=filt1d(xt,ke)
     return xf
+
+def lorentz(x,sigma=1.0,xo=0.0,A1=1.0):
+    y=A1*(0.5*sigma)**2.0/((x-xo)**2.0+(0.5*sigma)**2.0) 
+    return y
 
 def gauss_K(x,sigma=1.0,xo=0.0,A1=1.0,alp=0):
     dt=alp/np.sqrt(np.abs(1+alp**2))
@@ -66,3 +71,15 @@ def step_vect(fluxi,sp=20,pst=True,sigma=10):
         else:
             flux_t[i]=np.nanstd(flux[i0:i1])
     return flux_t
+
+def read_config_file(file):
+    try:
+        with open(file, 'r') as stream:
+            try:
+                data = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+        return data
+    except:
+        print('Config File not found')
+        return None
