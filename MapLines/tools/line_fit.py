@@ -802,17 +802,17 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         model_Blue[:,i,j]=m2B+m1B+mHB
                     if broad:
                         model_Broad[:,i,j]=mHBR
-                    model_param[0,i,j]=A1_f*flux_f
-                    model_param[1,i,j]=A1_f/lfac12*flux_f
-                    model_param[2,i,j]=A3_f*flux_f
-                    model_param[3,i,j]=A7_f*flux_f
+                    model_param[0,i,j]=A1_f/flux_f
+                    model_param[1,i,j]=A1_f/lfac12/flux_f
+                    model_param[2,i,j]=A3_f/flux_f
+                    model_param[3,i,j]=A7_f/flux_f
                     model_param[4,i,j]=dv1_f
                     model_param[5,i,j]=dv3_f
                     model_param[6,i,j]=fwhm1_f
                     model_param[7,i,j]=fwhm2_f
-                    model_param[8,i,j]=fluxe_t*flux_f
+                    model_param[8,i,j]=fluxe_t/flux_f
                     if cont:
-                        model_param[9,i,j]=fluxpt*flux_f
+                        model_param[9,i,j]=fluxpt/flux_f
                         ind=9
                     else:
                         ind=8
@@ -864,22 +864,22 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         model_Red[:,i,j]=m2R+m1R+mHR
                     if broad:
                         model_Broad[:,i,j]=mHBR
-                    model_param[0,i,j]=A1_f*flux_f
-                    model_param[1,i,j]=A1_f/lfac12*flux_f
-                    model_param[2,i,j]=A3_f*flux_f
-                    model_param[3,i,j]=A7_f*flux_f
+                    model_param[0,i,j]=A1_f/flux_f
+                    model_param[1,i,j]=A1_f/lfac12/flux_f
+                    model_param[2,i,j]=A3_f/flux_f
+                    model_param[3,i,j]=A7_f/flux_f
                     model_param[4,i,j]=fac_f
-                    model_param[5,i,j]=A1_f/fac_f*flux_f
-                    model_param[6,i,j]=A1_f/fac_f/lfac12*flux_f
-                    model_param[7,i,j]=A3_f/fac_f*flux_f
+                    model_param[5,i,j]=A1_f/fac_f/flux_f
+                    model_param[6,i,j]=A1_f/fac_f/lfac12/flux_f
+                    model_param[7,i,j]=A3_f/fac_f/flux_f
                     model_param[8,i,j]=dv1_f
                     model_param[9,i,j]=dv2_f
                     model_param[10,i,j]=dv3_f
                     model_param[11,i,j]=fwhm1_f
                     model_param[12,i,j]=fwhm2_f
-                    model_param[13,i,j]=fluxe_t*flux_f
+                    model_param[13,i,j]=fluxe_t/flux_f
                     if cont:
-                        model_param[14,i,j]=fluxpt*flux_f
+                        model_param[14,i,j]=fluxpt/flux_f
                         ind=14
                     else:
                         ind=13
