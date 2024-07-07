@@ -731,6 +731,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     #    else:
                     #        nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
+                    print(wavec1,wavec2)
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
                 #if hbfit:
