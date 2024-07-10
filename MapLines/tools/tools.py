@@ -94,8 +94,7 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val
     vel=pdl_cube0[ind3,:,:]
     nt=np.where(np.round(vel,decimals=3) == val0)
     vel=vel+zt*ct
-    if len(nt) > 0:
-        vel[nt]=0
+    
     try:
         cont=pdl_cube0[ind4,:,:]
         conti=True
@@ -108,4 +107,9 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val
     else:
         ew=None
     sigma=fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))    
+    if len(nt) > 0:
+        vel[nt]=0
+        flux[nt]=0
+        sigma[nt]=0
+        ew[nt]=0
     return flux,vel,sigma,ew
