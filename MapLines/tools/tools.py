@@ -91,7 +91,7 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0):
     [pdl_cube0, hdr0]=fits.getdata(file0, 0, header=True)
     Amp=pdl_cube0[ind1,:,:]
     fwhm=pdl_cube0[ind2,:,:]
-    vel=pdl_cube0[ind3,:,:]+zt*ct/1e3
+    vel=pdl_cube0[ind3,:,:]+zt*ct
     try:
         cont=pdl_cube0[ind4,:,:]
         conti=True
