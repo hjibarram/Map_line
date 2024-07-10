@@ -94,11 +94,12 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0):
     vel=pdl_cube0[ind3,:,:]+zt*ct
     try:
         cont=pdl_cube0[ind4,:,:]
+        conti=True
     except:
-        cont=False
+        conti=False
     sigma=fwhm/ct*lo/(2.0*np.sqrt(2.0*np.log(2.0)))
     flux=np.sqrt(2.0*np.pi)*sigma*Amp
-    if cont:
+    if conti:
         ew=flux/cont
     else:
         ew=None
