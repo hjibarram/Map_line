@@ -91,6 +91,6 @@ def get_fluxline(file,path='',ind1=3,ind2=7,lo=6564.632):
     [pdl_cube0, hdr0]=fits.getdata(file0, 0, header=True)
     Amp=pdl_cube0[ind1,:,:]
     fwhm=pdl_cube0[ind2,:,:]
-    sigma=fwhm/ct*xo1/(2.0*np.sqrt(2.0*np.log(2.0)))
+    sigma=fwhm/ct*lo/(2.0*np.sqrt(2.0*np.log(2.0)))
     flux=np.sqrt(2.0*np.pi)*sigma*Amp
     return flux,sigma
