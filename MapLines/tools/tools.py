@@ -87,8 +87,8 @@ def read_config_file(file):
 def get_fluxline(file,path='',in1=3,ind2=7,lo=6564.632):
     file0=path+'/'+file
     [pdl_cube0, hdr0]=fits.getdata(file0, 0, header=True)
-    Amp=pdl_cube1[3,:,:]
-    fwhm=pdl_cube1[7,:,:]
+    Amp=pdl_cube1[in1,:,:]
+    fwhm=pdl_cube1[in2,:,:]
     sigma=fwhm/ct*xo1/(2.0*np.sqrt(2.0*np.log(2.0)))
     flux=np.sqrt(2.0*np.pi)*sigma*Amp
     return flux,sigma
