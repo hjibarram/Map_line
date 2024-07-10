@@ -93,7 +93,7 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0):
     fwhm=pdl_cube0[ind2,:,:]
     vel=pdl_cube0[ind3,:,:]
     nt=np.where(vel == 0)
-    vel=vel+zt*ct
+    #vel=vel+zt*ct
     print(nt)
     if len(nt) > 0:
         vel[nt]=0
