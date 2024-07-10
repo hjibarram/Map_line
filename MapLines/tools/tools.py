@@ -6,6 +6,7 @@ import os.path as ptt
 from scipy.special import erf as errf
 import yaml
 import sys
+from astropy.io import fits
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
