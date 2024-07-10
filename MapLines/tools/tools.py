@@ -86,6 +86,7 @@ def read_config_file(file):
         return None
 
 def get_fluxline(file,path='',ind1=3,ind2=7,lo=6564.632):
+    ct=299792.458
     file0=path+'/'+file
     [pdl_cube0, hdr0]=fits.getdata(file0, 0, header=True)
     Amp=pdl_cube0[ind1,:,:]
