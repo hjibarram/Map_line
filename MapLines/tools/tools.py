@@ -103,4 +103,5 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0):
         ew=flux/cont
     else:
         ew=None
+    sigma=fwhm/(2.0*np.sqrt(2.0*np.log(2.0)))    
     return flux,vel,sigma,ew
