@@ -85,16 +85,15 @@ def read_config_file(file):
         print('Config File not found')
         return None
 
-def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0):
+def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val0=0):
     ct=299792.458
     file0=path+'/'+file
     [pdl_cube0, hdr0]=fits.getdata(file0, 0, header=True)
     Amp=pdl_cube0[ind1,:,:]
     fwhm=pdl_cube0[ind2,:,:]
     vel=pdl_cube0[ind3,:,:]
-    nt=np.where(vel == 0)
-    #vel=vel+zt*ct
-    print(nt)
+    nt=np.where(vel == val0)
+    vel=vel+zt*ct
     if len(nt) > 0:
         vel[nt]=0
     try:
