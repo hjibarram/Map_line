@@ -20,6 +20,9 @@ requirements = [
     'numpy',#>=1.17.2',
     'scipy',#>=1.3.0',
     'cloup',
+    'click',
+    'emcee',
+    'tqdm',
 ]
 
 DATA_DIRNAME = 'data'
