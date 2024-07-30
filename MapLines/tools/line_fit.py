@@ -23,6 +23,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             pdl_dataE=table_data.field('ERROR')
             pdl_dataE=pdl_dataE*flux_f*erft
     elif input_format == 'SDSS':
+        print(file)
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
         table_data = table_hdu.data
