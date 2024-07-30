@@ -23,7 +23,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             pdl_dataE=table_data.field('ERROR')
             pdl_dataE=pdl_dataE*flux_f*erft
     elif input_format == 'SDSS':
-        print(file1)
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
         table_data = table_hdu.data
@@ -32,7 +31,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         wave=10**wave
         if error_c:
             pdl_dataE=table_data.field('IVAR')
-            pdl_dataE=1/sqrt(pdl_dataE)
+            pdl_dataE=1/np.sqrt(pdl_dataE)
             pdl_dataE=pdl_dataE*flux_f*erft    
     elif input_format == 'IrafFits':
         [pdl_data, hdr]=fits.getdata(file1, 0, header=True)

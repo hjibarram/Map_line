@@ -286,9 +286,7 @@ def runoned(config_file,name,path,path_out,zt,rvel,ncpus,error,double,bcont,hbet
         file1=dirt+'NAME.csv'.replace('NAME',name)
     elif input_format == 'ASCII':
         file1=dirt+'NAME.txt'.replace('NAME',name)
-    elif input_format == 'IrafFits' or input_format == 'TableFits':
-        file1=dirt+'NAME.fits'.replace('NAME',name)     
-    elif input_format == 'IrafFits' or input_format == 'SDSS':
+    elif input_format == 'IrafFits' or input_format == 'TableFits' or input_format == 'SDSS':
         file1=dirt+'NAME.fits'.replace('NAME',name)           
     else:
         file1=dirt+'NAME'
