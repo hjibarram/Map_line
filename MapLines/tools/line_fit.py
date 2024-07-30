@@ -625,7 +625,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             try:
                 pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
                 pdl_cubeE=1.0/np.sqrt(pdl_cubeE)
-            except
+            except:
                 pdl_cubeE =fits.getdata(file1, 1, header=False)    
         pdl_cubeE=pdl_cubeE*flux_f*erft
     nz,nx,ny=pdl_cube.shape
