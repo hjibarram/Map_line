@@ -40,7 +40,7 @@ files:
     path: '' #path to the data cubes
     path_out: outputs/ #path of the output files
     ncpus: 10 #number of CPUs'
-    input_format: CSV #format of the input file, options are TableFits, IrafFits, CSV, ASCII
+    input_format: CSV #format of the input file, options are TableFits, IrafFits, CSV, ASCII, SDSS
     
     # Wavelenght Range
     wave_ini: 4700.0 #initial wave vale, it overrides wave_range if not None

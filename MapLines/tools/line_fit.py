@@ -22,6 +22,17 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         if error_c:
             pdl_dataE=table_data.field('ERROR')
             pdl_dataE=pdl_dataE*flux_f*erft
+    elif input_format == 'SDSS':
+        hdu_list = fits.open(file1)
+        table_hdu = hdu_list[1]
+        table_data = table_hdu.data
+        pdl_data=table_data.field('FLUX')
+        wave=table_data.field('LOGLAM')
+        wave=10**wave
+        if error_c:
+            pdl_dataE=table_data.field('IVAR')
+            pdl_dataE=1/np.sqrt(pdl_dataE)
+            pdl_dataE=pdl_dataE*flux_f*erft    
     elif input_format == 'IrafFits':
         [pdl_data, hdr]=fits.getdata(file1, 0, header=True)
         if error_c:
@@ -603,9 +614,19 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
 
 
 def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
-    [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
+    try:
+        [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
+    except:
+        [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
-        pdl_cubeE =fits.getdata(file1, 1, header=False)
+        try:
+            pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
+        except:
+            try:
+                pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
+                pdl_cubeE=1.0/np.sqrt(pdl_cubeE)
+            except:
+                pdl_cubeE =fits.getdata(file1, 1, header=False)    
         pdl_cubeE=pdl_cubeE*flux_f*erft
     nz,nx,ny=pdl_cube.shape
     pdl_cube=pdl_cube*flux_f
