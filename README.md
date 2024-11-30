@@ -1,5 +1,95 @@
 # MapLine 1.0.7
 
+## Description
+
+**MapLine** is an emission line fitting software optimized for active galactic nuclei (AGN) spectra, whether one-dimensional or obtained through integral field spectroscopy (IFS). Its main purpose is to characterize the broad and narrow components of various emission lines in the optical range. It allows modifying aspects such as the number of components to fit, the lines to consider, the flux profile (Gaussian, double Gaussian, Lorentzian, skew), the spectral fitting range, the input/output file type, continuum extraction, among others. The software is written in Python and has a modular structure, making it easy to customize and adapt to different analysis needs.
+
+## Installation
+
+First, verify the Python version installed on your system. MapLine requires Python 3.12.3 or higher.
+
+It is recommended to create a virtual environment for installing MapLine and the necessary dependencies. This allows better control of the environment and avoids conflicts with other installed packages. You can create a virtual environment with the following commands:
+
+```bash
+# Create a folder for virtual environments
+mkdir .venvs
+
+# Create a virtual environment named 'MyEnv'
+python -m venv .venvs/MyEnv
+
+# Activate the virtual environment
+source .venvs/MyEnv/bin/activate
+```
+
+Once the virtual environment is activated, you can install MapLine with the following command:
+
+```bash
+pip install mapline
+```
+
+During the installation, all necessary dependencies will be installed.
+
+## Project Structure
+
+MapLine is composed of different modules that contain the functions needed for emission line fitting:
+
+- **line_fit.py**: Main module that contains the fitting functions for one-dimensional spectra (`line_fit_single`) and data cubes (`line_fit`).
+- **mcmc.py**: Implements the Monte Carlo – Markov Chain (MCMC) algorithm to optimize emission line fitting using the `emcee` package.
+- **models.py**: Contains the emission line models used in the fitting, such as `emission_line_model` and `line_model`.
+- **priors.py**: Provides statistical functions to estimate the likelihood and initial parameter values for fitting.
+- **tools.py**: Includes additional tools such as reading `.fits` files and handling configuration files.
+
+## Usage
+
+MapLine is run from the command line using the `run_mapline` command. The basic execution structure is as follows:
+
+```bash
+run_mapline [options]
+```
+
+Some available commands are:
+
+- `run`: Runs MapLine to fit emission lines.
+- `runoned`: Gets the spectrum model.
+
+### Options
+
+| Option            | Description                                  |
+|-------------------|----------------------------------------------|
+| `-g, --config_file` | Configuration file name.                    |
+| `-n, --name`      | Data cube name.                              |
+| `-o, --name_out`  | Output file name.                            |
+| `-m, --mask`      | Mask file name.                              |
+| `-p, --path`      | Path to the data cube.                       |
+| `-y, --path_out`  | Path to the output files.                    |
+| `-c, --ncpus`     | Number of CPUs to use.                       |
+| `-d, --double`    | Enable double Gaussian mode.                 |
+| `-k, --kskew`     | Enable skew line mode.                       |
+| `-t, --test`      | Test mode.                                   |
+| `-e, --error`     | Calculate error vector.                      |
+| `-z, --zt`        | Object redshift.                             |
+
+For example, to run MapLine using a configuration file named `config.yml`, using 6 CPUs, the double Gaussian model, and a line configuration file named `line_prop.yml`, the command would be:
+
+```bash
+run_mapline -g config.yml -c 6 -d -q line_prop.yml
+```
+
+All these options, along with additional ones, can also be specified in the configuration file.
+
+## Configuration Files
+
+MapLine allows defining several parameters through configuration files, such as `config.yml` and `line_prop.yml`. These files allow full customization of the settings and options of the program to meet the user's specific needs.
+
+## Contributions
+
+Contributions to MapLine are welcome. You can submit your suggestions, bug reports, or improvements through the official GitHub repository.
+
+## License
+
+MapLine is distributed under the MIT license. You are free to use, modify, and distribute it, as long as proper attribution is maintained.
+
+## Español
 ## Descripción
 
 **MapLine** es un software de ajuste de líneas de emisión optimizado para espectros de núcleos activos de galaxias (AGN), ya sean unidimensionales o obtenidos por espectroscopía de campo integral (IFS). Su principal propósito es caracterizar los componentes anchos y angostos de varias líneas de emisión en el rango óptico. Permite modificar aspectos como el número de componentes a ajustar, las líneas a considerar, el perfil de flujo (gaussiano, doble gaussiano, lorentziano, skew), el rango espectral de ajuste, el tipo de archivo de entrada/salida, la extracción del continuo, entre otros. El software está escrito en Python y tiene una estructura modular, lo cual facilita su personalización y adaptación a diferentes necesidades de análisis.
