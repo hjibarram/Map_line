@@ -1,4 +1,4 @@
-# MapLine 1.0.7
+# MapLine 1.0.8
 
 ## Description
 
