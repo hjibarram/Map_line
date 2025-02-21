@@ -21,6 +21,7 @@ files:
     # Model Components
     abroad: False #deactivate the broad component
     kskew: False #flag to run skew line profile mode
+    outflow: False #flag to run outflow line profile mode
     lorentz: False #activate the lorenztiant broad profile
     double: False #flag to run double peak mode
     error: False #flag to run autocalculate the error vector  

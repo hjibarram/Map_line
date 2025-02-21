@@ -27,7 +27,7 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=
         return model_out
         
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False, n_line=False):
+def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False, n_line=False, outflow=False):
     '''Model for the line complex'''
 
     if single:
@@ -44,7 +44,11 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                     A1,dv1,fwhm1=theta
                     A3=[0]
                 else:
-                    A1,A3,dv1,fwhm1=theta
+                    if outflow:
+                        A1,A3,dv1,fwhm1=theta
+                    else:
+                        A1,A3,dv1,fwhm1,A1o,A3o,dvO,fwhmO=theta
+
             alph=[0]
         dv=[dv1]
         fwhm=[fwhm1]
@@ -84,6 +88,15 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
         ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
     if broad:
         ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew, lorentz=lorentz)
+    if outflow:
+        A5o=A1o/lfac12
+        if n_line:
+            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO)#, alph=alph, skew=skew)
+        else:
+            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO)#, alph=alph, skew=skew)
+            ModHo=emission_line_model(x, xo=xo2, A=A3o, dv=dvO, fwhm=fwhmO)#, alph=alph, skew=skew)
+            ModBo=emission_line_model(x, xo=xo3, A=A5o, dv=dvO, fwhm=fwhmO)#, alph=alph, skew=skew)
+        
     
     lin=0
     if single:
@@ -96,7 +109,10 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
             if n_line:
                 lin=ModA[i]+lin
             else:
-                lin=ModA[i]+ModH[i]+ModB[i]+lin
+                if outflow:
+                    lin=ModA[i]+ModH[i]+ModB[i]+ModAo[i]+ModHo[i]+ModBo[i]+lin
+                else:
+                    lin=ModA[i]+ModH[i]+ModB[i]+lin
     if broad:        
         lin=lin+ModHB    
     outvect=[]

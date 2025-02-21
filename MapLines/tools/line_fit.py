@@ -11,7 +11,7 @@ import os.path as ptt
 import sys
 from tqdm import tqdm
 
-def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,outflow=False,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     
     if input_format == 'TableFits':
         hdu_list = fits.open(file1)
@@ -149,24 +149,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         print('No configuration line model file')
         return
 
-    #Loiii1=4960.36 
-    #LnrHb=4862.68 
-    #Loiii2=5008.22
-    #Lnii2=6585.278
-    #LnrHa=6564.632
-    #Lnii1=6549.859
-    #if hbfit:
-    #    lfac12=3.0
-    #    L1wave=Loiii1
-    #    L2wave=Loiii2
-    #    LHwave=LnrHb
-    #    LHBwave=LnrHb
-    #else:
-    #    lfac12=2.93
-    #    L1wave=Lnii1
-    #    L2wave=Lnii2
-    #    LHwave=LnrHa
-    #    LHBwave=LnrHa
     for i in range(0, 1):
         for j in range(0, 1):
             val=1
@@ -196,7 +178,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp, n_line)
+                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp, n_line, outflow)
                 nwalkers=240
                 niter=1024
                 if single:
@@ -209,7 +191,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                             if n_line:
                                 initial = np.array([0.04, -20.0, 150.0])
                             else:
-                                initial = np.array([0.04, 0.09, -20.0, 150.0])
+                                if outflow:
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.01, 0.02, -20.0, 150.0])
+                                else:
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0])
                 else:
                     if skew:
                         initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
@@ -244,8 +229,12 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                 model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
                                 A3_f=0
                             else:
-                                A1_f,A3_f,dv1_f,fwhm1_f=theta_max
-                                model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
+                                if outflow:
+                                    A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f=theta_max
+                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
+                                else:
+                                    A1_f,A3_f,dv1_f,fwhm1_f=theta_max
+                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
                             A7_f=0
                             fwhm2_f=0
                             dv3_f=0
@@ -459,7 +448,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line)
+                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line, outflow=outflow)
                     
                     
                     import matplotlib.pyplot as plt
@@ -613,7 +602,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -776,7 +765,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             if n_line:
                                 initial = np.array([0.04, -20.0, 150.0])
                             else:
-                                initial = np.array([0.04, 0.09, -20.0, 150.0])
+                                if outflow:
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.01, 0.02, -100.0, 150.0])
+                                else:
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0])
                 else:
                     if skew:
                         initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
@@ -811,8 +803,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
                                 A3_f=0
                             else:
-                                A1_f,A3_f,dv1_f,fwhm1_f=theta_max
-                                model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
+                                if outflow:
+                                    A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f=theta_max
+                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
+                                else:
+                                    A1_f,A3_f,dv1_f,fwhm1_f=theta_max
+                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
                             A7_f=0
                             fwhm2_f=0
                             dv3_f=0
@@ -1030,7 +1026,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line)
+                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line, outflow=outflow)
                     
                     
                     import matplotlib.pyplot as plt
