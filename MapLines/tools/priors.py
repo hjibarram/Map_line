@@ -45,9 +45,7 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
                         return -np.inf
                 else:
                     if outflow:
-                        A1,A3,dv1,fwhm1=theta
                         A1,A3,dv1,fwhm1,A1o,A3o,dvO,fwhmO=theta
-                        #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((fwhm1 >= 100.0) and (fwhm1 <= 800.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)): 
                         if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and((A1o >= valsp['a1i']) and (A1o <= valsp['a1s'])) and ((A3o >= valsp['a3i']) and (A3o <= valsp['a3s'])) and ((fwhmO >= valsp['fwhm1i']) and (fwhmO <= valsp['fwhm1s'])) and ((dvO >= valsp['dv1i']) and (dvO <= valsp['dv1s'])): 
                             return 0.0
                         else:
