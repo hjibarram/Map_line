@@ -29,7 +29,9 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=
 
 def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False, n_line=False, outflow=False):
     '''Model for the line complex'''
-    print(broad,n_line,outflow)
+    print(broad,"A")
+    print(n_line,"B")
+    print(outflow,"C")
     sys.exit()
     if single:
         if skew:
