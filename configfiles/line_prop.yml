@@ -36,8 +36,12 @@ priors:
   fwhm1i: 100.0 #minimum fwhm limit of the narrow line
   fwhm2s: 10500.0 #maximum fwhm limit of the broad line
   fwhm2i: 700.0 #minimum fwhm limit of the broad line
+  fwhmOs: 800.0 #maximum fwhm limit of the outflow line
+  fwhmOi: 100.0 #minimum fwhm limit of the outflow line
   dv1s: 200.0 #maximum velocity limit of the narrow line
   dv1i: -200.0 #minimum velocity limit of the narrow line
   dv3s: 1000.0 #maximum velocity limit of the broad line
   dv3i: -1000.0 #minimum velocity limit of the broad line
+  dvOs: 100.0 #maximum velocity limit of the outflow line
+  dvOi: -200.0 #minimum velocity limit of the outflow line  
 ...
