@@ -44,7 +44,9 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                     A3=[0]
                 else:
                     if outflow:
-                        A1,A3,dv1,fwhm1,A1o,A3o,dvO,fwhmO=theta
+                        A1,A3,dv1,fwhm1,A1o,A3o,dvo,fwhmo=theta
+                        dvO=[dvo]
+                        fwhmO=[fwhmo]
                     else:
                         A1,A3,dv1,fwhm1=theta
 
