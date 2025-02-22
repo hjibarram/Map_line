@@ -772,7 +772,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 initial = np.array([0.04, -20.0, 150.0])
                             else:
                                 if outflow:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.01, 0.02, -100.0, 150.0])
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.01, 0.02, -100.0, 150.0, 0.0])
                                 else:
                                     initial = np.array([0.04, 0.09, -20.0, 150.0])
                 else:
@@ -810,7 +810,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 A3_f=0
                             else:
                                 if outflow:
-                                    A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f=theta_max
+                                    A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                                     model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
                                 else:
                                     A1_f,A3_f,dv1_f,fwhm1_f=theta_max

@@ -44,9 +44,10 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                     A3=[0]
                 else:
                     if outflow:
-                        A1,A3,dv1,fwhm1,A1o,A3o,dvo,fwhmo=theta
+                        A1,A3,dv1,fwhm1,A1o,A3o,dvo,fwhmo,alpho=theta
                         dvO=[dvo]
                         fwhmO=[fwhmo]
+                        alphO=[alpho]
                     else:
                         A1,A3,dv1,fwhm1=theta
 
@@ -92,11 +93,11 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     if outflow:
         A5o=A1o/lfac12
         if n_line:
-            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO)#, alph=alph, skew=skew)
+            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
         else:
-            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO)#, alph=alph, skew=skew)
-            ModHo=emission_line_model(x, xo=xo2, A=A3o, dv=dvO, fwhm=fwhmO)#, alph=alph, skew=skew)
-            ModBo=emission_line_model(x, xo=xo3, A=A5o, dv=dvO, fwhm=fwhmO)#, alph=alph, skew=skew)
+            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
+            ModHo=emission_line_model(x, xo=xo2, A=A3o, dv=dvO, fwhm=fwhmO, alph=alphO, skew=True)
+            ModBo=emission_line_model(x, xo=xo3, A=A5o, dv=dvO, fwhm=fwhmO, alph=alphO, skew=True)
         
     
     lin=0
