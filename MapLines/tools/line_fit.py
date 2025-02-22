@@ -985,7 +985,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                     if n_line:
                                         labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
                                     else:
-                                        labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
+                                        if outflow:
+                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$A_{OIII,out}$',r'$A_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',]
+                                        else:
+                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
                         else:
                             if skew:
                                 labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
