@@ -931,10 +931,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             if not n_line:
                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_NR')
                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_NR')
-                            if outflow:
-                                ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')#,label=r'OIII_2_OR')
-                                ax1.plot(wave_i,mHBo,linewidth=1,color='orange')#,label=r'Hb_n_OR')
-                                ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')
                         else:
                             if broad:
                                 ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
@@ -942,6 +938,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             if not n_line:
                                 ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
                                 ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
+                        if outflow:
+                            ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')#,label=r'OIII_2_OR')
+                            ax1.plot(wave_i,mHBo,linewidth=1,color='orange')#,label=r'Hb_n_OR')
+                            ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')        
                     else:
                         if hbfit:
                             if broad:
@@ -1005,7 +1005,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                     if n_line:
                                         labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
                                     else:
-                                        labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
+                                        if outflow:
+                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$A_{NII,out}$',r'$A_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                                        else:
+                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
                     else:
                         if skew:
                             labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3", "alph1", "alphB"]
