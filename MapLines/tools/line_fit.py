@@ -231,7 +231,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                             else:
                                 if outflow:
                                     A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f=theta_max
-                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
+                                    model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
                                 else:
                                     A1_f,A3_f,dv1_f,fwhm1_f=theta_max
                                     model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
@@ -805,7 +805,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             else:
                                 if outflow:
                                     A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f=theta_max
-                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
+                                    model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
                                 else:
                                     A1_f,A3_f,dv1_f,fwhm1_f=theta_max
                                     model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
@@ -836,6 +836,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     if skew:
                         model_param[ind+1,i,j]=alph1_f
                         model_param[ind+2,i,j]=alphB_f
+                    if outflow:
+                        #model_param[ind+1,i,j]=A1o_f/flux_f
+                        #model_param[ind+2,i,j]=A1o_f/lfac12/flux_f
+                        #model_param[ind+3,i,j]=A3o_f/flux_f
+                        model_param[ind+1,i,j]=dvO_f
+                        model_param[ind+2,i,j]=fwhmO_f
                 else:
                     if skew:
                         A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
@@ -919,6 +925,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             if not n_line:
                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_NR')
                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_NR')
+                            if outflow:
+                                ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')#,label=r'OIII_2_OR')
+                                ax1.plot(wave_i,mHBo,linewidth=1,color='orange')#,label=r'Hb_n_OR')
+                                ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')
                         else:
                             if broad:
                                 ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
@@ -1053,7 +1063,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 if n_line:
                                     print("A1=",A1_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                                 else:
-                                    print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
+                                    if outflow:
+                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"A1o=",A1o_f,"A3o=",A3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f)
+                                    else:
+                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                     else:
                         if skew:
                             print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)

@@ -125,6 +125,10 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
             outvect.extend([ModA])
             outvect.extend([ModH])
             outvect.extend([ModB])
+            if outflow:
+                outvect.extend([ModAo])
+                outvect.extend([ModHo])
+                outvect.extend([ModBo])
         if broad:
             outvect.extend([ModHB])
     else:
