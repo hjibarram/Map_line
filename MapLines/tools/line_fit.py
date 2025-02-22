@@ -647,12 +647,18 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             if skew:
                 model_param=np.zeros([12,nx,ny])
             else:
-                model_param=np.zeros([10,nx,ny])
+                if outflow:
+                    model_param=np.zeros([12,nx,ny])
+                else:
+                    model_param=np.zeros([10,nx,ny])
         else:
             if skew:
                 model_param=np.zeros([11,nx,ny])
             else:
-                model_param=np.zeros([9,nx,ny])
+                if outflow:
+                    model_param=np.zeros([11,nx,ny])
+                else:
+                    model_param=np.zeros([9,nx,ny])
     else:
         if cont:
             if skew:
