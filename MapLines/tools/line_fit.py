@@ -992,7 +992,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                         labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
                                     else:
                                         if outflow:
-                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$A_{OIII,out}$',r'$A_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',]
+                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$A_{OIII,out}$',r'$A_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
                                         else:
                                             labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
                         else:
@@ -1073,7 +1073,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                     print("A1=",A1_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                                 else:
                                     if outflow:
-                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"A1o=",A1o_f,"A3o=",A3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f)
+                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"A1o=",A1o_f,"A3o=",A3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
                                     else:
                                         print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                     else:
