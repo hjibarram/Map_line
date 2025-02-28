@@ -648,7 +648,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 model_param=np.zeros([12,nx,ny])
             else:
                 if outflow:
-                    model_param=np.zeros([12,nx,ny])
+                    model_param=np.zeros([15,nx,ny])
                 else:
                     model_param=np.zeros([10,nx,ny])
         else:
@@ -772,7 +772,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 initial = np.array([0.04, -20.0, 150.0])
                             else:
                                 if outflow:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.01, 0.02, -100.0, 150.0, 0.0])
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.2, 0.2, -100.0, 150.0, 0.0])
                                 else:
                                     initial = np.array([0.04, 0.09, -20.0, 150.0])
                 else:
@@ -810,7 +810,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 A3_f=0
                             else:
                                 if outflow:
-                                    A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
+                                    A1_f,A3_f,dv1_f,fwhm1_f,F1o_f,F3o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                                     model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
                                 else:
                                     A1_f,A3_f,dv1_f,fwhm1_f=theta_max
@@ -843,11 +843,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         model_param[ind+1,i,j]=alph1_f
                         model_param[ind+2,i,j]=alphB_f
                     if outflow:
-                        #model_param[ind+1,i,j]=A1o_f/flux_f
-                        #model_param[ind+2,i,j]=A1o_f/lfac12/flux_f
-                        #model_param[ind+3,i,j]=A3o_f/flux_f
-                        model_param[ind+1,i,j]=dvO_f
-                        model_param[ind+2,i,j]=fwhmO_f
+                        model_param[ind+1,i,j]=A1_f/flux_f*F1o_f
+                        model_param[ind+2,i,j]=A1_f/lfac12/flux_f*F1o_f
+                        model_param[ind+3,i,j]=A3_f/flux_f*F3o_f
+                        model_param[ind+4,i,j]=dvO_f
+                        model_param[ind+5,i,j]=fwhmO_f
                 else:
                     if skew:
                         A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
@@ -992,7 +992,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                         labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
                                     else:
                                         if outflow:
-                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$A_{OIII,out}$',r'$A_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{OIII,out}$',r'$F_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
                                         else:
                                             labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
                         else:
@@ -1006,7 +1006,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                         labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
                                     else:
                                         if outflow:
-                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$A_{NII,out}$',r'$A_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{NII,out}$',r'$F_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
                                         else:
                                             labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
                     else:
@@ -1076,7 +1076,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                     print("A1=",A1_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                                 else:
                                     if outflow:
-                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"A1o=",A1o_f,"A3o=",A3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
+                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"F3o=",F3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
                                     else:
                                         print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                     else:
@@ -1181,6 +1181,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         if skew:
             h['Val_'+str(ind+1)]='Alpha_Narrow'
             h['Val_'+str(ind+2)]='Alpha_Broad' 
+        if outflow:
+            h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
+            h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
+            h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
+            h['Val_'+str(ind+4)]='Vel_outflow' 
+            h['Val_'+str(ind+5)]='FWHM_outflow' 
     else:
         if hbfit:      
             h['Val_0'] ='OIII_5007_Amplitude_blue'
