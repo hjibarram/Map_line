@@ -36,6 +36,8 @@ priors:
   f1i: 0.0 #minimum Line/outflow amplitud factor limit
   f3s: 1.0 #maximum 2dLine/outflow amplitud factor limit
   f3i: 0.0 #minimum 2dLine/outflow amplitud factor limit
+  alpOi: -10.0 #minimum outflow alpha limit
+  alpOs: 0.0 #maximum outflow alpha limit
   fwhm1s: 800.0 #maximum fwhm limit of the narrow line
   fwhm1i: 100.0 #minimum fwhm limit of the narrow line
   fwhm2s: 10500.0 #maximum fwhm limit of the broad line
