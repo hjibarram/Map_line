@@ -648,7 +648,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 model_param=np.zeros([12,nx,ny])
             else:
                 if outflow:
-                    model_param=np.zeros([15,nx,ny])
+                    model_param=np.zeros([16,nx,ny])
                 else:
                     model_param=np.zeros([10,nx,ny])
         else:
@@ -656,7 +656,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 model_param=np.zeros([11,nx,ny])
             else:
                 if outflow:
-                    model_param=np.zeros([11,nx,ny])
+                    model_param=np.zeros([15,nx,ny])
                 else:
                     model_param=np.zeros([9,nx,ny])
     else:
@@ -848,6 +848,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         model_param[ind+3,i,j]=A3_f/flux_f*F3o_f
                         model_param[ind+4,i,j]=dvO_f
                         model_param[ind+5,i,j]=fwhmO_f
+                        model_param[ind+6,i,j]=alphaO_f
                 else:
                     if skew:
                         A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
