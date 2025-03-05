@@ -109,12 +109,18 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             if skew:
                 model_param=np.zeros(12)
             else:
-                model_param=np.zeros(10)
+                if outflow:
+                    model_param=np.zeros(16)
+                else:
+                    model_param=np.zeros(10)
         else:
             if skew:
                 model_param=np.zeros(11)
             else:
-                model_param=np.zeros(9)
+                if outflow:
+                    model_param=np.zeros(15)
+                else:
+                    model_param=np.zeros(9)
     else:
         if cont:
             if skew:
@@ -159,20 +165,11 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 else:
                     fluxtE=tol.step_vect(fluxt,sp=50)
                 if cont:
-                    #if hbfit:
-                    #    nwt=np.where((wave_f[nw] >= 5035.0) & (wave_f[nw] <= 5055.0))[0]
-                    #else:
-                    #    if broad:
-                    #        nwt=np.where((wave_f[nw] >= 6380.0) & (wave_f[nw] <= 6400.0))[0]  
-                    #    else:
-                    #        nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]
+                    #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
-                #if hbfit:
-                #    nwt=np.where((wave_f[nw] >= 4880.0) & (wave_f[nw] <= 4890.0))[0]
-                #else:    
-                #    nwt=np.where((wave_f[nw] >= 6569.0) & (wave_f[nw] <= 6572.0))[0]
+                #Defining the Broad continum between lines for the initial condition   
                 nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
                 fluxp=np.nanmean(fluxt[nwt])
                 fluxe_t=np.nanmean(fluxtE)
@@ -192,7 +189,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                 initial = np.array([0.04, -20.0, 150.0])
                             else:
                                 if outflow:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.01, 0.02, -20.0, 150.0])
+                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.2, 0.2, -100.0, 150.0, 0.0])
                                 else:
                                     initial = np.array([0.04, 0.09, -20.0, 150.0])
                 else:
@@ -208,10 +205,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                 initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0])
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
-                #if plot_f:
                 tim=True
-                #else:
-                #    tim=False
                 sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
@@ -230,7 +224,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                 A3_f=0
                             else:
                                 if outflow:
-                                    A1_f,A3_f,dv1_f,fwhm1_f,A1o_f,A3o_f,dvO_f,fwhmO_f=theta_max
+                                    A1_f,A3_f,dv1_f,fwhm1_f,F1o_f,F3o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                                     model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
                                 else:
                                     A1_f,A3_f,dv1_f,fwhm1_f=theta_max
@@ -262,6 +256,13 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                     if skew:
                         model_param[ind+1]=alph1_f
                         model_param[ind+2]=alphB_f
+                    if outflow:
+                        model_param[ind+1]=A1_f/flux_f*F1o_f
+                        model_param[ind+2]=A1_f/lfac12/flux_f*F1o_f
+                        model_param[ind+3]=A3_f/flux_f*F3o_f
+                        model_param[ind+4]=dvO_f
+                        model_param[ind+5]=fwhmO_f
+                        model_param[ind+6]=alphaO_f    
                 else:
                     if skew:
                         A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
@@ -336,45 +337,33 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                     ax1.plot(wave_i,fluxtE,linewidth=0.5,color='grey',label=r'$1\sigma$ Error')
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
                     if single:
-                        if True:#hbfit:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'$')
-                            if not n_line:
-                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'$')
-                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'$')
-                        #else:
-                        #    if broad:
-                        #        ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                        #    ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
-                        #    ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
-                        #    ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
+                        if broad:
+                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
+                        ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'$')
+                        if not n_line:
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'$')
+                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'$')
+                        if outflow:
+                            ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')
+                            ax1.plot(wave_i,mHBo,linewidth=1,color='orange')
+                            ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')            
                     else:
-                        if True:#hbfit:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'_b$')#'OIII_2_b')
-                            ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'$'+L2name+'_r$')
-                            if not n_line:
-                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'_b$')
-                                ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'$'+LHname+'_r$')
-                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'_b$')
-                                ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'$'+L1name+'_r$')
-                        #else:
-                        #    if broad:
-                        #        ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Ha_n_BR')
-                        #    ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_b')
-                        #    ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'NII_2_r')
-                        #    ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_b')
-                        #    ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'Ha_n_r')
-                        #    ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_b')
-                        #    ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'NII_1_r')
+                        if broad:
+                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
+                        ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'_b$')
+                        ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'$'+L2name+'_r$')
+                        if not n_line:
+                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'_b$')
+                            ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'$'+LHname+'_r$')
+                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'_b$')
+                            ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'$'+L1name+'_r$')
                     fontsize=14
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
                     ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
                     ax1.legend(fontsize=fontsize)
                     plt.tight_layout()
+                    fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
                     if single:
                         if skew:
@@ -397,7 +386,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                     if n_line:
                                         labels2 = ['A1','dv1','FWHM_N']
                                     else:
-                                        labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
+                                        if outflow:
+                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{OIII,out}$',r'$F_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                                        else:
+                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
                         else:
                             if skew:
                                 labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
@@ -408,7 +400,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                     if n_line:
                                         labels2 = ['A1','dv1','FWHM_N']
                                     else:
-                                        labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
+                                        if outflow:
+                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{NII,out}$',r'$F_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                                        else:
+                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
                     else:
                         if skew:
                             labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3", "alph1", "alphB"]
@@ -475,7 +470,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                                 if n_line:
                                     print("A1=",A1_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                                 else:
-                                    print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
+                                    if outflow:
+                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"F3o=",F3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
+                                    else:
+                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
                     else:
                         if skew:
                             print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
@@ -554,6 +552,12 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         if skew:
             h['Val_'+str(ind+1)]='Alpha_Narrow'
             h['Val_'+str(ind+2)]='Alpha_Broad' 
+        if outflow:
+            h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
+            h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
+            h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
+            h['Val_'+str(ind+4)]='Vel_outflow' 
+            h['Val_'+str(ind+5)]='FWHM_outflow'     
     else:
         if hbfit:      
             h['Val_0'] ='OIII_5007_Amplitude_blue'
@@ -739,20 +743,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 else:
                 	fluxtE=tol.step_vect(fluxt,sp=50)
                 if cont:
-                    #if hbfit:
-                    #    nwt=np.where((wave_f[nw] >= 5035.0) & (wave_f[nw] <= 5055.0))[0]
-                    #else:
-                    #    if broad:
-                    #        nwt=np.where((wave_f[nw] >= 6380.0) & (wave_f[nw] <= 6400.0))[0]  
-                    #    else:
-                    #        nwt=np.where((wave_f[nw] >= 6490.0) & (wave_f[nw] <= 6510.0))[0]
+                    #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
-                #if hbfit:
-                #    nwt=np.where((wave_f[nw] >= 4880.0) & (wave_f[nw] <= 4890.0))[0]
-                #else:    
-                #    nwt=np.where((wave_f[nw] >= 6569.0) & (wave_f[nw] <= 6572.0))[0]
+                #Defining the Broad continum between lines for the initial condition
                 nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
                 fluxp=np.nanmean(fluxt[nwt])
                 fluxe_t=np.nanmean(fluxtE)
@@ -970,6 +965,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
                     ax1.legend(fontsize=fontsize)
                     plt.tight_layout()
+                    fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
                     if single:
                         if skew:

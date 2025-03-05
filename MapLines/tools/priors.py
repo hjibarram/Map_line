@@ -23,7 +23,6 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
     if single:
         if skew:
             A1,A3,dv1,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
-            #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= 100.0) and (fwhm1 <= 900.0)) and ((fwhm2 >= 700.0) and (fwhm2 <= 10500.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv3 >= -1000) and (dv3 <= 1000)) and ((alp1 >= -10) and (alp1 <= 10)) and ((alpb >= -10) and (alpb <= 10)): 
             if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((fwhm2 >= valsp['fwhm2i']) and (fwhm2 <= valsp['fwhm2s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv3 >= valsp['dv3i']) and (dv3 <= valsp['dv3s'])) and ((alp1 >= -10) and (alp1 <= 10)) and ((alpb >= -10) and (alpb <= 10)):     
                 return 0.0
             else:
@@ -31,7 +30,6 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
         else:
             if broad:
                 A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
-                #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= 100.0) and (fwhm1 <= 800.0)) and ((fwhm2 >= 700.0) and (fwhm2 <= 10500.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv3 >= -1000) and (dv3 <= 1000)): 
                 if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((fwhm2 >= valsp['fwhm2i']) and (fwhm2 <= valsp['fwhm2s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv3 >= valsp['dv3i']) and (dv3 <= valsp['dv3s'])): 
                     return 0.0
                 else:
@@ -52,7 +50,6 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
                             return -np.inf    
                     else:
                         A1,A3,dv1,fwhm1=theta
-                        #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((fwhm1 >= 100.0) and (fwhm1 <= 800.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)): 
                         if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])): 
                             return 0.0
                         else:
@@ -60,7 +57,6 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
     else:
         if skew:
             A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
-            #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((fac >= 1.0) and (fac <=30.0)) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= 100.0) and (fwhm1 <= 800.0)) and ((fwhm2 >= 700.0) and (fwhm2 <= 10500.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv2 >= dv2i) and (dv2 <= dv2s))  and ((dv3 >= -1000) and (dv3 <= 1000)) and ((alp1 >= -10) and (alp1 <= 10)) and ((alpb >= -10) and (alpb <= 10)):
             if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((fac >= 1.0) and (fac <=30.0)) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((fwhm2 >= valsp['fwhm2i']) and (fwhm2 <= valsp['fwhm2s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s']))  and ((dv3 >= valsp['dv3i']) and (dv3 <= valsp['dv3s'])) and ((alp1 >= -10) and (alp1 <= 10)) and ((alpb >= -10) and (alpb <= 10)): 
                 return 0.0
             else:
@@ -68,7 +64,6 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
         else:
             if broad:
                 A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
-                #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=0.8)) and ((fac >= 1.0) and (fac <=30.0)) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= 100.0) and (fwhm1 <= 800.0)) and ((fwhm2 >= 700.0) and (fwhm2 <= 10500.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv2 >= dv2i) and (dv2 <= dv2s))  and ((dv3 >= -1000) and (dv3 <= 1000)): 
                 if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((fac >= 1.0) and (fac <=30.0)) and ((A7 >= Am1) and (A7 < Am2)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((fwhm2 >= valsp['fwhm2i']) and (fwhm2 <= valsp['fwhm2s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s']))  and ((dv3 >= valsp['dv3i']) and (dv3 <= valsp['dv3s'])): 
                     return 0.0
                 else:
@@ -82,7 +77,6 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
                         return -np.inf
                 else:
                     A1,A3,fac,dv1,dv2,fwhm1=theta
-                    #if ((A1 >= 0) and (A1 <=1.8)) and ((A3 >= 0) and (A3 <=1.8)) and ((fac >= 0) and (fac <=30.0)) and ((fwhm1 >= 10.0) and (fwhm1 <= 250.0)) and ((dv1 >= dv1i) and (dv1 <= dv1s)) and ((dv2 >= dv2i) and (dv2 <= dv2s)): 
                     if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((fac >= 0) and (fac <=30.0)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s'])): 
                         return 0.0
                     else:
