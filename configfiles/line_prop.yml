@@ -28,6 +28,8 @@ continum:
     waveb1: 6569.0
     waveb2: 6572.0    
 priors:
+  a1o: 0.04 #initial amplitud limit of the narrow line
+  a3o: 0.09 #initial amplitud limit of the 2dnarrow line
   a1s: 1.8 #maximum amplitud limit of the narrow line
   a1i: 0.0 #minimum amplitud limit of the narrow line
   a3s: 0.8 #maximum amplitud limit of the 2dnarrow line

@@ -761,14 +761,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 nwalkers=240
                 niter=1024
                 if single:
-                    if skew:
+                    if skew:  
                         initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
                     else:
                         if broad:
                             initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0])
                         else:
                             if n_line:
-                                initial = np.array([0.04, -20.0, 150.0])
+                                initial = np.array([valsp['a1o'], -20.0, 150.0])
                             else:
                                 if outflow:
                                     initial = np.array([0.04, 0.09, -20.0, 150.0, 0.2, 0.2, -100.0, 150.0, 0.0])
