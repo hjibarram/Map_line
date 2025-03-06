@@ -646,6 +646,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     model_Blue=np.zeros([len(nw),nx,ny])
     model_Red=np.zeros([len(nw),nx,ny])
     model_Broad=np.zeros([len(nw),nx,ny])
+    model_Inp=np.zeros([len(nw),nx,ny])
+    model_InpE=np.zeros([len(nw),nx,ny])
+    if outflow:
+        model_Outflow=np.zeros([len(nw),nx,ny])
     if single:
         if cont:
             if skew:
@@ -699,24 +703,24 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         print('No configuration line model file')
         return
 
-    Loiii1=L1wave#4960.36 
-    LnrHb=LHwave#4862.68 
-    Loiii2=L2wave#5008.22
-    Lnii2=L2wave#6585.278
-    LnrHa=LHwave#6564.632
-    Lnii1=L1wave#6549.859
-    if hbfit:
-        lfac12=lfac12#3.0
-        L1wave=Loiii1
-        L2wave=Loiii2
-        LHwave=LnrHb
-        LHBwave=LnrHb
-    else:
-        lfac12=lfac12#2.93
-        L1wave=Lnii1
-        L2wave=Lnii2
-        LHwave=LnrHa
-        LHBwave=LnrHa
+    #Loiii1=L1wave#4960.36 
+    #LnrHb=LHwave#4862.68 
+    #Loiii2=L2wave#5008.22
+    #Lnii2=L2wave#6585.278
+    #LnrHa=LHwave#6564.632
+    #Lnii1=L1wave#6549.859
+    #if hbfit:
+    #    lfac12=lfac12#3.0
+    #    L1wave=Loiii1
+    #    L2wave=Loiii2
+    #    LHwave=LnrHb
+    #    LHBwave=LnrHb
+    #else:
+    #    lfac12=lfac12#2.93
+    #    L1wave=Lnii1
+    #    L2wave=Lnii2
+    #    LHwave=LnrHa
+    #    LHBwave=LnrHa
 
     hdr["CRVAL3"]=wave_i[0]
     try:
@@ -814,12 +818,16 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             fwhm2_f=0
                             dv3_f=0
                     model_all[:,i,j]=model
+                    model_Inp[:,i,j]=fluxt
+                    model_InpE[:,i,j]=fluxtE
                     if n_line:
                         model_Blue[:,i,j]=m2B
                     else:
                         model_Blue[:,i,j]=m2B+m1B+mHB
                     if broad:
                         model_Broad[:,i,j]=mHBR
+                    if outflow:
+                        model_Outflow[:,i,j]=m2Bo+m1Bo+mHBo
                     model_param[0,i,j]=A1_f/flux_f
                     model_param[1,i,j]=A1_f/lfac12/flux_f
                     model_param[2,i,j]=A3_f/flux_f
@@ -1060,7 +1068,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.legend(fontsize=14)
                     plt.tight_layout()
                     plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                    #plt.show()
                 if pgr_bar == False:  
                     if single:  
                         if skew:
@@ -1096,11 +1103,17 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         h1=fits.PrimaryHDU(model_all)
         h2=fits.ImageHDU(model_Blue)
         h4=fits.ImageHDU(model_Broad)
+        h5=fits.ImageHDU(model_Inp)
+        h6=fits.ImageHDU(model_InpE)
+        if outflow:
+            h7=fits.ImageHDU(model_Outflow)
     else:
         h1=fits.PrimaryHDU(model_all)
         h2=fits.ImageHDU(model_Blue)
         h3=fits.ImageHDU(model_Red)
         h4=fits.ImageHDU(model_Broad)
+        h5=fits.ImageHDU(model_Inp)
+        h6=fits.ImageHDU(model_InpE)
     h_k=h1.header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
@@ -1133,14 +1146,38 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         h_y[keys[i]]=hdr[keys[i]]
         h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='Broad_Component'
+    h_y.update()
+
+    h_y=h5.header
+    for i in range(0, len(keys)):
+        h_y[keys[i]]=hdr[keys[i]]
+        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+    h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
+    
+    h_y=h6.header
+    for i in range(0, len(keys)):
+        h_y[keys[i]]=hdr[keys[i]]
+        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+    h_y['EXTNAME'] ='InputE_Component'
+    h_y.update()  
+    if outflow:
+        h_y=h7.header
+        for i in range(0, len(keys)):
+            h_y[keys[i]]=hdr[keys[i]]
+            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        h_y['EXTNAME'] ='Outflow_Component'
+        h_y.update()  
     if single:
-        hlist=fits.HDUList([h1,h2,h4])
+        if outflow:
+            hlist=fits.HDUList([h1,h2,h4,h5,h6,h7])
+        else:
+            hlist=fits.HDUList([h1,h2,h4,h5,h6])
     else:
-        hlist=fits.HDUList([h1,h2,h3,h4])
+        hlist=fits.HDUList([h1,h2,h3,h4,h5,h6])
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
-    tol.sycall('gzip -f '+file_out+'.fits')  
+    tol.sycall('gzip -f '+file_out+'.fits')
     
     h1=fits.PrimaryHDU(model_param)
     h=h1.header
