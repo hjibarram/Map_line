@@ -762,29 +762,29 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 niter=1024
                 if single:
                     if skew:  
-                        initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
+                        initial = np.array([valsp['a1o'], valsp['a3o'], -20.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
                     else:
                         if broad:
-                            initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0])
+                            initial = np.array([valsp['a1o'], valsp['a3o'], -20.0, 150.0, 1000.0, fluxp, 0.0])
                         else:
                             if n_line:
                                 initial = np.array([valsp['a1o'], -20.0, 150.0])
                             else:
                                 if outflow:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.2, 0.2, -100.0, 150.0, 0.0])
+                                    initial = np.array([valsp['a1o'], valsp['a3o'], -20.0, 150.0, 0.2, 0.2, -100.0, 150.0, 0.0])
                                 else:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0])
+                                    initial = np.array([valsp['a1o'], valsp['a3o'], -20.0, 150.0])
                 else:
                     if skew:
-                        initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
+                        initial = np.array([valsp['a1o'], valsp['a3o'], 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
                     else:
                         if broad:
-                            initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0])
+                            initial = np.array([valsp['a1o'], valsp['a3o'], 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0])
                         else:
                             if n_line:
-                                initial = np.array([0.04, 6.0, -80.0, -500.0, 150.0])
+                                initial = np.array([valsp['a1o'], 6.0, -80.0, -500.0, 150.0])
                             else:
-                                initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0])
+                                initial = np.array([valsp['a1o'], valsp['a3o'], 6.0, -80.0, -500.0, 150.0])
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
                 if plot_f:
