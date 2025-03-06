@@ -28,28 +28,38 @@ continum:
     waveb1: 6569.0
     waveb2: 6572.0    
 priors:
-  a1o: 0.04 #initial amplitud limit of the narrow line
-  a3o: 0.09 #initial amplitud limit of the 2dnarrow line
+  a1o: 0.04 #initial amplitud value of the narrow line
+  a3o: 0.09 #initial amplitud value of the 2dnarrow line
   a1s: 1.8 #maximum amplitud limit of the narrow line
   a1i: 0.0 #minimum amplitud limit of the narrow line
   a3s: 0.8 #maximum amplitud limit of the 2dnarrow line
   a3i: 0.0 #minimum amplitud limit of the 2dnarrow line
+  f1o: 0.2 #initial Line/outflow amplitud factor value
   f1s: 1.0 #maximum Line/outflow amplitud factor limit
   f1i: 0.0 #minimum Line/outflow amplitud factor limit
+  f3o: 0.2 #initial 2dLine/outflow amplitud factor value
   f3s: 1.0 #maximum 2dLine/outflow amplitud factor limit
   f3i: 0.0 #minimum 2dLine/outflow amplitud factor limit
+  alpOo: 0.0 #Initial outflow alpha value
   alpOi: -10.0 #minimum outflow alpha limit
-  alpOs: 0.0 #maximum outflow alpha limit
+  alpOs: 2.0 #maximum outflow alpha limit
+  fwhm1o: 150.0 #initial fwhm value of the narrow line
   fwhm1s: 800.0 #maximum fwhm limit of the narrow line
   fwhm1i: 100.0 #minimum fwhm limit of the narrow line
+  fwhm2o: 1000.0 #initial fwhm value of the broad line
   fwhm2s: 10500.0 #maximum fwhm limit of the broad line
   fwhm2i: 700.0 #minimum fwhm limit of the broad line
+  fwhmOo: 150.0 #initial fwhm value of the outflow line
   fwhmOs: 800.0 #maximum fwhm limit of the outflow line
   fwhmOi: 100.0 #minimum fwhm limit of the outflow line
+  dv1o: -20.0 #initial velocity value of the narrow line
+  dv2o: -150.0 #initial velocity value of the double narrow line
   dv1s: 200.0 #maximum velocity limit of the narrow line
   dv1i: -200.0 #minimum velocity limit of the narrow line
+  dv3o: 0.0 #initial velocity value of the broad line
   dv3s: 1000.0 #maximum velocity limit of the broad line
   dv3i: -1000.0 #minimum velocity limit of the broad line
+  dvOo: -100.0 #initial velocity value of the outflow line
   dvOs: 100.0 #maximum velocity limit of the outflow line
   dvOi: -200.0 #minimum velocity limit of the outflow line  
 ...
