@@ -1095,7 +1095,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 else: 
                                     print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
                 if test:        
-                    sys.exit()        
+                    #sys.exit()
+                    return        
             if pgr_bar:
                 pbar.update(1)
     
