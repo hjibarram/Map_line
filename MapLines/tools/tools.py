@@ -113,3 +113,70 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val
         sigma[nt]=0
         ew[nt]=0
     return flux,vel,sigma,ew
+
+def extract_spec(filename,dir_cube_m='',ra='',dec='',rad=1.5,sig=10,smoth=False,avgra=False,head=0):
+    file=dir_cube_m+filename
+
+    [cube0, hdr0]=fits.getdata(file, head, header=True)
+    nz,nx,ny=cube0.shape
+    try:
+        dx=np.sqrt((hdr0['CD1_1'])**2.0+(hdr0['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr0['CD2_1'])**2.0+(hdr0['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr0['CD1_1']*3600.0
+            dy=hdr0['CD2_2']*3600.0
+        except:
+            dx=hdr0['CDELT1']*3600.
+            dy=hdr0['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0    
+    
+
+    if ra != '':
+        sky1=SkyCoord(ra+' '+dec,frame=FK5, unit=(u.hourangle,u.deg))
+        val1=sky1.ra.deg
+        val2=sky1.dec.deg
+        wcs = WCS(hdr0)
+        wcs=wcs.celestial
+        ypos,xpos=skycoord_to_pixel(sky1,wcs)
+    else:
+        xpos=ny/2.0
+        ypos=nx/2.0
+        
+    radis=np.zeros([nx,ny])
+    for i in range(0, nx):
+        for j in range(0, ny):
+            x_n=i-xpos
+            y_n=j-ypos
+            r_n=np.sqrt((y_n)**2.0+(x_n)**2.0)*pix
+            radis[i,j]=r_n
+    single_T=np.zeros(nz)
+    
+    nt=np.where(radis <= rad)
+    if avgra:
+        ernt=len(nt[0])
+    else:
+        ernt=1.0
+    for i in range(0, nz):
+        tmp=cube0[i,:,:]
+        tmp[np.where(tmp <= 0)]=np.nan
+        if avgra:
+            single_T[i]=np.nanmean(tmp[nt])
+        else:
+            single_T[i]=np.nansum(tmp[nt])
+        
+        
+    crpix=hdr0["CRPIX3"]
+    try:
+        cdelt=hdr0["CD3_3"]
+    except:
+        cdelt=hdr0["CDELT3"]
+    crval=hdr0["CRVAL3"]
+    wave_f=(crval+cdelt*(np.arange(nz)+1-crpix))
+    
+    
+    
+    if smoth:
+        single_T=conv(single_T,ke=sig)
+    
+    return wave_f,single_T    
