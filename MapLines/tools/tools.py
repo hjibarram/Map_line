@@ -164,7 +164,7 @@ def extract_spec(filename,dir_cube_m='',ra='',dec='',rad=1.5,sig=10,smoth=False,
         ernt=1.0
     for i in range(0, nz):
         tmp=cube0[i,:,:]
-        tmp[np.where(tmp <= 0)]=np.nan
+        #tmp[np.where(tmp <= 0)]=np.nan
         if avgra:
             single_T[i]=np.nanmean(tmp[nt])
         else:
