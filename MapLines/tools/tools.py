@@ -7,6 +7,11 @@ from scipy.special import erf as errf
 import yaml
 import sys
 from astropy.io import fits
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import ICRS, Galactic, FK4, FK5
+from astropy import units as u
+from astropy.wcs.utils import skycoord_to_pixel
+from astropy.wcs import WCS
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
