@@ -185,3 +185,31 @@ def extract_spec(filename,dir_cube_m='',ra='',dec='',rad=1.5,sig=10,smoth=False,
         single_T=conv(single_T,ke=sig)
     
     return wave_f,single_T    
+
+def bpt(wha,niiha,oiiihb):
+    nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
+    nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
+    nt3=np.where((wha > 3) & (wha <6))#INT
+    nt4=np.where((wha <=3))#RET
+    image=np.copy(niiha)
+    image=image*0
+    image[:,:]=np.nan
+    image[nt1]=3
+    image[nt2]=1
+    image[nt3]=2.5
+    image[nt4]=4
+    return image
+
+def whan(wha,niiha):
+    nt1=np.where((wha >  6) & (niiha >= -0.4))#sAGN
+    nt2=np.where((wha >= 3) & (niiha < -0.4))#SFR
+    nt3=np.where((wha >= 3) & (wha <= 6) & (niiha >= -0.4))#wAGN
+    nt4=np.where((wha <  3))#RET
+    image=np.copy(wha)
+    image[:,:]=np.nan
+    image[nt1]=4
+    image[nt2]=1.7
+    image[nt3]=3
+    image[nt4]=1
+    return image    
+    
