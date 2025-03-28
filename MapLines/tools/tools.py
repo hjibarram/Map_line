@@ -323,7 +323,7 @@ def whan(wha,niiha):
     return image    
 
 
-    def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=None,cbtr=True,bpte=False,maxmin=[],ewp=False):
+def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=None,cbtr=True,bpte=False,maxmin=[],ewp=False):
     nx,ny=flux.shape
     if len(outs) > 0:
         aptr=True
