@@ -295,7 +295,7 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
     return value
 
 
-def bpt(wha,niiha,oiiihb):
+def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5):
     nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
     nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
     nt3=np.where((wha > 3) & (wha <6))#INT
@@ -303,10 +303,10 @@ def bpt(wha,niiha,oiiihb):
     image=np.copy(niiha)
     image=image*0
     image[:,:]=np.nan
-    image[nt1]=3
-    image[nt2]=1
-    image[nt3]=2.5
-    image[nt4]=4
+    image[nt1]=agn
+    image[nt2]=sf
+    image[nt3]=inte
+    image[nt4]=ret
     return image
 
 def whan(wha,niiha):
