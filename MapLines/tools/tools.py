@@ -295,18 +295,20 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
     return value
 
 
-def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5):
+def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5):
     nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
-    nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
-    nt3=np.where((wha > 3) & (wha <6))#INT
-    nt4=np.where((wha <=3))#RET
+    nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & ((oiiihb-0.61/(niiha-0.05)-1.3) > 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#COMP
+    nt3=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.05)-1.3) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
+    nt4=np.where((wha > 3) & (wha <6))#INT
+    nt5=np.where((wha <=3))#RET
     image=np.copy(niiha)
     image=image*0
     image[:,:]=np.nan
     image[nt1]=agn
-    image[nt2]=sf
-    image[nt3]=inte
-    image[nt4]=ret
+    image[nt2]=comp
+    image[nt3]=sf
+    image[nt4]=inte
+    image[nt5]=ret
     return image
 
 def whan(wha,niiha):
