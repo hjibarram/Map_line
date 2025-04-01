@@ -311,17 +311,17 @@ def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5):
     image[nt5]=ret
     return image
 
-def whan(wha,niiha):
+def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     nt1=np.where((wha >  6) & (niiha >= -0.4))#sAGN
     nt2=np.where((wha >= 3) & (niiha < -0.4))#SFR
     nt3=np.where((wha >= 3) & (wha <= 6) & (niiha >= -0.4))#wAGN
     nt4=np.where((wha <  3))#RET
     image=np.copy(wha)
     image[:,:]=np.nan
-    image[nt1]=4
-    image[nt2]=1.7
-    image[nt3]=3
-    image[nt4]=1
+    image[nt1]=agn
+    image[nt2]=sf
+    image[nt3]=wagn
+    image[nt4]=ret
     return image    
 
 
