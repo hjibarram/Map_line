@@ -1033,8 +1033,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 else:
                                     if n_line:
                                         if outflow:
-                                        else:
                                             labels2 = ['A1','dv1','FWHM_N',"FWHM_B",r'$F_{OIII,out}$',r'$F_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                                        else:
+                                            labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
                                     else:
                                         if outflow:
                                             labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{OIII,out}$',r'$F_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
