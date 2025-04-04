@@ -41,7 +41,7 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
             else:
                 if n_line:
                     if outflow:
-                        A1,dv1,fwhm1,F1o,F3o,dvo,fwhmo,alpho=theta
+                        A1,dv1,fwhm1,F1o,dvo,fwhmo,alpho=theta
                         dvO=[dvo]
                         fwhmO=[fwhmo]
                         alphO=[alpho]
@@ -119,7 +119,10 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     lin=0
     if single:
         if n_line:
-            lin=ModA
+            if outflow:
+                lin=ModA+ModAo
+            else:
+                lin=ModA
         else:
             if outflow:
                 lin=ModA+ModH+ModB+ModAo+ModHo+ModBo+lin
@@ -140,7 +143,11 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     outvect.extend([lin])
     if single:
         if n_line:
-            outvect.extend([ModA])
+            if outflow:
+                outvect.extend([ModA])
+                outvect.extend([ModAo])
+            else:
+                outvect.extend([ModA])
         else:
             outvect.extend([ModA])
             outvect.extend([ModH])
