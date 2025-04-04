@@ -1067,9 +1067,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 else:
                                     if n_line:
                                         if outflow:
-                                            labels = ['A1','fac','dv1','dv2','FWHM','F_o', 'dvO','FWHM_O','alphaO']
+                                            labels2 = [r'$A_1$',r'$f_c$',r'$\Delta v_{1b}$',r'$\Delta v_{1r}$',r'$FWHM_n$',r'$F_{1,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
                                         else:
-                                            labels = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
+                                            labels2 = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
                                     else:
                                         labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$']
                     import corner  
