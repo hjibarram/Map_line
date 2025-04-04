@@ -34,6 +34,9 @@ priors:
   a1i: 0.0 #minimum amplitud limit of the narrow line
   a3s: 0.8 #maximum amplitud limit of the 2dnarrow line
   a3i: 0.0 #minimum amplitud limit of the 2dnarrow line
+  fac12o: 6.0 #initial amplitude factor value of the narrow line
+  fac12i: 0.0 #minimum amplitude factor limit of the narrow line
+  fac12s: 30.0 #maximum amplitude factor limit of the narrow line
   f1o: 0.2 #initial Line/outflow amplitud factor value
   f1s: 1.0 #maximum Line/outflow amplitud factor limit
   f1i: 0.0 #minimum Line/outflow amplitud factor limit
