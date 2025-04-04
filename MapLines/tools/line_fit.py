@@ -672,12 +672,18 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             if skew:
                 model_param=np.zeros([17,nx,ny])
             else:
-                model_param=np.zeros([15,nx,ny])
+                if outflow:
+                    model_param=np.zeros([21,nx,ny])
+                else:
+                    model_param=np.zeros([15,nx,ny])
         else:
             if skew:
                 model_param=np.zeros([16,nx,ny])
             else:
-                model_param=np.zeros([14,nx,ny])
+                if outflow:
+                    model_param=np.zeros([20,nx,ny])
+                else:
+                    model_param=np.zeros([14,nx,ny])
     model_param[:,:,:]=np.nan    
 
     data_lines=tol.read_config_file(config_lines)
@@ -833,12 +839,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_InpE[:,i,j]=fluxtE
                     if n_line:
                         model_Blue[:,i,j]=m2B
+                        if outflow:
+                            model_Outflow[:,i,j]=m2Bo
                     else:
                         model_Blue[:,i,j]=m2B+m1B+mHB
+                        if outflow:
+                            model_Outflow[:,i,j]=m2Bo+m1Bo+mHBo
                     if broad:
                         model_Broad[:,i,j]=mHBR
-                    if outflow:
-                        model_Outflow[:,i,j]=m2Bo+m1Bo+mHBo
                     model_param[0,i,j]=A1_f/flux_f
                     model_param[1,i,j]=A1_f/lfac12/flux_f
                     model_param[2,i,j]=A3_f/flux_f
@@ -911,11 +919,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     if n_line:
                         model_Blue[:,i,j]=m2B
                         model_Red[:,i,j]=m2R
+                        if outflow:
+                            model_Outflow[:,i,j]=m2Bo+m2Ro
                     else:
                         model_Blue[:,i,j]=m2B+m1B+mHB
                         model_Red[:,i,j]=m2R+m1R+mHR
                     if broad:
-                        model_Broad[:,i,j]=mHBR
+                        model_Broad[:,i,j]=mHBR    
                     model_param[0,i,j]=A1_f/flux_f
                     model_param[1,i,j]=A1_f/lfac12/flux_f
                     model_param[2,i,j]=A3_f/flux_f
@@ -938,6 +948,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     if skew:
                         model_param[ind+1,i,j]=alph1_f
                         model_param[ind+2,i,j]=alphB_f
+                    if outflow:
+                        model_param[ind+1,i,j]=A1_f/flux_f*F1o_f
+                        model_param[ind+2,i,j]=A1_f/lfac12/flux_f*F1o_f
+                        model_param[ind+3,i,j]=A3_f/flux_f*F3o_f
+                        model_param[ind+4,i,j]=dvO_f
+                        model_param[ind+5,i,j]=fwhmO_f
+                        model_param[ind+6,i,j]=alphaO_f    
                 if plot_f:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
@@ -1143,6 +1160,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         h4=fits.ImageHDU(model_Broad)
         h5=fits.ImageHDU(model_Inp)
         h6=fits.ImageHDU(model_InpE)
+        if outflow:
+            h7=fits.ImageHDU(model_Outflow)
     h_k=h1.header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
