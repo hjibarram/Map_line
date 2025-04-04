@@ -819,6 +819,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 if outflow:
                                     A1_f,dv1_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                                     model,m2B,m2Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
+                                    F3o_f=0
                                 else:
                                     A1_f,dv1_f,fwhm1_f=theta_max
                                     model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
