@@ -768,7 +768,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             initial = np.array([valsp['a1o'], valsp['a3o'], valsp['dv1o'], valsp['fwhm1o'], valsp['fwhm2o'], fluxp, valsp['dv3o']])
                         else:
                             if n_line:
-                                initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o']])
+                                if outflow:
+                                    initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o'], valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
+                                else:
+                                    initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o']])
                             else:
                                 if outflow:
                                     initial = np.array([valsp['a1o'], valsp['a3o'], valsp['dv1o'], valsp['fwhm1o'], valsp['f1o'], valsp['f3o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
@@ -782,7 +785,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             initial = np.array([valsp['a1o'], valsp['a3o'], 6.0, valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o'], valsp['fwhm2o'], fluxp, valsp['dv3o']])
                         else:
                             if n_line:
-                                initial = np.array([valsp['a1o'], 6.0, valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o']])
+                                if outflow:
+                                    initial = np.array([valsp['a1o'], 6.0, valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o'], valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
+                                else:
+                                    initial = np.array([valsp['a1o'], 6.0, valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o']])
                             else:
                                 initial = np.array([valsp['a1o'], valsp['a3o'], 6.0, valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o']])
                 ndim = len(initial)
@@ -804,8 +810,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
                         else:
                             if n_line:
-                                A1_f,dv1_f,fwhm1_f=theta_max
-                                model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
+                                if outflow:
+                                    A1_f,dv1_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
+                                    model,m2B,m2Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
+                                    F3o_f=0
+                                else:
+                                    A1_f,dv1_f,fwhm1_f=theta_max
+                                    model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
                                 A3_f=0
                             else:
                                 if outflow:
@@ -860,7 +871,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
                         else:
                             if n_line:
-                                A1_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
+                                if outflow:
+                                    A1_f,fac_f,dv1_f,dv2_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
+                                    F3o_f=0
+                                else:
+                                    A1_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
                                 A3_f=0
                             else:
                                 A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
@@ -883,8 +898,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
                         else:
                             if n_line:
-                                theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f    
-                                model,m2B,m2R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
+                                if outflow:
+                                    theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f,F1o_f,dvO1_f,dvO2_f,fwhmO_f,alphaO_f
+                                    model,m2B,m2R,m2Bo,m2Ro=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
+                                else:
+                                    theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f    
+                                    model,m2B,m2R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
                             else:
                                 theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f    
                                 model,m2B,m2R,mHB,mHR,m1B,m1R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)                   
@@ -967,6 +986,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'Ha_n_r')
                                 ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_b')
                                 ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'NII_1_r')
+                        if outflow:
+                            ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')
+                            ax1.plot(wave_i,m2Ro,linewidth=1,color='orange',label=r'outflow')    
                     fontsize=14
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
@@ -1044,7 +1066,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                     labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
                                 else:
                                     if n_line:
-                                        labels = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
+                                        if outflow:
+                                            labels = ['A1','fac','dv1','dv2','FWHM','F_o', 'dvO1','dvO2','FWHM_O','alphaO']
+                                        else:
+                                            labels = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
                                     else:
                                         labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$']
                     import corner  
@@ -1091,7 +1116,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
                             else:   
                                 if n_line:
-                                    print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
+                                    if outflow:
+                                        print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"dvO1=",dvO1_f,"dvO2=",dvO2_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
+                                    else:
+                                        print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
                                 else: 
                                     print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
                 if test:        

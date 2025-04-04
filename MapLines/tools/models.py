@@ -40,8 +40,15 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                 alphb=[0]
             else:
                 if n_line:
-                    A1,dv1,fwhm1=theta
-                    A3=[0]
+                    if outflow:
+                        A1,dv1,fwhm1,F1o,dvo,fwhmo,alpho=theta
+                        dvO=[dvo]
+                        fwhmO=[fwhmo]
+                        alphO=[alpho]
+                        F3o=[0]
+                    else:
+                        A1,dv1,fwhm1=theta
+                        A3=[0]
                 else:
                     if outflow:
                         A1,A3,dv1,fwhm1,F1o,F3o,dvo,fwhmo,alpho=theta
@@ -69,7 +76,14 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                 alphb=[0]
             else:
                 if n_line:
-                    A1,fac,dv1,dv2,fwhm1=theta
+                    if outflow:
+                        A1,fac,dv1,dv2,fwhm1,F1o,dvo1,dvo2,fwhmo,alpho=theta
+                        dvO=[dvo1,dvo2]
+                        fwhmO=[fwhmo,fwhmo]
+                        alphO=[alpho,alpho]
+                        F3o=[0]
+                    else:
+                        A1,fac,dv1,dv2,fwhm1=theta
                     A3=[0]
                 else:
                     A1,A3,fac,dv1,dv2,fwhm1=theta        
@@ -114,7 +128,10 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
     else:
         for i in range(len(ModA)):
             if n_line:
-                lin=ModA[i]+lin
+                if outflow:
+                    lin=ModA[i]+ModAo[i]+lin
+                else:
+                    lin=ModA[i]+lin
             else:
                 lin=ModA[i]+ModH[i]+ModB[i]+lin
     if broad:        
@@ -138,6 +155,9 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
         if n_line:
             for i in range(len(ModA)):
                 outvect.extend([ModA[i]])
+            if outflow:
+                for i in range(len(ModAo)):
+                    outvect.extend([ModAo[i]])
         else:
             for i in range(len(ModA)):
                 outvect.extend([ModA[i]])
