@@ -775,7 +775,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         else:
                             if n_line:
                                 if outflow:
-                                    initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o'], valsp['f1o'], valsp['f3o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
+                                    initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o'], valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                                 else:
                                     initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o']])
                             else:
