@@ -81,7 +81,7 @@ def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, sing
                         dvO=[dvo,dvo+dv2]
                         fwhmO=[fwhmo,fwhmo]
                         alphO=[alpho,alpho]
-                        F3o=[0]
+                        F3o=0
                     else:
                         A1,fac,dv1,dv2,fwhm1=theta
                     A3=[0]
