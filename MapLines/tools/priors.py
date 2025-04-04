@@ -70,11 +70,18 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
                     return -np.inf
             else:
                 if n_line:
-                    A1,fac,dv1,dv2,fwhm1=theta
-                    if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((fac >= 0) and (fac <=30.0)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s'])): 
-                        return 0.0
+                    if outflow:
+                        A1,fac,dv1,dv2,fwhm1,F1o,F3o,dvO,fwhmO,alpo=theta
+                        if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((fac >= 0) and (fac <=30.0)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s'])) and((F1o >= valsp['f1i']) and (F1o <= valsp['f1s'])) and ((fwhmO >= valsp['fwhmOi']) and (fwhmO <= valsp['fwhmOs'])) and ((dvO >= valsp['dvOi']) and (dvO <= valsp['dvOs'])) and ((alpo >= valsp['alpOi']) and (alpo <= valsp['alpOs'])): 
+                            return 0.0
+                        else:
+                            return -np.inf
                     else:
-                        return -np.inf
+                        A1,fac,dv1,dv2,fwhm1=theta
+                        if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((fac >= 0) and (fac <=30.0)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s'])): 
+                            return 0.0
+                        else:
+                            return -np.inf
                 else:
                     A1,A3,fac,dv1,dv2,fwhm1=theta
                     if ((A1 >= valsp['a1i']) and (A1 <= valsp['a1s'])) and ((A3 >= valsp['a3i']) and (A3 <= valsp['a3s'])) and ((fac >= 0) and (fac <=30.0)) and ((fwhm1 >= valsp['fwhm1i']) and (fwhm1 <= valsp['fwhm1s'])) and ((dv1 >= valsp['dv1i']) and (dv1 <= valsp['dv1s'])) and ((dv2 >= valsp['dv1i']) and (dv2 <= valsp['dv1s'])): 

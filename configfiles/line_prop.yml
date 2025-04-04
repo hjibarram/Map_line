@@ -61,5 +61,5 @@ priors:
   dv3i: -1000.0 #minimum velocity limit of the broad line
   dvOo: -100.0 #initial velocity value of the outflow line
   dvOs: 100.0 #maximum velocity limit of the outflow line
-  dvOi: -200.0 #minimum velocity limit of the outflow line  
+  dvOi: -200.0 #minimum velocity limit of the outflow line
 ...

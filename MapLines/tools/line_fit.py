@@ -899,7 +899,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         else:
                             if n_line:
                                 if outflow:
-                                    theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f,F1o_f,dvO1_f,dvO2_f,fwhmO_f,alphaO_f
+                                    theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f
                                     model,m2B,m2R,m2Bo,m2Ro=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
                                 else:
                                     theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f    
@@ -1067,7 +1067,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 else:
                                     if n_line:
                                         if outflow:
-                                            labels = ['A1','fac','dv1','dv2','FWHM','F_o', 'dvO1','dvO2','FWHM_O','alphaO']
+                                            labels = ['A1','fac','dv1','dv2','FWHM','F_o', 'dvO','FWHM_O','alphaO']
                                         else:
                                             labels = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
                                     else:
@@ -1117,7 +1117,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             else:   
                                 if n_line:
                                     if outflow:
-                                        print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"dvO1=",dvO1_f,"dvO2=",dvO2_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
+                                        print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
                                     else:
                                         print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
                                 else: 
