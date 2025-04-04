@@ -980,8 +980,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                 ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
                         if outflow:
                             ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')#,label=r'OIII_2_OR')
-                            ax1.plot(wave_i,mHBo,linewidth=1,color='orange')#,label=r'Hb_n_OR')
-                            ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')        
+                            if not n_line:
+                                ax1.plot(wave_i,mHBo,linewidth=1,color='orange')#,label=r'Hb_n_OR')
+                                ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')        
                     else:
                         if hbfit:
                             if broad:
