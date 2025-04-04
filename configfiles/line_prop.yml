@@ -29,9 +29,9 @@ continum:
     waveb2: 6572.0    
 priors:
   a1o: 0.04 #initial amplitud value of the narrow line
-  a3o: 0.09 #initial amplitud value of the 2dnarrow line
   a1s: 1.8 #maximum amplitud limit of the narrow line
   a1i: 0.0 #minimum amplitud limit of the narrow line
+  a3o: 0.09 #initial amplitud value of the 2dnarrow line
   a3s: 0.8 #maximum amplitud limit of the 2dnarrow line
   a3i: 0.0 #minimum amplitud limit of the 2dnarrow line
   fac12o: 6.0 #initial amplitude factor value of the narrow line
