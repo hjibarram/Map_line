@@ -781,8 +781,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
-
-
                 
                 if skew:
                     *f_parm,alph1_f,alphB_f=theta_max
@@ -793,8 +791,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     else:
                         f_parm=theta_max
                     model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, outflow=outflow)
-                #model=models[0]
-                #modsI=models[1:]
+                
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
                 model_InpE[:,i,j]=fluxtE
@@ -840,18 +837,21 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[ind+2,i,j]=dvO_f
                     model_param[ind+3,i,j]=fwhmO_f
                     model_param[ind+4,i,j]=alphaO_f
-                print(model.shape)
-                #print(wave_i.shape)
-                #print(modsI.shape)
+                
+
                 if plot_f:
+                    colors=['blue','red','green','orange','purple','brown','pink']
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
                     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-                    ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')
-                    
+                    ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
+                    for namel in names0:
+                        if namel != 'None':
+                            indl=names0.index(namel)
+                            ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
                     if single:
                         if hbfit:
                             if broad:
