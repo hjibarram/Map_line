@@ -786,7 +786,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
                 if skew:
                     *f_parm,alph1_f,alphB_f=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True,  skew=skew)
+                    models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True,  skew=skew)
                 else:
                     if outflow:
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
@@ -841,6 +841,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[ind+4,i,j]=alphaO_f
                 print(model.shape)
                 print(wave_i.shape)
+                print(modsI.shape)
                 if plot_f:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
