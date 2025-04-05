@@ -793,6 +793,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     else:
                         f_parm=theta_max
                     models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True, skew=skew, outflow=outflow)
+                print(models)
                 model=models[0]
                 modsI=models[1:]
                 model_all[:,i,j]=model
