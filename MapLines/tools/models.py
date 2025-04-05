@@ -30,10 +30,10 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
 def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
     '''Model for the line complex'''
 
+    alph=[]
+    alphb=[]
     if skew:
-        *f_parm,alp1,alpb=theta
-        alph=[]
-        alphb=[] 
+        *f_parm,alp1,alpb=theta 
     else:
         if outflow:
             *f_parm,F1o,dvo,fwhmo,alpho=theta
