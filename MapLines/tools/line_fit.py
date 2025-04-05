@@ -653,11 +653,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         n_lines=len(data_lines['lines'])
         pac=['AoN','dvoN','fwhmoN']
         pacL=[r'$A_{N}$',r'$\Delta v_{N}$',r'$FWHM_{N}$']
+        pacH=['N_Amplitude','N_Velocity','N_FWHM']
         waves0=[]
         names0=[]
         vals0=[]
         vals=[]
         valsL=[]
+        valsH=[]
         fac0=[]
         facN0=[]
         for i in range(0, n_lines):
@@ -678,6 +680,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             for a in pac:
                 val_t=a.replace('N',str(i))
                 val_tL=pacL[inr].replace('N',names0[i])
+                val_tH=pacH[inr].replace('N',names0[i])
                 if 'AoN' in a:
                     if facp == False:
                         vals.extend([val_t])
@@ -685,6 +688,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 else:
                     vals.extend([val_t])
                     valsL.extend([val_tL])
+                valsH.extend([val_tH])
                 vals0.extend([val_t])    
                 inr=inr+1
         region=data_lines['continum'][0]['region']
@@ -903,121 +907,69 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.legend(fontsize=14)
                     plt.tight_layout()
                     plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
+                
                 if pgr_bar == False:  
-                    if single:  
-                        if skew:
-                            print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
-                        else:
-                            if broad:
-                                print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
-                            else:
-                                if n_line:
-                                    print("A1=",A1_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
-                                else:
-                                    if outflow:
-                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"F3o=",F3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
-                                    else:
-                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
+                    linet=''
+                    for itar in range(0, len(vals)):
+                        linet=linet+vals[itar]+'='+str(f_parm[itar])+' '
+                    if skew:
+                        print(linet+'alph1='+str(alph1_f)+'alphB='+str(alphB_f))
                     else:
-                        if skew:
-                            print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
+                        if outflow:
+                            print(linet+'F1o='+str(F1o_f)+'F3o='+str(F3o_f)+'dvO='str(dvO_f)+'fwhmO='+str(fwhmO_f)+'alph0='+str(alphaO_f))
                         else:
-                            if broad:    
-                                print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
-                            else:   
-                                if n_line:
-                                    if outflow:
-                                        print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
-                                    else:
-                                        print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
-                                else: 
-                                    if outflow:
-                                        print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"F3o=",F3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
-                                    else:
-                                        print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
+                            print(linet)
+                    
                 if test:
                     return        
             if pgr_bar:
                 pbar.update(1)
+    hli=[]
+    hli.extend([fits.PrimaryHDU(model_all)])
+    for myt in range(0,n_lines):
+        temp=model_Ind[:,:,:,myt]
+        hli.extend([fits.ImageHDU(temp)])
+    hli.extend([fits.ImageHDU(model_Inp)])    
+    hli.extend([fits.ImageHDU(model_InpE)])    
+    if outflow:
+        hli.extend([fits.ImageHDU(model_Outflow)])    
     
-    if single:
-        h1=fits.PrimaryHDU(model_all)
-        h2=fits.ImageHDU(model_Blue)
-        h4=fits.ImageHDU(model_Broad)
-        h5=fits.ImageHDU(model_Inp)
-        h6=fits.ImageHDU(model_InpE)
-        if outflow:
-            h7=fits.ImageHDU(model_Outflow)
-    else:
-        h1=fits.PrimaryHDU(model_all)
-        h2=fits.ImageHDU(model_Blue)
-        h3=fits.ImageHDU(model_Red)
-        h4=fits.ImageHDU(model_Broad)
-        h5=fits.ImageHDU(model_Inp)
-        h6=fits.ImageHDU(model_InpE)
-        if outflow:
-            h7=fits.ImageHDU(model_Outflow)
-    h_k=h1.header
+    h_k=hli[0].header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
         h_k[keys[i]]=hdr[keys[i]]
         h_k.comments[keys[i]]=hdr.comments[keys[i]]
     h_k['EXTNAME'] ='Model'    
     h_k.update()
-    if single:
-        h_t=h2.header
+    for myt in range(0,n_lines):
+        h_t=hli[1+myt].header
         for i in range(0, len(keys)):
             h_t[keys[i]]=hdr[keys[i]]
             h_t.comments[keys[i]]=hdr.comments[keys[i]]
-        h_t['EXTNAME'] ='Narrow_Component'
+        h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
-    else:
-        h_t=h2.header
-        for i in range(0, len(keys)):
-            h_t[keys[i]]=hdr[keys[i]]
-            h_t.comments[keys[i]]=hdr.comments[keys[i]]
-        h_t['EXTNAME'] ='Blue_Component'
-        h_t.update()
-        h_r=h3.header
-        for i in range(0, len(keys)):
-            h_r[keys[i]]=hdr[keys[i]]
-            h_r.comments[keys[i]]=hdr.comments[keys[i]]
-        h_r['EXTNAME'] ='Red_Component'
-        h_r.update()    
-    h_y=h4.header
-    for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
-    h_y['EXTNAME'] ='Broad_Component'
-    h_y.update()
-
-    h_y=h5.header
+    
+    h_y=hli[2+n_lines].header
     for i in range(0, len(keys)):
         h_y[keys[i]]=hdr[keys[i]]
         h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
     
-    h_y=h6.header
+    h_y=hli[3+n_lines].header
     for i in range(0, len(keys)):
         h_y[keys[i]]=hdr[keys[i]]
         h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='InputE_Component'
     h_y.update()  
     if outflow:
-        h_y=h7.header
+        h_y=hli[4+n_lines].header
         for i in range(0, len(keys)):
             h_y[keys[i]]=hdr[keys[i]]
             h_y.comments[keys[i]]=hdr.comments[keys[i]]
         h_y['EXTNAME'] ='Outflow_Component'
         h_y.update()  
-    if single:
-        if outflow:
-            hlist=fits.HDUList([h1,h2,h4,h5,h6,h7])
-        else:
-            hlist=fits.HDUList([h1,h2,h4,h5,h6])
-    else:
-        hlist=fits.HDUList([h1,h2,h3,h4,h5,h6])
+    hlist=fits.HDUList(hli)
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
     tol.sycall('gzip -f '+file_out+'.fits')
@@ -1029,80 +981,23 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
             h[keys[i]]=hdr[keys[i]]
             h.comments[keys[i]]=hdr.comments[keys[i]]
-    if single:
-        if hbfit:
-            h['Val_0'] ='OIII_5007_Amplitude'
-            h['Val_1'] ='OIII_4959Amplitude'
-            h['Val_2'] ='H_beta_Amplitude'
-            h['Val_3'] ='H_beta_Broad_Amplitude'
-            h['Val_4'] ='Narrow_vel'
-            h['Val_5'] ='Broad_vel'
-            h['Val_6'] ='FWHM_Narrow'
-            h['Val_7'] ='FWHM_Broad' 
-            h['Val_8'] ='Noise_Median'
+    for i in range(0, valsH):
+        h['Val_'+str(i)]=valsH[i] 
+    h['Val_'+str(n_lines*3)] ='Noise_Median'
+    if cont:
+        h['Val_'+str(n_lines*3)+1] ='Continum'
+            ind=n_lines*3+1
         else:
-            h['Val_0'] ='NII_6585_Amplitude'
-            h['Val_1'] ='NII_6549_Amplitude'
-            h['Val_2'] ='H_alpha_Amplitude'
-            h['Val_3'] ='H_alpha_Broad_Amplitude'
-            h['Val_4'] ='Narrow_vel'
-            h['Val_5'] ='Broad_vel'
-            h['Val_6'] ='FWHM_Narrow'
-            h['Val_7'] ='FWHM_Broad' 
-            h['Val_8'] ='Noise_Median'
-        if cont:
-            h['Val_9'] ='Continum'
-            ind=9
-        else:
-            ind=8
-        if skew:
-            h['Val_'+str(ind+1)]='Alpha_Narrow'
-            h['Val_'+str(ind+2)]='Alpha_Broad' 
-        if outflow:
-            h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
-            h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
-            h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
-            h['Val_'+str(ind+4)]='Vel_outflow' 
-            h['Val_'+str(ind+5)]='FWHM_outflow' 
-    else:
-        if hbfit:      
-            h['Val_0'] ='OIII_5007_Amplitude_blue'
-            h['Val_1'] ='OIII_4959_Amplitude_blue'
-            h['Val_2'] ='H_beta_Amplitude_blue'
-            h['Val_3'] ='H_beta_Broad_Amplitude'
-            h['Val_4'] ='Blue_Red_Factor'
-            h['Val_5'] ='NII_5007_Amplitude_red'
-            h['Val_6'] ='NII_4959_Amplitude_red'
-            h['Val_7'] ='H_beta_Amplitude_red'
-            h['Val_8'] ='Blue_vel'
-            h['Val_9'] ='Red_vel'
-            h['Val_10'] ='Broad_vel'
-            h['Val_11'] ='FWHM_Narrow'
-            h['Val_12'] ='FWHM_Broad'
-            h['Val_13'] ='Noise_Median'  
-        else:  
-            h['Val_0'] ='NII_6585_Amplitude_blue'
-            h['Val_1'] ='NII_6549_Amplitude_blue'
-            h['Val_2'] ='H_alpha_Amplitude_blue'
-            h['Val_3'] ='H_alpha_Broad_Amplitude'
-            h['Val_4'] ='Blue_Red_Factor'
-            h['Val_5'] ='NII_6585_Amplitude_red'
-            h['Val_6'] ='NII_6549_Amplitude_red'
-            h['Val_7'] ='H_alpha_Amplitude_red'
-            h['Val_8'] ='Blue_vel'
-            h['Val_9'] ='Red_vel'
-            h['Val_10'] ='Broad_vel'
-            h['Val_11'] ='FWHM_Narrow'
-            h['Val_12'] ='FWHM_Broad'  
-            h['Val_13'] ='Noise_Median' 
-        if cont:
-            h['Val_14'] ='Continum'
-            ind=14
-        else:
-            ind=13  
-        if skew:
-            h['Val_'+str(ind+1)]='Alpha_Narrow'
-            h['Val_'+str(ind+2)]='Alpha_Broad'    
+            ind=n_lines*3
+    if skew:
+        h['Val_'+str(ind+1)]='Alpha_Narrow'
+        h['Val_'+str(ind+2)]='Alpha_Broad' 
+    if outflow:
+        h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
+        h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
+        h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
+        h['Val_'+str(ind+4)]='Vel_outflow' 
+        h['Val_'+str(ind+5)]='FWHM_outflow'     
     try:    
         del h['CRVAL3']
         del h['CRPIX3']
