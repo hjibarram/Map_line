@@ -33,7 +33,7 @@ def line_model(theta, waves0, fac0, facN0, ret_com=False, skew=False, lorentz=Fa
         if skew:
             A1,A3,dv1,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
             alph=[alp1]
-            alphb=[alpb]
+            alphb=[alpb] 
         else:
             if broad:
                 A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
