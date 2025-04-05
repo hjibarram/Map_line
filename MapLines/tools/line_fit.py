@@ -856,7 +856,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         for namel in names0:
                             if namel != 'None':
                                 indl=names0.index(namel)
-                                ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,label=namel,color='orange',label=r'outflow')
+                                ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
                     fontsize=14
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
@@ -865,7 +865,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     plt.tight_layout()
                     fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
-                    
+
                     if single:
                         if skew:
                             labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3", "alph1", "alphB"]
