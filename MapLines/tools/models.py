@@ -37,6 +37,7 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=F
     else:
         if outflow:
             *f_parm,F1o,dvo,fwhmo,alpho=theta
+            A1o=[]
             dvO=[]
             fwhmO=[]
             alphO=[]
@@ -61,11 +62,15 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=F
                 indf=atp
         if indf >= 0:
             A1.extend([f_parm[indf]/fac0[myt]])
+            if outflow:
+                A1o.extend([f_parm[indf]/fac0[myt]*F1o])
         else: 
             for atp in range(0, len(vals)):
                 if vals[atp] == vt1:
                     indfT1=atp
             A1.extend([f_parm[indfT1]])
+            if outflow:
+                A1o.extend([f_parm[indfT1]*F1o])
         for atp in range(0, len(vals)):
             if vals[atp] == vt2:
                 indfT2=atp
@@ -86,9 +91,6 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=F
 
     ModA=emission_line_model(x, xo=waves0, A=A1, dv=dv ,fwhm=fwhm, alph=alph, skew=skew, lorentz=lorentz)
     if outflow:
-        print(A1)
-        print(F1o)
-        A1o=A1*F1o
         ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO, fac=fact, alph=alphO, skew=True)
         
     
