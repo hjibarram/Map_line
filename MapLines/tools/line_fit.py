@@ -622,7 +622,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 pdl_cubeE =fits.getdata(file1, 1, header=False)    
         if erft != 0:
             pdl_cubeE=pdl_cubeE*flux_f*erft
-            
+
     nz,nx,ny=pdl_cube.shape
     pdl_cube=pdl_cube*flux_f
     if ptt.exists(file3):
@@ -711,8 +711,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         region=data_lines['continum'][0]['region']
         wavec1=data_lines['continum'][0]['wave1']
         wavec2=data_lines['continum'][0]['wave2']
-        waveb1=data_lines['continum'][0]['waveb1']
-        waveb2=data_lines['continum'][0]['waveb2']
+        #waveb1=data_lines['continum'][0]['waveb1']
+        #waveb2=data_lines['continum'][0]['waveb2']
         valsp=data_lines['priors']
 
         Inpvalues=[]
