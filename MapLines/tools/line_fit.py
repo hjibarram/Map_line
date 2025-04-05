@@ -713,6 +713,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         return
 
     if cont:
+        oft=2
+    else:
         oft=1
     if skew:
         model_param=np.zeros([n_lines*3+2+oft,nx,ny])
