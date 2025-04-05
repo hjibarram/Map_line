@@ -25,7 +25,7 @@ files:
     lorentz: False #activate the lorenztiant broad profile
     double: False #flag to run double peak mode
     error: False #flag to run autocalculate the error vector  
-    rvel: 500.0 #narrow velocity shift range
+    #rvel: 500.0 #narrow velocity shift range
     n_line: False #flag to activate only one line component
     line_config: line_prop.yml #configuration file of the emision lines
     line_config_path: '' #path to the configuration file of the emision lines

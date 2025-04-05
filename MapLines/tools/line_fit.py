@@ -606,7 +606,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,single=False,flux_f=1.0,erft=0.75,cont=False,hbfit=False):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -643,90 +643,69 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
     wave_i=wave_f[nw]
     model_all=np.zeros([len(nw),nx,ny])
-    model_Blue=np.zeros([len(nw),nx,ny])
-    model_Red=np.zeros([len(nw),nx,ny])
-    model_Broad=np.zeros([len(nw),nx,ny])
     model_Inp=np.zeros([len(nw),nx,ny])
     model_InpE=np.zeros([len(nw),nx,ny])
     if outflow:
         model_Outflow=np.zeros([len(nw),nx,ny])
-    if single:
-        if cont:
-            if skew:
-                model_param=np.zeros([12,nx,ny])
-            else:
-                if outflow:
-                    model_param=np.zeros([16,nx,ny])
-                else:
-                    model_param=np.zeros([10,nx,ny])
-        else:
-            if skew:
-                model_param=np.zeros([11,nx,ny])
-            else:
-                if outflow:
-                    model_param=np.zeros([15,nx,ny])
-                else:
-                    model_param=np.zeros([9,nx,ny])
-    else:
-        if cont:
-            if skew:
-                model_param=np.zeros([17,nx,ny])
-            else:
-                if outflow:
-                    model_param=np.zeros([21,nx,ny])
-                else:
-                    model_param=np.zeros([15,nx,ny])
-        else:
-            if skew:
-                model_param=np.zeros([16,nx,ny])
-            else:
-                if outflow:
-                    model_param=np.zeros([20,nx,ny])
-                else:
-                    model_param=np.zeros([14,nx,ny])
-    model_param[:,:,:]=np.nan    
 
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
-
         n_lines=len(data_lines['lines'])
-        L1name=data_lines['lines'][0]['name']
-        L1wave=data_lines['lines'][0]['wave']
-        lfac12=data_lines['lines'][0]['fac']
-        L2wave=data_lines['lines'][1]['wave']
-        L2name=data_lines['lines'][1]['name']
-        LHwave=data_lines['lines'][2]['wave']
-        LHname=data_lines['lines'][2]['name']
-        LHBwave=data_lines['lines'][3]['wave']
-        LHBname=data_lines['lines'][3]['name']
+        pac=['AoN','dvoN','fwhmoN']
+        waves0=[]
+        names0=[]
+        vals0=[]
+        vals=[]
+        fac0=[]
+        facN0=[]
+        for i in range(0, n_lines):
+            parameters=data_lines['lines'][i]
+            npar=len(parameters)
+            waves0.extend([parameters['wave']])
+            names0.extend([parameters['name']])
+            try:
+                val=parameters['fac_Name']
+                facN0.extend([parameters['fac_Name']])
+                fac0.extend([parameters['fac']])
+                facp=True
+            except:
+                facN0.extend(['NoNe'])
+                fac0.extend([None])
+                facp=False
+            for a in pac:
+                val_t=a.replace('N',str(i))
+                if 'AoN' in a:
+                    if facp == False:
+                        vals.extend([val_t])
+                else:
+                    vals.extend([val_t])
+                vals0.extend([val_t])    
         region=data_lines['continum'][0]['region']
         wavec1=data_lines['continum'][0]['wave1']
         wavec2=data_lines['continum'][0]['wave2']
         waveb1=data_lines['continum'][0]['waveb1']
         waveb2=data_lines['continum'][0]['waveb2']
         valsp=data_lines['priors']
+
+        Ivalues=[]
+        for valt in vals:
+            Ivalues.extend([valsp[valt]])
+        model_Ind=np.zeros([len(nw),nx,ny,n_lines])
+
     else:
         print('No configuration line model file')
         return
 
-    #Loiii1=L1wave#4960.36 
-    #LnrHb=LHwave#4862.68 
-    #Loiii2=L2wave#5008.22
-    #Lnii2=L2wave#6585.278
-    #LnrHa=LHwave#6564.632
-    #Lnii1=L1wave#6549.859
-    #if hbfit:
-    #    lfac12=lfac12#3.0
-    #    L1wave=Loiii1
-    #    L2wave=Loiii2
-    #    LHwave=LnrHb
-    #    LHBwave=LnrHb
-    #else:
-    #    lfac12=lfac12#2.93
-    #    L1wave=Lnii1
-    #    L2wave=Lnii2
-    #    LHwave=LnrHa
-    #    LHBwave=LnrHa
+    if cont:
+        oft=1
+    if skew:
+        model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+    else:
+        if outflow:
+            model_param=np.zeros([n_lines*3+4+oft,nx,ny])
+        else:
+            model_param=np.zeros([n_lines*3+oft,nx,ny])
+    model_param[:,:,:]=np.nan    
 
     hdr["CRVAL3"]=wave_i[0]
     try:
@@ -763,40 +742,19 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 fluxe_t=np.nanmean(fluxtE)
                 if fluxp < 0:
                     fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp, n_line, outflow)
+                #data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, sim, lfac12, single, skew, broad, lorentz, valsp, n_line, outflow)
+                data = (fluxt, fluxtE, wave_i, waves0, fac0, facN0, fluxp, skew, lorentz, valsp, outflow)
                 nwalkers=240
                 niter=1024
-                if single:
-                    if skew:  
-                        initial = np.array([valsp['a1o'], valsp['a3o'], valsp['dv1o'], valsp['fwhm1o'], valsp['fwhm2o'], fluxp, valsp['dv3o'], 0.0, 0.0])
-                    else:
-                        if broad:
-                            initial = np.array([valsp['a1o'], valsp['a3o'], valsp['dv1o'], valsp['fwhm1o'], valsp['fwhm2o'], fluxp, valsp['dv3o']])
-                        else:
-                            if n_line:
-                                if outflow:
-                                    initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o'], valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
-                                else:
-                                    initial = np.array([valsp['a1o'], valsp['dv1o'], valsp['fwhm1o']])
-                            else:
-                                if outflow:
-                                    initial = np.array([valsp['a1o'], valsp['a3o'], valsp['dv1o'], valsp['fwhm1o'], valsp['f1o'], valsp['f3o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
-                                else:
-                                    initial = np.array([valsp['a1o'], valsp['a3o'], valsp['dv1o'], valsp['fwhm1o']])
+
+                if skew:  
+                    initial = np.array([*Ivalues, 0.0, 0.0])
                 else:
-                    if skew:
-                        initial = np.array([valsp['a1o'], valsp['a3o'], valsp['fac12o'], valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o'], valsp['fwhm2o'], fluxp, valsp['dv3o'], 0.0, 0.0])
+                    if outflow:
+                        initial = np.array([*Ivalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                     else:
-                        if broad:
-                            initial = np.array([valsp['a1o'], valsp['a3o'], valsp['fac12o'], valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o'], valsp['fwhm2o'], fluxp, valsp['dv3o']])
-                        else:
-                            if n_line:
-                                if outflow:
-                                    initial = np.array([valsp['a1o'], valsp['fac12o'], valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o'], valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
-                                else:
-                                    initial = np.array([valsp['a1o'], valsp['fac12o'], valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o']])
-                            else:
-                                initial = np.array([valsp['a1o'], valsp['a3o'], valsp['fac12o'], valsp['dv1o'], valsp['dv2o'], valsp['fwhm1o']])
+                        initial = np.array([*Ivalues])
+
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
                 if plot_f:
@@ -806,155 +764,67 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
-                if single:
-                    if skew:
-                        A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
-                        model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
-                    else:
-                        if broad:
-                            A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                            model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
-                        else:
-                            if n_line:
-                                if outflow:
-                                    A1_f,dv1_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
-                                    model,m2B,m2Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
-                                    F3o_f=0
-                                else:
-                                    A1_f,dv1_f,fwhm1_f=theta_max
-                                    model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
-                                A3_f=0
-                            else:
-                                if outflow:
-                                    A1_f,A3_f,dv1_f,fwhm1_f,F1o_f,F3o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
-                                    model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
-                                else:
-                                    A1_f,A3_f,dv1_f,fwhm1_f=theta_max
-                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
-                            A7_f=0
-                            fwhm2_f=0
-                            dv3_f=0
-                    model_all[:,i,j]=model
-                    model_Inp[:,i,j]=fluxt
-                    model_InpE[:,i,j]=fluxtE
-                    if n_line:
-                        model_Blue[:,i,j]=m2B
-                        if outflow:
-                            model_Outflow[:,i,j]=m2Bo
-                    else:
-                        model_Blue[:,i,j]=m2B+m1B+mHB
-                        if outflow:
-                            model_Outflow[:,i,j]=m2Bo+m1Bo+mHBo
-                    if broad:
-                        model_Broad[:,i,j]=mHBR
-                    model_param[0,i,j]=A1_f/flux_f
-                    model_param[1,i,j]=A1_f/lfac12/flux_f
-                    model_param[2,i,j]=A3_f/flux_f
-                    model_param[3,i,j]=A7_f/flux_f
-                    model_param[4,i,j]=dv1_f
-                    model_param[5,i,j]=dv3_f
-                    model_param[6,i,j]=fwhm1_f
-                    model_param[7,i,j]=fwhm2_f
-                    model_param[8,i,j]=fluxe_t/flux_f
-                    if cont:
-                        model_param[9,i,j]=fluxpt/flux_f
-                        ind=9
-                    else:
-                        ind=8
-                    if skew:
-                        model_param[ind+1,i,j]=alph1_f
-                        model_param[ind+2,i,j]=alphB_f
-                    if outflow:
-                        model_param[ind+1,i,j]=A1_f/flux_f*F1o_f
-                        model_param[ind+2,i,j]=A1_f/lfac12/flux_f*F1o_f
-                        model_param[ind+3,i,j]=A3_f/flux_f*F3o_f
-                        model_param[ind+4,i,j]=dvO_f
-                        model_param[ind+5,i,j]=fwhmO_f
-                        model_param[ind+6,i,j]=alphaO_f
+
+
+                
+                if skew:
+                    *f_parm,alph1_f,alphB_f=theta_max
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, ret_com=True,  skew=skew)
                 else:
-                    if skew:
-                        A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
-                    else:
-                        if broad:
-                            A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                        else:
-                            if n_line:
-                                if outflow:
-                                    A1_f,fac_f,dv1_f,dv2_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
-                                    F3o_f=0
-                                else:
-                                    A1_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
-                                A3_f=0
-                            else:
-                                A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
-                            A7_f=0
-                            fwhm2_f=0
-                            dv3_f=0
-                    if dv2_f < dv1_f:
-                        fac_f=1/fac_f
-                        dt=np.copy(dv2_f)
-                        dv2_f=np.copy(dv1_f)
-                        dv1_f=dt
-                        A1_f=A1_f*fac_f
-                        A3_f=A3_f*fac_f
-                    if skew:
-                        theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f
-                        model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
-                    else:
-                        if broad:
-                            theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f
-                            model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
-                        else:
-                            if n_line:
-                                if outflow:
-                                    theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f,F1o_f,dvO_f,fwhmO_f,alphaO_f
-                                    model,m2B,m2R,m2Bo,m2Ro=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
-                                else:
-                                    theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f    
-                                    model,m2B,m2R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
-                            else:
-                                theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f    
-                                model,m2B,m2R,mHB,mHR,m1B,m1R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)                   
-                    model_all[:,i,j]=model
-                    if n_line:
-                        model_Blue[:,i,j]=m2B
-                        model_Red[:,i,j]=m2R
-                        if outflow:
-                            model_Outflow[:,i,j]=m2Bo+m2Ro
-                    else:
-                        model_Blue[:,i,j]=m2B+m1B+mHB
-                        model_Red[:,i,j]=m2R+m1R+mHR
-                    if broad:
-                        model_Broad[:,i,j]=mHBR    
-                    model_param[0,i,j]=A1_f/flux_f
-                    model_param[1,i,j]=A1_f/lfac12/flux_f
-                    model_param[2,i,j]=A3_f/flux_f
-                    model_param[3,i,j]=A7_f/flux_f
-                    model_param[4,i,j]=fac_f
-                    model_param[5,i,j]=A1_f/fac_f/flux_f
-                    model_param[6,i,j]=A1_f/fac_f/lfac12/flux_f
-                    model_param[7,i,j]=A3_f/fac_f/flux_f
-                    model_param[8,i,j]=dv1_f
-                    model_param[9,i,j]=dv2_f
-                    model_param[10,i,j]=dv3_f
-                    model_param[11,i,j]=fwhm1_f
-                    model_param[12,i,j]=fwhm2_f
-                    model_param[13,i,j]=fluxe_t/flux_f
-                    if cont:
-                        model_param[14,i,j]=fluxpt/flux_f
-                        ind=14
-                    else:
-                        ind=13
-                    if skew:
-                        model_param[ind+1,i,j]=alph1_f
-                        model_param[ind+2,i,j]=alphB_f
                     if outflow:
-                        model_param[ind+1,i,j]=A1_f/flux_f*F1o_f
-                        model_param[ind+2,i,j]=A1_f/lfac12/flux_f*F1o_f
-                        model_param[ind+3,i,j]=A3_f/flux_f*F3o_f
-                        model_param[ind+4,i,j]=dvO_f
-                        model_param[ind+5,i,j]=fwhmO_f
-                        model_param[ind+6,i,j]=alphaO_f    
+                        *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
+                    else:
+                        *f_parm=theta_max
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, ret_com=True, skew=skew, outflow=outflow)
+                
+                model_all[:,i,j]=model
+                model_Inp[:,i,j]=fluxt
+                model_InpE[:,i,j]=fluxtE
+                for myt in range(0,n_lines):
+                    model_Ind[:,i,j,myt]=modsI[myt]
+                    inNaM=facN0[myt]
+                    valname='None'
+                    indf=-1
+                    vt1='AoN'.replace('N',str(myt))
+                    vt2='dvoN'.replace('N',str(myt))
+                    vt3='fwhmoN'.replace('N',str(myt))
+                    for atp in range(0, len(names0)):
+                        if names0[atp] == inNaM:
+                            valname='AoN'.replace('N',str(atp))
+                    for atp in range(0, len(vals)):
+                        if vals[atp] == valname:
+                            indf=atp
+                    if indf >= 0:
+                        model_param[myt*3+0,i,j]=f_parm[indf]/fac0[myt]/flux_f
+                    else: 
+                        for atp in range(0, len(vals)):
+                            if vals[atp] == vt1:
+                                indfT1=atp
+                        model_param[myt*3+0,i,j]=f_parm[indfT1]/flux_f
+                    for atp in range(0, len(vals)):
+                        if vals[atp] == vt2:
+                            indfT2=atp
+                        if vals[atp] == vt3:
+                            indfT3=atp    
+                    model_param[myt*3+1,i,j]=f_parm[indfT2]
+                    model_param[myt*3+2,i,j]=f_parm[indfT3]
+                model_param[n_lines*3,i,j]=fluxe_t/flux_f
+                if cont:
+                    model_param[n_lines*3+1,i,j]=fluxpt/flux_f
+                    ind=n_lines*3+1
+                else:
+                    ind=n_lines*3
+                if skew:
+                    model_param[ind+1,i,j]=alph1_f
+                    model_param[ind+2,i,j]=alphB_f
+                if outflow:
+                    model_param[ind+1,i,j]=F1o_f
+                    model_param[ind+2,i,j]=dvO_f
+                    model_param[ind+3,i,j]=fwhmO_f
+                    model_param[ind+4,i,j]=alphaO_f
+
+                
+                
                 if plot_f:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))

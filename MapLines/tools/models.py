@@ -2,16 +2,16 @@
 import MapLines.tools.tools as tol
 import numpy as np
 
-def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=[0.0], skew=False, lorentz=False):
+def emission_line_model(x, xo=0, A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0], skew=False, lorentz=False):
     ct=299792.458
     model_out=[]
     for i in range(len(dv)):
         sigma=fwhm[i]/ct*xo/(2.0*np.sqrt(2.0*np.log(2.0)))
         xm=xo*(1.0+dv[i]/ct)
-        if i > 0:
-            A1=A/fac[i-1]
-        else:
-            A1=A
+        #if i > 0:
+        #    A1=A/fac[i-1]
+        #else:
+        A1=A[i]
         if skew:
             alp=alph[i]
             model=tol.gauss_K(x,sigma=sigma,xo=xm,A1=A1,alp=alp)
@@ -27,7 +27,7 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=
         return model_out
         
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False, n_line=False, outflow=False):
+def line_model(theta, waves0, fac0, facN0, ret_com=False, skew=False, lorentz=False, outflow=False):
     '''Model for the line complex'''
     if single:
         if skew:

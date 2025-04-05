@@ -3,5 +3,5 @@ import numpy as np
 globally across the MapLine modules
 """
 
-__version__ = 'MapLine v1.0.9'
+__version__ = 'MapLine v2.0.0'
 
