@@ -842,7 +842,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[ind+3,i,j]=fwhmO_f
                     model_param[ind+4,i,j]=alphaO_f
                 print(model.shape)
-                print(wave_i.shape)
+                #print(wave_i.shape)
                 #print(modsI.shape)
                 if plot_f:
                     import matplotlib.pyplot as plt
