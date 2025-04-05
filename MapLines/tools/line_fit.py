@@ -687,9 +687,25 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         waveb2=data_lines['continum'][0]['waveb2']
         valsp=data_lines['priors']
 
-        Ivalues=[]
+        Inpvalues=[]
+        Infvalues=[]
+        Supvalues=[]
         for valt in vals:
-            Ivalues.extend([valsp[valt]])
+            try:
+                Inpvalues.extend([valsp[valt]])
+            except:
+                print('The keyword '+valt+' is missing in the line config file')
+                return
+            try:
+                Infvalues.extend([valsp[valt.replace('o','i')]])
+            except:
+                print('The keyword '+valt.replace('o','i')+' is missing in the line config file')
+                return
+            try:
+                Supvalues.extend([valsp[valt.replace('o','s')]])
+            except:
+                print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
+                return
         model_Ind=np.zeros([len(nw),nx,ny,n_lines])
 
     else:
@@ -742,17 +758,17 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 #fluxe_t=np.nanmean(fluxtE)
                 #if fluxp < 0:
                 #    fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, waves0, fac0, facN0, names0, n_lines, skew, lorentz, valsp, outflow)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, names0, n_lines, skew, lorentz, outflow)
                 nwalkers=240
                 niter=1024
 
                 if skew:  
-                    initial = np.array([*Ivalues, 0.0, 0.0])
+                    initial = np.array([*Inpvalues, 0.0, 0.0])
                 else:
                     if outflow:
-                        initial = np.array([*Ivalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
+                        initial = np.array([*Inpvalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                     else:
-                        initial = np.array([*Ivalues])
+                        initial = np.array([*Inpvalues])
 
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
