@@ -4,14 +4,14 @@ import numpy as np
 '''This module contains the functions to calculate the likelihood and prior of the models'''
 
 
-def lnlike_gauss_Lin(theta, spec, specE , x, xo1, xo2, xo3, lfac12, single, skew, broad, lorentz, n_line, outflow):
+def lnlike_gauss_Lin(theta, spec, specE , x, waves0, fac0, facN0, names0, n_lines, skew, lorentz, outflow):
     '''This function calculates the likelihood of a double model for the spectrum'''
-    model=mod.line_model(theta, x=x, xo1=xo1, xo2=xo2, xo3=xo3, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line, outflow=outflow)
+    model=mod.line_model(theta, waves0, fac0, facN0, names0, n_lines, x=x, skew=skew, lorentz=lorentz, outflow=outflow)
     LnLike = -0.5*np.nansum(((spec-model)/specE)**2.0)
     return LnLike
 
 
-def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, skew=False, broad=True, n_line=False, outflow=False):
+def lnprior_gauss_Lin(theta, valsp, skew=False, outflow=False):
     '''This function calculates the prior of a line model spectra'''   
     dA=At*0.3#0.3
     if At-dA*3 < 0:
@@ -96,11 +96,11 @@ def lnprior_gauss_Lin(theta, valsp, At=0.05,dv1t=200,sim=False, single=False, sk
                     else:
                         return -np.inf 
 
-def lnprob_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, At, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp, n_line, outflow):
+def lnprob_gauss_Lin(theta, spec, specE, x, waves0, fac0, facN0, names0, n_lines, skew, lorentz, valsp, outflow):
     '''This function calculates the posterior of the double model for the spectrum'''
-    lp = lnprior_gauss_Lin(theta, valsp, At=At, dv1t=dv1t, sim=sim, single=single, skew=skew, broad=broad, n_line=n_line, outflow=outflow)
+    lp = lnprior_gauss_Lin(theta, valsp, skew=skew, outflow=outflow)
     if not np.isfinite(lp):
         return -np.inf
     else:
-        return lp + lnlike_gauss_Lin(theta, spec, specE, x, xo1, xo2, xo3, lfac12, single, skew, broad, lorentz, n_line, outflow) 
+        return lp + lnlike_gauss_Lin(theta, spec, specE, x, waves0, fac0, facN0, names0, n_lines, skew, lorentz, outflow) 
 

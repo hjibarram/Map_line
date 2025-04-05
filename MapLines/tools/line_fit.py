@@ -737,13 +737,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
                 #Defining the Broad continum between lines for the initial condition
-                nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
-                fluxp=np.nanmean(fluxt[nwt])
-                fluxe_t=np.nanmean(fluxtE)
-                if fluxp < 0:
-                    fluxp=0.0001
-                #data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, sim, lfac12, single, skew, broad, lorentz, valsp, n_line, outflow)
-                data = (fluxt, fluxtE, wave_i, waves0, fac0, facN0, fluxp, skew, lorentz, valsp, outflow)
+                #nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
+                #fluxp=np.nanmean(fluxt[nwt])
+                #fluxe_t=np.nanmean(fluxtE)
+                #if fluxp < 0:
+                #    fluxp=0.0001
+                data = (fluxt, fluxtE, wave_i, waves0, fac0, facN0, names0, n_lines, skew, lorentz, valsp, outflow)
                 nwalkers=240
                 niter=1024
 
@@ -769,13 +768,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
                 if skew:
                     *f_parm,alph1_f,alphB_f=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, ret_com=True,  skew=skew)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, ret_com=True,  skew=skew)
                 else:
                     if outflow:
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                     else:
                         *f_parm=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, ret_com=True, skew=skew, outflow=outflow)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, ret_com=True, skew=skew, outflow=outflow)
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -833,6 +832,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
                     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
                     ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')
+                    
                     if single:
                         if hbfit:
                             if broad:
@@ -975,7 +975,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line, outflow=outflow)
+                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, names0, n_lines, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
                     
                     
                     import matplotlib.pyplot as plt
@@ -1022,8 +1022,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                         print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"F3o=",F3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
                                     else:
                                         print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
-                if test:        
-                    #sys.exit()
+                if test:
                     return        
             if pgr_bar:
                 pbar.update(1)
