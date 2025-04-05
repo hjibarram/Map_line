@@ -755,7 +755,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 #Defining the Broad continum between lines for the initial condition
                 #nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
                 #fluxp=np.nanmean(fluxt[nwt])
-                #fluxe_t=np.nanmean(fluxtE)
+                fluxe_t=np.nanmean(fluxtE)
                 #if fluxp < 0:
                 #    fluxp=0.0001
                 data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, names0, n_lines, vals, skew, lorentz, outflow)
