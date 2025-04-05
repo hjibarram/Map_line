@@ -19,7 +19,7 @@ def lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=False, outflow=Fa
         boolP=((alp1 >= -10) & (alp1 <= 10)) & ((alpb >= -10) & (alpb <= 10)) & boolf
     else:
         if outflow:
-            *f_parm,F1o,dvo,fwhmo,alpho=theta
+            *f_parm,F1o,dvO,fwhmO,alpo=theta
             boolP=((F1o >= valsp['f1i']) & (F1o <= valsp['f1s'])) & ((fwhmO >= valsp['fwhmOi']) & (fwhmO <= valsp['fwhmOs'])) & ((dvO >= valsp['dvOi']) & (dvO <= valsp['dvOs'])) & ((alpo >= valsp['alpOi']) & (alpo <= valsp['alpOs'])) & boolf
         else:
             f_parm=theta
