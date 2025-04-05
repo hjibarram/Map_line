@@ -652,7 +652,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     if data_lines:
         n_lines=len(data_lines['lines'])
         pac=['AoN','dvoN','fwhmoN']
-        pacL=[r'A_{N}',r'\Delta v_{N}',r'FWHM_{N}']
+        pacL=[r'$A_{N}$',r'$\Delta v_{N}$',r'$FWHM_{N}$']
         waves0=[]
         names0=[]
         vals0=[]
@@ -873,92 +873,15 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
 
-                    print(vals)
-                    print(valsL)
-                    if single:
-                        if skew:
-                            labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3", "alph1", "alphB"]
-                        else:
-                            if broad:
-                                labels = ['A1','A3','dv1','FWHM_N']
-                            else:
-                                if n_line:
-                                    labels = ['A1','dv1','FWHM_N',"FWHM_B"]
-                                else:
-                                    labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3"]
-                        if hbfit:
-                            if skew:
-                                labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        if outflow:
-                                            labels2 = ['A1','dv1','FWHM_N',"FWHM_B",r'$F_{OIII,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
-                                    else:
-                                        if outflow:
-                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{OIII,out}$',r'$F_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
-                        else:
-                            if skew:
-                                labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        if outflow:
-                                            labels2 = ['A1','dv1','FWHM_N',"FWHM_B",r'$F_{NII,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = ['A1','dv1','FWHM_N',"FWHM_B"]
-                                    else:
-                                        if outflow:
-                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{NII,out}$',r'$F_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
+
+                    if skew:
+                        labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
                     else:
-                        if skew:
-                            labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3", "alph1", "alphB"]
+                        if outflow:
+                            labels2 = [*valsL,r'$F_{OIII,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
                         else:
-                            if broad:
-                                labels = ['A1','A3','fac','dv1','dv2','FWHM']
-                            else:
-                                if n_line:
-                                    labels = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
-                                else:
-                                    labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3"]
-                        if hbfit:
-                            if skew:
-                                labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        labels2 = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
-                                    else:
-                                        labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$']
-                        else:
-                            if skew:
-                                labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        if outflow:
-                                            labels2 = [r'$A_1$',r'$f_c$',r'$\Delta v_{1b}$',r'$\Delta v_{1r}$',r'$FWHM_n$',r'$F_{1,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = ['A1','fac','dv1','dv2','FWHM',"FWHM_B"]
-                                    else:
-                                        if outflow:
-                                            labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$F_{NII,out}$',r'$F_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$']
+                            labels2 = valsL
+                              
                     import corner  
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
