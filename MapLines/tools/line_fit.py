@@ -986,9 +986,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     h['Val_'+str(n_lines*3)] ='Noise_Median'
     if cont:
         h['Val_'+str(n_lines*3)+1] ='Continum'
-            ind=n_lines*3+1
-        else:
-            ind=n_lines*3
+        ind=n_lines*3+1
+    else:
+        ind=n_lines*3
     if skew:
         h['Val_'+str(ind+1)]='Alpha_Narrow'
         h['Val_'+str(ind+2)]='Alpha_Broad' 
