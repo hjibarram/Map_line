@@ -91,7 +91,7 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=F
 
     ModA=emission_line_model(x, xo=waves0, A=A1, dv=dv ,fwhm=fwhm, alph=alph, skew=skew, lorentz=lorentz)
     if outflow:
-        ModAo=emission_line_model(x, xo=waves0, A=A1o, dv=dvO ,fwhm=fwhmO, fac=fact, alph=alphO, skew=True)
+        ModAo=emission_line_model(x, xo=waves0, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
         
     
     lin=0
