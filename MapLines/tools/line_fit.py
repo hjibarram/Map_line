@@ -916,7 +916,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         print(linet+'alph1='+str(alph1_f)+'alphB='+str(alphB_f))
                     else:
                         if outflow:
-                            print(linet+'F1o='+str(F1o_f)+'F3o='+str(F3o_f)+'dvO='+str(dvO_f)+'fwhmO='+str(fwhmO_f)+'alph0='+str(alphaO_f))
+                            print(linet+'F1o='+str(F1o_f)+'dvO='+str(dvO_f)+'fwhmO='+str(fwhmO_f)+'alph0='+str(alphaO_f))
                         else:
                             print(linet)
                     
