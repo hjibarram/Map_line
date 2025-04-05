@@ -622,6 +622,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 pdl_cubeE =fits.getdata(file1, 1, header=False)    
         if erft != 0:
             pdl_cubeE=pdl_cubeE*flux_f*erft
+            
     nz,nx,ny=pdl_cube.shape
     pdl_cube=pdl_cube*flux_f
     if ptt.exists(file3):
