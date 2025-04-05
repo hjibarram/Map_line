@@ -792,8 +792,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                     else:
                         f_parm=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True, skew=skew, outflow=outflow)
-                
+                    models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True, skew=skew, outflow=outflow)
+                model=models[0]
+                modsI=models[1:]
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
                 model_InpE[:,i,j]=fluxtE
@@ -841,7 +842,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[ind+4,i,j]=alphaO_f
                 print(model.shape)
                 print(wave_i.shape)
-                print(modsI.shape)
+                #print(modsI.shape)
                 if plot_f:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
