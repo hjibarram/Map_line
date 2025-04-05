@@ -652,10 +652,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     if data_lines:
         n_lines=len(data_lines['lines'])
         pac=['AoN','dvoN','fwhmoN']
+        pacL=[r'A_{N}',r'\Delta v_{N}',r'FWHM_{N}']
         waves0=[]
         names0=[]
         vals0=[]
         vals=[]
+        valsL=[]
         fac0=[]
         facN0=[]
         for i in range(0, n_lines):
@@ -672,14 +674,19 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 facN0.extend(['NoNe'])
                 fac0.extend([None])
                 facp=False
+            inr=0    
             for a in pac:
                 val_t=a.replace('N',str(i))
+                val_tL=pacL[inr].replace('N',names0[i])
                 if 'AoN' in a:
                     if facp == False:
                         vals.extend([val_t])
+                        valsL.extend([val_tL])
                 else:
                     vals.extend([val_t])
+                    valsL.extend([val_tL])
                 vals0.extend([val_t])    
+                inr=inr+1
         region=data_lines['continum'][0]['region']
         wavec1=data_lines['continum'][0]['wave1']
         wavec2=data_lines['continum'][0]['wave2']
@@ -866,6 +873,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
 
+                    print(vals)
+                    print(valsL)
                     if single:
                         if skew:
                             labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3", "alph1", "alphB"]
