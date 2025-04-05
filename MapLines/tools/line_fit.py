@@ -840,7 +840,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
 
                 if plot_f:
-                    colors=['blue','red','green','orange','purple','brown','pink']
+                    colors=['blue','red','green','purple','brown','pink']
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
@@ -852,50 +852,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         if namel != 'None':
                             indl=names0.index(namel)
                             ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
-                    if single:
-                        if hbfit:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_NR')
-                            if not n_line:
-                               ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_NR')
-                               ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_NR')
-                        else:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_NR')
-                            if not n_line:
-                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_NR')
-                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_NR')
-                        if outflow:
-                            ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')#,label=r'OIII_2_OR')
-                            if not n_line:
-                                ax1.plot(wave_i,mHBo,linewidth=1,color='orange')#,label=r'Hb_n_OR')
-                                ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')        
-                    else:
-                        if hbfit:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Hb_n_BR')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'OIII_2_b')
-                            ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'OIII_2_r')
-                            if not n_line:
-                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Hb_n_b')
-                                ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'Hb_n_r')
-                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'OIII_1_b')
-                                ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'OIII_1_r')
-                        else:
-                            if broad:
-                                ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'Ha_n_BR')
-                            ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'NII_2_b')
-                            ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'NII_2_r')
-                            if not n_line:
-                                ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'Ha_n_b')
-                                ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'Ha_n_r')
-                                ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'NII_1_b')
-                                ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'NII_1_r')
-                        if outflow:
-                            ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')
-                            ax1.plot(wave_i,m2Ro,linewidth=1,color='orange',label=r'outflow')    
+                    if outflow:
+                        for namel in names0:
+                            if namel != 'None':
+                                indl=names0.index(namel)
+                                ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,label=namel,color='orange',label=r'outflow')
                     fontsize=14
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
@@ -904,6 +865,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     plt.tight_layout()
                     fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
+                    
                     if single:
                         if skew:
                             labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3", "alph1", "alphB"]
