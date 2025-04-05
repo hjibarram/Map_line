@@ -835,16 +835,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     model_param[ind+1,i,j]=alph1_f
                     model_param[ind+2,i,j]=alphB_f
                 if outflow:
-                    print(model_param.shape)
-                    print(ind)
-                    print(n_lines)
                     model_param[ind+1,i,j]=F1o_f
                     model_param[ind+2,i,j]=dvO_f
                     model_param[ind+3,i,j]=fwhmO_f
                     model_param[ind+4,i,j]=alphaO_f
-
-                
-                
+                print(model.shape)
+                print(wave_i.shape)
                 if plot_f:
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
