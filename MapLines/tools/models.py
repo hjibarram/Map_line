@@ -27,7 +27,7 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
     return model_out
         
 
-def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
+def line_model(theta, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
     '''Model for the line complex'''
 
     alph=[]
@@ -49,17 +49,24 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=F
     fwhm=[]
     for myt in range(0,n_lines):            
         inNaM=facN0[myt]
+        fwhinNaM=fwhfacN0[myt]
         valname='None'
+        fwhvalname='None'
         indf=-1
+        fwhindf=-1
         vt1='AoN'.replace('N',str(myt))
         vt2='dvoN'.replace('N',str(myt))
         vt3='fwhmoN'.replace('N',str(myt))
         for atp in range(0, len(names0)):
             if names0[atp] == inNaM:
                 valname='AoN'.replace('N',str(atp))
+            if names0[atp] == fwhinNaM:
+                fwhvalname='fwhmoN'.replace('N',str(atp))       
         for atp in range(0, len(vals)):
             if vals[atp] == valname:
                 indf=atp
+            if vals[atp] == fwhvalname:
+                fwhindf=atp     
         if indf >= 0:
             A1.extend([f_parm[indf]/fac0[myt]])
             if outflow:
@@ -73,12 +80,15 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=F
                 A1o.extend([f_parm[indfT1]*F1o])
         for atp in range(0, len(vals)):
             if vals[atp] == vt2:
-                indfT2=atp
-            if vals[atp] == vt3:
-                indfT3=atp    
-        dv.extend([f_parm[indfT2]])
-        fwhm.extend([f_parm[indfT3]])
-
+                indfT2=atp  
+        dv.extend([f_parm[indfT2]])              
+        if fwhindf >= 0:
+            fwhm.extend([f_parm[fwhindf]*fwhfac0[myt]])
+        else: 
+            for atp in range(0, len(vals)):
+                if vals[atp] == vt3:
+                    indfT3=atp   
+            fwhm.extend([f_parm[indfT3]])                 
         if skew:
             alph.extend([alp1])
             alphb.extend([alpb])
