@@ -27,7 +27,7 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
     return model_out
         
 
-def line_model(theta, waves0, fac0, facN0, names0, n_lines, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
+def line_model(theta, waves0, fac0, facN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
     '''Model for the line complex'''
 
     if skew:

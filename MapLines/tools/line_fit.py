@@ -758,7 +758,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 #fluxe_t=np.nanmean(fluxtE)
                 #if fluxp < 0:
                 #    fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, names0, n_lines, skew, lorentz, outflow)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, names0, n_lines, vals, skew, lorentz, outflow)
                 nwalkers=240
                 niter=1024
 
@@ -784,13 +784,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
                 if skew:
                     *f_parm,alph1_f,alphB_f=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, ret_com=True,  skew=skew)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True,  skew=skew)
                 else:
                     if outflow:
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                     else:
                         f_parm=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, ret_com=True, skew=skew, outflow=outflow)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True, skew=skew, outflow=outflow)
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -991,7 +991,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, names0, n_lines, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
+                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
                     
                     
                     import matplotlib.pyplot as plt
