@@ -41,7 +41,7 @@ def line_model(theta, waves0, fac0, facN0, names0, n_lines, x=0, ret_com=False, 
             fwhmO=[]
             alphO=[]
         else:
-            *f_parm=theta
+            f_parm=theta
 
     A1=[]
     dv=[]
