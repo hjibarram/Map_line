@@ -37,7 +37,7 @@ def lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=False, outflow=Fa
 
 def lnprob_gauss_Lin(theta, spec, specE, x, Infvalues, Supvalues, valsp, waves0, fac0, facN0, names0, n_lines, skew, lorentz, outflow):
     '''This function calculates the posterior of the double model for the spectrum'''
-    lp = lnprior_gauss_Lin(theta, Infvalues, Supvalues, skew=skew, outflow=outflow)
+    lp = lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=skew, outflow=outflow)
     if not np.isfinite(lp):
         return -np.inf
     else:
