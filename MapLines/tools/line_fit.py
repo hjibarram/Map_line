@@ -786,15 +786,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
                 if skew:
                     *f_parm,alph1_f,alphB_f=theta_max
-                    models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=True,  skew=skew)
+                    models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, x=wave_i, ret_com=True,  skew=skew)
                 else:
                     if outflow:
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                     else:
                         f_parm=theta_max
-                    models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, ret_com=False, skew=skew, outflow=outflow)
-                test=mod.emission_line_model(wave_i, xo=[6734], A=[2], dv=[12] ,fwhm=[150])
-                print(test)
+                    models=mod.line_model(theta_max, waves0, fac0, facN0, names0, n_lines, vals, x=wave_i, ret_com=False, skew=skew, outflow=outflow)
                 model=models[0]
                 modsI=models[1:]
                 model_all[:,i,j]=model
