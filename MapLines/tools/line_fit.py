@@ -925,7 +925,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
                     else:
                         if outflow:
-                            labels2 = [*valsL,r'$F_{OIII,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
+                            labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
                         else:
                             labels2 = valsL
                               
