@@ -664,6 +664,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         valsH=[]
         fac0=[]
         facN0=[]
+        velfac0=[]
+        velfacN0=[]
         fwhfac0=[]
         fwhfacN0=[]
         for i in range(0, n_lines):
@@ -672,7 +674,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             waves0.extend([parameters['wave']])
             names0.extend([parameters['name']])
             try:
-                #val=parameters['fac_Name']
                 facN0.extend([parameters['fac_Name']])
                 fac0.extend([parameters['fac']])
                 facp=True
@@ -681,7 +682,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 fac0.extend([None])
                 facp=False
             try:
-                #val=parameters['fwh_Name']
+                velfacN0.extend([parameters['vel_Name']])
+                velfac0.extend([parameters['velF']])
+                velfacp=True
+            except:
+                velfacN0.extend(['NoNe'])
+                velfac0.extend([None])
+                velfacp=False    
+            try:
                 fwhfacN0.extend([parameters['fwh_Name']])
                 fwhfac0.extend([parameters['fwhF']])
                 fwhfacp=True
@@ -698,6 +706,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     if facp == False:
                         vals.extend([val_t])
                         valsL.extend([val_tL])
+                elif 'dvoN' in a:
+                    if velfacp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])        
                 elif 'fwhmoN' in a:
                     if fwhfacp == False:
                         vals.extend([val_t])
@@ -711,8 +723,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         region=data_lines['continum'][0]['region']
         wavec1=data_lines['continum'][0]['wave1']
         wavec2=data_lines['continum'][0]['wave2']
-        #waveb1=data_lines['continum'][0]['waveb1']
-        #waveb2=data_lines['continum'][0]['waveb2']
         valsp=data_lines['priors']
 
         Inpvalues=[]
@@ -782,13 +792,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
-                #Defining the Broad continum between lines for the initial condition
-                #nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
-                #fluxp=np.nanmean(fluxt[nwt])
                 fluxe_t=np.nanmean(fluxtE)
-                #if fluxp < 0:
-                #    fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow)
                 nwalkers=240
                 niter=1024
 
@@ -812,13 +817,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
                 if skew:
                     *f_parm,alph1_f,alphB_f=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True,  skew=skew)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True,  skew=skew)
                 else:
                     if outflow:
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                     else:
                         f_parm=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, outflow=outflow)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, outflow=outflow)
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -826,10 +831,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 for myt in range(0,n_lines):
                     model_Ind[:,i,j,myt]=modsI[myt]
                     inNaM=facN0[myt]
+                    velinNaM=velfacN0[myt]
                     fwhinNaM=fwhfacN0[myt]
                     valname='None'
+                    velvalname='None'
                     fwhvalname='None'
                     indf=-1
+                    velindf=-1
                     fwhindf=-1
                     vt1='AoN'.replace('N',str(myt))
                     vt2='dvoN'.replace('N',str(myt))
@@ -837,11 +845,15 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     for atp in range(0, len(names0)):
                         if names0[atp] == inNaM:
                             valname='AoN'.replace('N',str(atp))
+                        if names0[atp] == velinNaM:
+                            velvalname='dvoN'.replace('N',str(atp))      
                         if names0[atp] == fwhinNaM:
                             fwhvalname='fwhmoN'.replace('N',str(atp))    
                     for atp in range(0, len(vals)):
                         if vals[atp] == valname:
                             indf=atp
+                        if vals[atp] == velvalname:
+                            velindf=atp
                         if vals[atp] == fwhvalname:
                             fwhindf=atp    
                     if indf >= 0:
@@ -850,11 +862,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         for atp in range(0, len(vals)):
                             if vals[atp] == vt1:
                                 indfT1=atp
-                        model_param[myt*3+0,i,j]=f_parm[indfT1]/flux_f    
-                    for atp in range(0, len(vals)):
-                        if vals[atp] == vt2:
-                            indfT2=atp  
-                    model_param[myt*3+1,i,j]=f_parm[indfT2]        
+                        model_param[myt*3+0,i,j]=f_parm[indfT1]/flux_f   
+                    if velindf >= 0:
+                        model_param[myt*3+1,i,j]=f_parm[velindf]*velfac0[myt]
+                    else:      
+                        for atp in range(0, len(vals)):
+                            if vals[atp] == vt2:
+                                indfT2=atp  
+                        model_param[myt*3+1,i,j]=f_parm[indfT2]        
                     if fwhindf >= 0:
                         model_param[myt*3+2,i,j]=f_parm[fwhindf]*fwhfac0[myt]
                     else: 
@@ -920,7 +935,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
+                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
                     
                     
                     import matplotlib.pyplot as plt

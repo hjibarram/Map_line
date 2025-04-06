@@ -4,9 +4,9 @@ import numpy as np
 '''This module contains the functions to calculate the likelihood and prior of the models'''
 
 
-def lnlike_gauss_Lin(theta, spec, specE , x, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow):
+def lnlike_gauss_Lin(theta, spec, specE , x, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow):
     '''This function calculates the likelihood of a double model for the spectrum'''
-    model=mod.line_model(theta, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=x, skew=skew, lorentz=lorentz, outflow=outflow)
+    model=mod.line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=x, skew=skew, lorentz=lorentz, outflow=outflow)
     LnLike = -0.5*np.nansum(((spec-model)/specE)**2.0)
     return LnLike
 
@@ -35,11 +35,11 @@ def lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=False, outflow=Fa
         return -np.inf            
                 
 
-def lnprob_gauss_Lin(theta, spec, specE, x, Infvalues, Supvalues, valsp, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow):
+def lnprob_gauss_Lin(theta, spec, specE, x, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow):
     '''This function calculates the posterior of the double model for the spectrum'''
     lp = lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=skew, outflow=outflow)
     if not np.isfinite(lp):
         return -np.inf
     else:
-        return lp + lnlike_gauss_Lin(theta, spec, specE, x, waves0, fac0, facN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow) 
+        return lp + lnlike_gauss_Lin(theta, spec, specE, x, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow) 
 
