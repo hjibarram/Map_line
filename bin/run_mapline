@@ -131,9 +131,9 @@ def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,spro
     file_out2=dir_out+'NAME_paramV2'.replace('NAME',name_out)+waveR+skl+soutf
     name_out2=name_out+waveR+skl+soutf
     config_lines=line_config_path+line_config
-    line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,pgr_bar=pgr_bar,ncpu=ncpus,
-         skew=skew,flux_f=fluxf,erft=0.75,sim=True,cont=cont,test=test,error_c=error_c,
-         i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines,outflow=outf)
+    line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,
+         pgr_bar=pgr_bar,ncpu=ncpus,skew=skew,flux_f=fluxf,erft=0.75,cont=cont,test=test,
+         error_c=error_c,i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines,outflow=outf)
     
 cli.add_command(run)
 
