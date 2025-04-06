@@ -63,7 +63,6 @@ Some available commands are:
 | `-p, --path`      | Path to the data cube.                       |
 | `-y, --path_out`  | Path to the output files.                    |
 | `-c, --ncpus`     | Number of CPUs to use.                       |
-| `-d, --double`    | Enable double Gaussian mode.                 |
 | `-k, --kskew`     | Enable skew line mode.                       |
 | `-t, --test`      | Test mode.                                   |
 | `-e, --error`     | Calculate error vector.                      |
@@ -153,7 +152,6 @@ Algunos de los comandos disponibles son:
 | `-p, --path`     | Ruta al cubo de datos.                       |
 | `-y, --path_out` | Ruta de los archivos de salida.              |
 | `-c, --ncpus`    | Número de CPUs a utilizar.                   |
-| `-d, --double`   | Activar el modo de doble gaussiana.          |
 | `-k, --kskew`    | Activar el modo skew line.                   |
 | `-t, --test`     | Modo de prueba.                              |
 | `-e, --error`    | Calcular el vector de errores.               |
