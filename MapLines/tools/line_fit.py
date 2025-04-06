@@ -907,10 +907,15 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             indl=names0.index(namel)
                             ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
                     if outflow:
+                        ct1a=0
                         for namel in names0:
                             if namel != 'None':
                                 indl=names0.index(namel)
-                                ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
+                                if ct1a == 0:
+                                    ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
+                                else:
+                                    ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
+                                ct1a=ct1a+1
                     fontsize=14
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
