@@ -894,7 +894,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
 
                 if plot_f:
-                    colors=['blue','red','green','purple','brown','pink']
+                    colors=['blue','red','purple','brown','pink']
                     import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
