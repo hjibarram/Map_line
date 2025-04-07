@@ -23,13 +23,13 @@ continum:
     wave2: 5055.0
 priors:
   Ao0: 0.04 #initial amplitud value of the narrow line
-  As0: 7.8 #maximum amplitud limit of the narrow line
+  As0: 17.8 #maximum amplitud limit of the narrow line
   Ai0: 0.0 #minimum amplitud limit of the narrow line
   Ao1: 0.09 #initial amplitud value of the 2dnarrow line 
-  As1: 7.8 #maximum amplitud limit of the 2dnarrow line
+  As1: 17.8 #maximum amplitud limit of the 2dnarrow line
   Ai1: 0.0 #minimum amplitud limit of the 2dnarrow line
   Ao2: 0.04 #initial amplitud value of the 3dnarrow line
-  As2: 7.8 #maximum amplitud limit of the 3dnarrow line
+  As2: 17.8 #maximum amplitud limit of the 3dnarrow line
   Ai2: 0.0 #minimum amplitud limit of the 3dnarrow line
   fwhmo0: 150.0 #initial fwhm value of the narrow line
   fwhms0: 800.0 #maximum fwhm limit of the narrow line
