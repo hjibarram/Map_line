@@ -26,7 +26,7 @@ requirements = [
     'corner',
 ]
 
-DATA_DIRNAME = 'data'
+DATA_DIRNAME = 'examples/example_data'
 SCRIPTS_DIRNAME = 'bin'
 VERSION_FILE = 'MapLines/common/constants.py'
 
