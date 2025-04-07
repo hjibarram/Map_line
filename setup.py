@@ -23,9 +23,10 @@ requirements = [
     'click',
     'emcee',
     'tqdm',
+    'corner',
 ]
 
-DATA_DIRNAME = 'data'
+DATA_DIRNAME = 'data'#'examples/example_data'
 SCRIPTS_DIRNAME = 'bin'
 VERSION_FILE = 'MapLines/common/constants.py'
 

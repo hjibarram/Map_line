@@ -7,15 +7,15 @@ lines:
     wave: 6549.86  #central wavelenght 
     fac_Name: NII6585 #Name of the Amplitude line to be constrained
     fac: 2.93 #1/x factor of proportionality
-    fwh_Name: NII6585
+    fwh_Name: NII6585 #Name of the FWHM of the line to be constrained with
     fwhF: 1.0
-    vel_Name: NII6585
+    vel_Name: NII6585 #Name of the velocity shift of the line to be constrained with
     velF: 1.0
   - name: Halpha #name of the line
     wave: 6564.61  #central wavelenght 
-    fwh_Name: NII6585
+    fwh_Name: NII6585 #Name of the FWHM of the line to be constrained with
     fwhF: 1.0
-    vel_Name: NII6585
+    vel_Name: NII6585 #Name of the velocity shift of the line to be constrained with
     velF: 1.0  
 continum:
   - region: Halpha

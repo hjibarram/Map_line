@@ -2,16 +2,16 @@
 import MapLines.tools.tools as tol
 import numpy as np
 
-def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=[0.0], skew=False, lorentz=False):
+def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0], skew=False, lorentz=False):
     ct=299792.458
     model_out=[]
     for i in range(len(dv)):
-        sigma=fwhm[i]/ct*xo/(2.0*np.sqrt(2.0*np.log(2.0)))
-        xm=xo*(1.0+dv[i]/ct)
-        if i > 0:
-            A1=A/fac[i-1]
-        else:
-            A1=A
+        sigma=fwhm[i]/ct*xo[i]/(2.0*np.sqrt(2.0*np.log(2.0)))
+        xm=xo[i]*(1.0+dv[i]/ct)
+        #if i > 0:
+        #    A1=A/fac[i-1]
+        #else:
+        A1=A[i]
         if skew:
             alp=alph[i]
             model=tol.gauss_K(x,sigma=sigma,xo=xm,A1=A1,alp=alp)
@@ -21,189 +21,114 @@ def emission_line_model(x, xo=0, A=1.0, dv=[0.0], fwhm=[200.0], fac=[0.7], alph=
             else:
                 model=tol.gauss_M(x,sigma=sigma,xo=xm,A1=A1)
         model_out.extend([model])
-    if len(model_out) == 1:
-        return model_out[0]
-    else:
-        return model_out
+    #if len(model_out) == 1:
+    #    return model_out[0]
+    #else:
+    return model_out
         
 
-def line_model(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93, single=False, skew=False, broad=True, lorentz=False, n_line=False, outflow=False):
+def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
     '''Model for the line complex'''
-    if single:
-        if skew:
-            A1,A3,dv1,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
-            alph=[alp1]
-            alphb=[alpb]
-        else:
-            if broad:
-                A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
-                alphb=[0]
-            else:
-                if n_line:
-                    if outflow:
-                        A1,dv1,fwhm1,F1o,dvo,fwhmo,alpho=theta
-                        dvO=[dvo]
-                        fwhmO=[fwhmo]
-                        alphO=[alpho]
-                        F3o=0
-                    else:
-                        A1,dv1,fwhm1=theta
-                    A3=[0]
-                else:
-                    if outflow:
-                        A1,A3,dv1,fwhm1,F1o,F3o,dvo,fwhmo,alpho=theta
-                        dvO=[dvo]
-                        fwhmO=[fwhmo]
-                        alphO=[alpho]
-                    else:
-                        A1,A3,dv1,fwhm1=theta
 
-            alph=[0]
-        dv=[dv1]
-        fwhm=[fwhm1]
-        fact=[]
-        if broad:
-            dvb=[dv3]
-            fwhmb=[fwhm2]
+    alph=[]
+    alphb=[]
+    if skew:
+        *f_parm,alp1,alpb=theta 
     else:
+        if outflow:
+            *f_parm,F1o,dvo,fwhmo,alpho=theta
+            A1o=[]
+            dvO=[]
+            fwhmO=[]
+            alphO=[]
+        else:
+            f_parm=theta
+
+    A1=[]
+    dv=[]
+    fwhm=[]
+    for myt in range(0,n_lines):            
+        inNaM=facN0[myt]
+        velinNaM=velfacN0[myt]
+        fwhinNaM=fwhfacN0[myt]
+        valname='None'
+        velvalname='None'
+        fwhvalname='None'
+        indf=-1
+        velindf=-1
+        fwhindf=-1
+        vt1='AoN'.replace('N',str(myt))
+        vt2='dvoN'.replace('N',str(myt))
+        vt3='fwhmoN'.replace('N',str(myt))
+        for atp in range(0, len(names0)):
+            if names0[atp] == inNaM:
+                valname='AoN'.replace('N',str(atp))
+            if names0[atp] == velinNaM:
+                velvalname='dvoN'.replace('N',str(atp))        
+            if names0[atp] == fwhinNaM:
+                fwhvalname='fwhmoN'.replace('N',str(atp))       
+        for atp in range(0, len(vals)):
+            if vals[atp] == valname:
+                indf=atp
+            if vals[atp] == velvalname:
+                velindf=atp     
+            if vals[atp] == fwhvalname:
+                fwhindf=atp     
+        if indf >= 0:
+            A1.extend([f_parm[indf]/fac0[myt]])
+            if outflow:
+                A1o.extend([f_parm[indf]/fac0[myt]*F1o])
+        else: 
+            for atp in range(0, len(vals)):
+                if vals[atp] == vt1:
+                    indfT1=atp
+            A1.extend([f_parm[indfT1]])
+            if outflow:
+                A1o.extend([f_parm[indfT1]*F1o])
+        if velindf >= 0:
+            dv.extend([f_parm[velindf]*velfac0[myt]])
+        else: 
+            for atp in range(0, len(vals)):
+                if vals[atp] == vt2:
+                    indfT2=atp  
+            dv.extend([f_parm[indfT2]])              
+        if fwhindf >= 0:
+            fwhm.extend([f_parm[fwhindf]*fwhfac0[myt]])
+        else: 
+            for atp in range(0, len(vals)):
+                if vals[atp] == vt3:
+                    indfT3=atp   
+            fwhm.extend([f_parm[indfT3]])                 
         if skew:
-            A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3,alp1,alpb=theta
-            alph=[alp1,alp1]
-            alphb=[alpb]
+            alph.extend([alp1])
+            alphb.extend([alpb])
         else:
-            if broad:
-                A1,A3,fac,dv1,dv2,fwhm1,fwhm2,A7,dv3=theta
-                alphb=[0]
-            else:
-                if n_line:
-                    if outflow:
-                        A1,fac,dv1,dv2,fwhm1,F1o,dvo,fwhmo,alpho=theta
-                        dvO=[dvo,dvo+dv2]
-                        fwhmO=[fwhmo,fwhmo]
-                        alphO=[alpho,alpho]
-                        F3o=0
-                    else:
-                        A1,fac,dv1,dv2,fwhm1=theta
-                    A3=[0]
-                else:
-                    A1,A3,fac,dv1,dv2,fwhm1=theta        
-            alph=[0]
-        dv=[dv1,dv2]
-        fwhm=[fwhm1,fwhm1]
-        fact=[fac]
-        if broad:
-            fwhmb=[fwhm2]
-            dvb=[dv3]
-    
-    A5=A1/lfac12
-    if n_line:
-        ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-    else:
-        ModA=emission_line_model(x, xo=xo1, A=A1, dv=dv ,fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-        ModH=emission_line_model(x, xo=xo2, A=A3, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-        ModB=emission_line_model(x, xo=xo3, A=A5, dv=dv, fwhm=fwhm, fac=fact, alph=alph, skew=skew)
-    if broad:
-        ModHB=emission_line_model(x, xo=xo2, A=A7, dv=dvb, fwhm=fwhmb, alph=alphb, skew=skew, lorentz=lorentz)
+            if outflow:
+                dvO.extend([dvo])
+                fwhmO.extend([fwhmo])
+                alphO.extend([alpho])
+
+
+    ModA=emission_line_model(x, xo=waves0, A=A1, dv=dv ,fwhm=fwhm, alph=alph, skew=skew, lorentz=lorentz)
     if outflow:
-        A3o=A3*F3o
-        A1o=A1*F1o
-        A5o=A1o/lfac12
-        if n_line:
-            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO, fac=fact, alph=alphO, skew=True)
-        else:
-            ModAo=emission_line_model(x, xo=xo1, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
-            ModHo=emission_line_model(x, xo=xo2, A=A3o, dv=dvO, fwhm=fwhmO, alph=alphO, skew=True)
-            ModBo=emission_line_model(x, xo=xo3, A=A5o, dv=dvO, fwhm=fwhmO, alph=alphO, skew=True)
+        ModAo=emission_line_model(x, xo=waves0, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
         
     
     lin=0
-    if single:
-        if n_line:
-            if outflow:
-                lin=ModA+ModAo
-            else:
-                lin=ModA
+    for i in range(len(ModA)):
+        if outflow:
+            lin=ModA[i]+ModAo[i]+lin
         else:
-            if outflow:
-                lin=ModA+ModH+ModB+ModAo+ModHo+ModBo+lin
-            else:
-                lin=ModA+ModH+ModB
-    else:
-        for i in range(len(ModA)):
-            if n_line:
-                if outflow:
-                    lin=ModA[i]+ModAo[i]+lin
-                else:
-                    lin=ModA[i]+lin
-            else:
-                lin=ModA[i]+ModH[i]+ModB[i]+lin
-    if broad:        
-        lin=lin+ModHB    
+            lin=ModA[i]+lin
     outvect=[]
     outvect.extend([lin])
-    if single:
-        if n_line:
-            if outflow:
-                outvect.extend([ModA])
-                outvect.extend([ModAo])
-            else:
-                outvect.extend([ModA])
-        else:
-            outvect.extend([ModA])
-            outvect.extend([ModH])
-            outvect.extend([ModB])
-            if outflow:
-                outvect.extend([ModAo])
-                outvect.extend([ModHo])
-                outvect.extend([ModBo])
-        if broad:
-            outvect.extend([ModHB])
-    else:
-        if n_line:
-            for i in range(len(ModA)):
-                outvect.extend([ModA[i]])
-            if outflow:
-                for i in range(len(ModAo)):
-                    outvect.extend([ModAo[i]])
-        else:
-            for i in range(len(ModA)):
-                outvect.extend([ModA[i]])
-            for i in range(len(ModH)):
-                outvect.extend([ModH[i]])
-            for i in range(len(ModA)):
-                outvect.extend([ModB[i]])
-        if broad:
-            outvect.extend([ModHB])            
+    for i in range(len(ModA)):
+        outvect.extend([ModA[i]])
+    if outflow:
+        for i in range(len(ModAo)):
+            outvect.extend([ModAo[i]])       
     
     if ret_com:
         return outvect
     else:
         return lin
-
-'''
-def line_model_s(theta, x=0, xo1=0, xo2=0, xo3=0 ,ret_com=False, lfac12=2.93):
-    A1,A3,dv1,fwhm1,fwhm2,A7,dv3=theta
-    ct=299792.458
-    sigma1=fwhm1/ct*xo1/(2.0*np.sqrt(2.0*np.log(2.0)))
-    xo_b=xo1*(1.0+dv1/ct)
-    Gb=tol.gauss_M(x,sigma=sigma1,xo=xo_b,A1=A1)
-    
-    sigma2=fwhm1/ct*xo2/(2.0*np.sqrt(2.0*np.log(2.0)))
-    xo_b=xo2*(1.0+dv1/ct)
-    hGb=tol.gauss_M(x,sigma=sigma2,xo=xo_b,A1=A3)
-    
-    sigma3=fwhm1/ct*xo3/(2.0*np.sqrt(2.0*np.log(2.0)))
-    xo_b=xo3*(1.0+dv1/ct)
-    A5=A1/lfac12
-    nGb=tol.gauss_M(x,sigma=sigma3,xo=xo_b,A1=A5)
-    
-    sigma4=fwhm2/ct*xo2/(2.0*np.sqrt(2.0*np.log(2.0)))
-    xo=xo2*(1.0+dv3/ct)
-    hGbr=tol.gauss_M(x,sigma=sigma4,xo=xo,A1=A7)
-    
-    lin=Gb+hGb+nGb+hGbr
-    if ret_com:
-        return lin,Gb,hGb,nGb,hGbr
-    else:
-        return lin
-'''
