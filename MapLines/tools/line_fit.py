@@ -453,7 +453,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
 
     h1=fits.PrimaryHDU(model_param)
     h=h1.header
-    for i in range(0, valsH):
+    for i in range(0, len(valsH)):
         h['Val_'+str(i)]=valsH[i] 
     h['Val_'+str(n_lines*3)] ='Noise_Median'
     if cont:
@@ -892,7 +892,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
             h[keys[i]]=hdr[keys[i]]
             h.comments[keys[i]]=hdr.comments[keys[i]]
-    for i in range(0, valsH):
+    for i in range(0, len(valsH)):
         h['Val_'+str(i)]=valsH[i] 
     h['Val_'+str(n_lines*3)] ='Noise_Median'
     if cont:
