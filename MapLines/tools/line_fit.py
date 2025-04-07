@@ -422,7 +422,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     hli=[]
     hli.extend([fits.PrimaryHDU(model_all)])
     for myt in range(0,n_lines):
-        temp=model_Ind[:,:,:,myt]
+        temp=model_Ind[:,myt]
         hli.extend([fits.ImageHDU(temp)])
     hli.extend([fits.ImageHDU(model_Inp)])    
     hli.extend([fits.ImageHDU(model_InpE)])    
