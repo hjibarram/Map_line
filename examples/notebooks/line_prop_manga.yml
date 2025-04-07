@@ -11,16 +11,31 @@ lines:
     fwhF: 1.0
     vel_Name: NII6585 #Name of the velocity shift of the line to be constrained with
     velF: 1.0
-  - name: Halpha #name of the line
+  - name: HaNarrow #name of the line
     wave: 6564.61  #central wavelenght 
     fwh_Name: NII6585 #Name of the FWHM of the line to be constrained with
     fwhF: 1.0
     vel_Name: NII6585 #Name of the velocity shift of the line to be constrained with
     velF: 1.0  
+  - name: SII6718 #name of the line
+    wave: 6718.29  #central wavelenght 
+    fwh_Name: NII6585 #Name of the FWHM of the line to be constrained with
+    fwhF: 1.0
+    vel_Name: NII6585 #Name of the velocity shift of the line to be constrained with
+    velF: 1.0
+  - name: SII6732 #name of the line
+    wave: 6732.67  #central wavelenght 
+    fwh_Name: NII6585 #Name of the FWHM of the line to be constrained with
+    fwhF: 1.0
+    vel_Name: NII6585 #Name of the velocity shift of the line to be constrained with
+    velF: 1.0
+  - name: HaBroad #name of the line
+    wave: 6564.61  #central wavelenght
+
 continum:
   - region: Halpha
     wave1: 6490.0
-    wave2: 6510.0  
+    wave2: 6510.0    
 priors:
   Ao0: 0.04 #initial amplitud value of the narrow line
   As0: 17.8 #maximum amplitud limit of the narrow line
@@ -31,6 +46,15 @@ priors:
   Ao2: 0.04 #initial amplitud value of the 3dnarrow line
   As2: 27.8 #maximum amplitud limit of the 3dnarrow line
   Ai2: 0.0 #minimum amplitud limit of the 3dnarrow line
+  Ao3: 0.09 #initial amplitud value of the 4dnarrow line 
+  As3: 17.8 #maximum amplitud limit of the 4dnarrow line
+  Ai3: 0.0 #minimum amplitud limit of the 4dnarrow line
+  Ao4: 0.04 #initial amplitud value of the 5dnarrow line
+  As4: 27.8 #maximum amplitud limit of the 5dnarrow line
+  Ai4: 0.0 #minimum amplitud limit of the 5dnarrow line
+  Ao5: 0.04 #initial amplitud value of the brad line
+  As5: 27.8 #maximum amplitud limit of the broad line
+  Ai5: 0.0 #minimum amplitud limit of the broad line  
   fwhmo0: 150.0 #initial fwhm value of the narrow line
   fwhms0: 800.0 #maximum fwhm limit of the narrow line
   fwhmi0: 50.0 #minimum fwhm limit of the narrow line
@@ -40,6 +64,15 @@ priors:
   fwhmo2: 150.0 #initial fwhm value of the 3dnarrow line
   fwhms2: 800.0 #maximum fwhm limit of the 3dnarrow line
   fwhmi2: 50.0 #minimum fwhm limit of the 3dnarrow line
+  fwhmo3: 150.0 #initial fwhm value of the 4dnarrow line
+  fwhms3: 800.0 #maximum fwhm limit of the 4dnarrow line
+  fwhmi3: 50.0 #minimum fwhm limit of the 4dnarrow line
+  fwhmo4: 150.0 #initial fwhm value of the 5dnarrow line
+  fwhms4: 800.0 #maximum fwhm limit of the 5dnarrow line
+  fwhmi4: 50.0 #minimum fwhm limit of the 5dnarrow line
+  fwhmo5: 1000.0 #initial fwhm value of the broad line
+  fwhms5: 10500.0 #maximum fwhm limit of the broad line
+  fwhmi5: 700.0 #minimum fwhm limit of the broad line
   dvo0: -20.0 #initial velocity value of the narrow line
   dvs0: 700.0 #maximum velocity limit of the narrow line
   dvi0: -1000.0 #minimum velocity limit of the narrow line
@@ -49,4 +82,13 @@ priors:
   dvo2: -20.0 #initial velocity value of the 3dnarrow line
   dvs2: 1000.0 #maximum velocity limit of the 3dnarrow line
   dvi2: -1000.0 #minimum velocity limit of the 3dnarrow line
+  dvo3: -20.0 #initial velocity value of the 4dnarrow line
+  dvs3: 1000.0 #maximum velocity limit of the 4dnarrow line
+  dvi3: -1000.0 #minimum velocity limit of the 4dnarrow line0
+  dvo4: -20.0 #initial velocity value of the 5dnarrow line
+  dvs4: 1000.0 #maximum velocity limit of the 5dnarrow line
+  dvi4: -1000.0 #minimum velocity limit of the 5dnarrow line 
+  dvo5: -20.0 #initial velocity value of the broad line
+  dvs5: 1000.0 #maximum velocity limit of the broad line
+  dvi5: -1000.0 #minimum velocity limit of the broad line   
 ...
