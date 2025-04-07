@@ -23,6 +23,7 @@ requirements = [
     'click',
     'emcee',
     'tqdm',
+    'corner',
 ]
 
 DATA_DIRNAME = 'data'

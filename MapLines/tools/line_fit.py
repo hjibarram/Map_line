@@ -10,8 +10,10 @@ from astropy.io import fits
 import os.path as ptt
 import sys
 from tqdm import tqdm
+import corner 
+import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,outflow=False,lorentz=False,broad=True,n_line=False,skew=False,error_c=True,ncpu=10,single=False,flux_f=1.0,erft=0.75,dv1t=200,sim=False,cont=False,hbfit=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
         hdu_list = fits.open(file1)
@@ -21,7 +23,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         wave=table_data.field('LAMBDA')
         if error_c:
             pdl_dataE=table_data.field('ERROR')
-            pdl_dataE=pdl_dataE*flux_f*erft
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
     elif input_format == 'SDSS':
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
@@ -32,12 +37,18 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         if error_c:
             pdl_dataE=table_data.field('IVAR')
             pdl_dataE=1/np.sqrt(pdl_dataE)
-            pdl_dataE=pdl_dataE*flux_f*erft    
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
     elif input_format == 'IrafFits':
         [pdl_data, hdr]=fits.getdata(file1, 0, header=True)
         if error_c:
             pdl_dataE =fits.getdata(file1, 1, header=False)
-            pdl_dataE=pdl_dataE*flux_f*erft
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
         crpix=hdr["CRPIX3"]
         try:
             cdelt=hdr["CD3_3"]
@@ -65,7 +76,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         pdl_data=np.array(pdl_data)
         if error_c:
             pdl_dataE=np.array(pdl_dataE)
-            pdl_dataE=pdl_dataE*flux_f*erft
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
     elif input_format == 'ASCII':
         ft=open(file1,'r')
         wave=[]
@@ -86,7 +100,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         pdl_data=np.array(pdl_data)
         if error_c:
             pdl_dataE=np.array(pdl_dataE)
-            pdl_dataE=pdl_dataE*flux_f*erft
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
     else:
         print('Error: input_format not recognized')
         print('Options are: TableFits, IrafFits, CSV, ASCII')
@@ -101,504 +118,374 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
     wave_i=wave_f[nw]
     model_all=np.zeros(len(nw))
-    model_Blue=np.zeros(len(nw))
-    model_Red=np.zeros(len(nw))
-    model_Broad=np.zeros(len(nw))
-    if single:
-        if cont:
-            if skew:
-                model_param=np.zeros(12)
-            else:
-                if outflow:
-                    model_param=np.zeros(16)
-                else:
-                    model_param=np.zeros(10)
-        else:
-            if skew:
-                model_param=np.zeros(11)
-            else:
-                if outflow:
-                    model_param=np.zeros(15)
-                else:
-                    model_param=np.zeros(9)
-    else:
-        if cont:
-            if skew:
-                model_param=np.zeros(17)
-            else:
-                model_param=np.zeros(15)
-        else:
-            if skew:
-                model_param=np.zeros(16)
-            else:
-                model_param=np.zeros(14)
-    model_param[:]=np.nan    
+    model_Inp=np.zeros(len(nw))
+    model_InpE=np.zeros(len(nw))
+    if outflow:
+        model_Outflow=np.zeros(len(nw))
+    
+    
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
         n_lines=len(data_lines['lines'])
-        L1name=data_lines['lines'][0]['name']
-        L1wave=data_lines['lines'][0]['wave']
-        lfac12=data_lines['lines'][0]['fac']
-        L2wave=data_lines['lines'][1]['wave']
-        L2name=data_lines['lines'][1]['name']
-        LHwave=data_lines['lines'][2]['wave']
-        LHname=data_lines['lines'][2]['name']
-        LHBwave=data_lines['lines'][3]['wave']
-        LHBname=data_lines['lines'][3]['name']
+        pac=['AoN','dvoN','fwhmoN']
+        pacL=[r'$A_{N}$',r'$\Delta v_{N}$',r'$FWHM_{N}$']
+        pacH=['N_Amplitude','N_Velocity','N_FWHM']
+        waves0=[]
+        names0=[]
+        vals0=[]
+        vals=[]
+        valsL=[]
+        valsH=[]
+        fac0=[]
+        facN0=[]
+        velfac0=[]
+        velfacN0=[]
+        fwhfac0=[]
+        fwhfacN0=[]
+        for i in range(0, n_lines):
+            parameters=data_lines['lines'][i]
+            npar=len(parameters)
+            waves0.extend([parameters['wave']])
+            names0.extend([parameters['name']])
+            try:
+                facN0.extend([parameters['fac_Name']])
+                fac0.extend([parameters['fac']])
+                facp=True
+            except:
+                facN0.extend(['NoNe'])
+                fac0.extend([None])
+                facp=False
+            try:
+                velfacN0.extend([parameters['vel_Name']])
+                velfac0.extend([parameters['velF']])
+                velfacp=True
+            except:
+                velfacN0.extend(['NoNe'])
+                velfac0.extend([None])
+                velfacp=False    
+            try:
+                fwhfacN0.extend([parameters['fwh_Name']])
+                fwhfac0.extend([parameters['fwhF']])
+                fwhfacp=True
+            except:
+                fwhfacN0.extend(['NoNe'])
+                fwhfac0.extend([None])
+                fwhfacp=False    
+            inr=0    
+            for a in pac:
+                val_t=a.replace('N',str(i))
+                val_tL=pacL[inr].replace('N',names0[i])
+                val_tH=pacH[inr].replace('N',names0[i])
+                if 'AoN' in a:
+                    if facp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])
+                elif 'dvoN' in a:
+                    if velfacp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])        
+                elif 'fwhmoN' in a:
+                    if fwhfacp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])
+                else:    
+                    vals.extend([val_t])
+                    valsL.extend([val_tL])
+                valsH.extend([val_tH])
+                vals0.extend([val_t])    
+                inr=inr+1
         region=data_lines['continum'][0]['region']
         wavec1=data_lines['continum'][0]['wave1']
         wavec2=data_lines['continum'][0]['wave2']
-        waveb1=data_lines['continum'][0]['waveb1']
-        waveb2=data_lines['continum'][0]['waveb2']
         valsp=data_lines['priors']
+        Inpvalues=[]
+        Infvalues=[]
+        Supvalues=[]
+        for valt in vals:
+            try:
+                Inpvalues.extend([valsp[valt]])
+            except:
+                print('The keyword '+valt+' is missing in the line config file')
+                return
+            try:
+                Infvalues.extend([valsp[valt.replace('o','i')]])
+            except:
+                print('The keyword '+valt.replace('o','i')+' is missing in the line config file')
+                return
+            try:
+                Supvalues.extend([valsp[valt.replace('o','s')]])
+            except:
+                print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
+                return
     else:
         print('No configuration line model file')
         return
+    model_Ind=np.zeros([len(nw),n_lines])  
+    if cont:
+        oft=2
+    else:
+        oft=1
+    if skew:
+        model_param=np.zeros(n_lines*3+2+oft)
+    else:
+        if outflow:
+            model_param=np.zeros(n_lines*3+4+oft)
+        else:
+            model_param=np.zeros(n_lines*3+oft)
+    model_param[:]=np.nan    
 
     for i in range(0, 1):
         for j in range(0, 1):
-            val=1
-            if val == 1:
-                fluxt=pdl_data[nw]
-                if error_c:
-                    fluxtE=pdl_dataE[nw]
+            #val=1
+            #if val == 1:
+            fluxt=pdl_data[nw]
+            if error_c:
+                fluxtE=pdl_dataE[nw]
+            else:
+                fluxtE=tol.step_vect(fluxt,sp=50)
+            if cont:
+                #Defining the continum windows
+                nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
+                fluxpt=np.nanmean(fluxt[nwt])  
+                fluxt=fluxt-fluxpt
+            fluxe_t=np.nanmean(fluxtE)
+            #Defining the input data for the fitting model
+            data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow)
+            nwalkers=240
+            niter=1024
+            #Defining the initian conditions
+            if skew:  
+                initial = np.array([*Inpvalues, 0.0, 0.0])
+            else:
+                if outflow:
+                    initial = np.array([*Inpvalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                 else:
-                    fluxtE=tol.step_vect(fluxt,sp=50)
-                if cont:
-                    #Defining the continum windows
-                    nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
-                    fluxpt=np.nanmean(fluxt[nwt])  
-                    fluxt=fluxt-fluxpt
-                #Defining the Broad continum between lines for the initial condition   
-                nwt=np.where((wave_f[nw] >= waveb1) & (wave_f[nw] <= waveb2))[0]
-                fluxp=np.nanmean(fluxt[nwt])
-                fluxe_t=np.nanmean(fluxtE)
-                if fluxp < 0:
-                    fluxp=0.0001
-                data = (fluxt, fluxtE, wave_i, L2wave, LHwave, L1wave, fluxp, dv1t, sim, lfac12, single, skew, broad, lorentz, valsp, n_line, outflow)
-                nwalkers=240
-                niter=1024
-                if single:
-                    if skew:
-                        initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
-                    else:
-                        if broad:
-                            initial = np.array([0.04, 0.09, -20.0, 150.0, 1000.0, fluxp, 0.0])
-                        else:
-                            if n_line:
-                                initial = np.array([0.04, -20.0, 150.0])
-                            else:
-                                if outflow:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0, 0.2, 0.2, -100.0, 150.0, 0.0])
-                                else:
-                                    initial = np.array([0.04, 0.09, -20.0, 150.0])
-                else:
-                    if skew:
-                        initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0, 0.0, 0.0])
-                    else:
-                        if broad:
-                            initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0, 1000.0, fluxp, 0.0])
-                        else:
-                            if n_line:
-                                initial = np.array([0.04, 6.0, -80.0, -500.0, 150.0])
-                            else:
-                                initial = np.array([0.04, 0.09, 6.0, -80.0, -500.0, 150.0])
-                ndim = len(initial)
-                p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
-                tim=True
-                sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
-                samples = sampler.flatchain
-                theta_max  = samples[np.argmax(sampler.flatlnprobability)]
-                if single:
-                    if skew:
-                        A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
-                        model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
-                    else:
-                        if broad:
-                            A1_f,A3_f,dv1_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                            model,m2B,mHB,m1B,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
-                        else:
-                            if n_line:
-                                A1_f,dv1_f,fwhm1_f=theta_max
-                                model,m2B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
-                                A3_f=0
-                            else:
-                                if outflow:
-                                    A1_f,A3_f,dv1_f,fwhm1_f,F1o_f,F3o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
-                                    model,m2B,mHB,m1B,m2Bo,mHBo,m1Bo=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, outflow=outflow)
-                                else:
-                                    A1_f,A3_f,dv1_f,fwhm1_f=theta_max
-                                    model,m2B,mHB,m1B=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
-                            A7_f=0
-                            fwhm2_f=0
-                            dv3_f=0
-                    model_all[:]=model
-                    if n_line:
-                        model_Blue[:]=m2B
-                    else:
-                        model_Blue[:]=m2B+m1B+mHB
-                    if broad:
-                        model_Broad[:]=mHBR
-                    model_param[0]=A1_f
-                    model_param[1]=A1_f/lfac12
-                    model_param[2]=A3_f
-                    model_param[3]=A7_f
-                    model_param[4]=dv1_f
-                    model_param[5]=dv3_f
-                    model_param[6]=fwhm1_f
-                    model_param[7]=fwhm2_f
-                    model_param[8]=fluxe_t
-                    if cont:
-                        model_param[9]=fluxpt
-                        ind=9
-                    else:
-                        ind=8
-                    if skew:
-                        model_param[ind+1]=alph1_f
-                        model_param[ind+2]=alphB_f
-                    if outflow:
-                        model_param[ind+1]=A1_f/flux_f*F1o_f
-                        model_param[ind+2]=A1_f/lfac12/flux_f*F1o_f
-                        model_param[ind+3]=A3_f/flux_f*F3o_f
-                        model_param[ind+4]=dvO_f
-                        model_param[ind+5]=fwhmO_f
-                        model_param[ind+6]=alphaO_f    
-                else:
-                    if skew:
-                        A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f=theta_max
-                    else:
-                        if broad:
-                            A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f=theta_max
-                        else:
-                            if n_line:
-                                A1_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
-                            else:
-                                A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f=theta_max
-                            A7_f=0
-                            fwhm2_f=0
-                            dv3_f=0
-                    if dv2_f < dv1_f:
-                        fac_f=1/fac_f
-                        dt=np.copy(dv2_f)
-                        dv2_f=np.copy(dv1_f)
-                        dv1_f=dt
-                        A1_f=A1_f*fac_f
-                        A3_f=A3_f*fac_f
-                    if skew:
-                        theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f,alph1_f,alphB_f
-                        model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)
-                    else:
-                        if broad:
-                            theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f,fwhm2_f,A7_f,dv3_f
-                            model,m2B,m2R,mHB,mHR,m1B,m1R,mHBR=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, lorentz=lorentz)
-                        else:
-                            if n_line:
-                                theta_max=A1_f,fac_f,dv1_f,dv2_f,fwhm1_f 
-                                model,m2B,m2R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad, n_line=n_line)
-                            else:
-                                theta_max=A1_f,A3_f,fac_f,dv1_f,dv2_f,fwhm1_f    
-                                model,m2B,m2R,mHB,mHR,m1B,m1R=mod.line_model(theta_max, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, ret_com=True, lfac12=lfac12, single=single, skew=skew, broad=broad)                   
-                    model_all[:]=model
-                    if n_lines:
-                        model_Blue[:]=m2B
-                        model_Red[:]=m2R
-                    else:
-                        model_Blue[:]=m2B+m1B+mHB
-                        model_Red[:]=m2R+m1R+mHR
-                    if broad:
-                        model_Broad[:]=mHBR
-                    model_param[0]=A1_f
-                    model_param[1]=A1_f/lfac12
-                    model_param[2]=A3_f
-                    model_param[3]=A7_f
-                    model_param[4]=fac_f
-                    model_param[5]=A1_f/fac_f
-                    model_param[6]=A1_f/fac_f/lfac12
-                    model_param[7]=A3_f/fac_f
-                    model_param[8]=dv1_f
-                    model_param[9]=dv2_f
-                    model_param[10]=dv3_f
-                    model_param[11]=fwhm1_f
-                    model_param[12]=fwhm2_f
-                    model_param[13]=fluxe_t
-                    if cont:
-                        model_param[14]=fluxpt
-                        ind=14
-                    else:
-                        ind=13
-                    if skew:
-                        model_param[ind+1]=alph1_f
-                        model_param[ind+2]=alphB_f
-                if True:
-                    import matplotlib.pyplot as plt
-                    fig = plt.figure(figsize=(7,5))
-                    ax1 = fig.add_subplot(1,1,1)
-                    ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
-                    ax1.plot(wave_i,fluxtE,linewidth=0.5,color='grey',label=r'$1\sigma$ Error')
-                    ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-                    if single:
-                        if broad:
-                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
-                        ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'$')
-                        if not n_line:
-                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'$')
-                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'$')
-                        if outflow:
-                            ax1.plot(wave_i,m2Bo,linewidth=1,color='orange')
-                            ax1.plot(wave_i,mHBo,linewidth=1,color='orange')
-                            ax1.plot(wave_i,m1Bo,linewidth=1,color='orange',label=r'outflow')            
-                    else:
-                        if broad:
-                            ax1.plot(wave_i,mHBR,linewidth=1,color='red',label=r'$'+LHBname+'$')
-                        ax1.plot(wave_i,m2B,linewidth=1,color='blue',label=r'$'+L2name+'_b$')
-                        ax1.plot(wave_i,m2R,linewidth=1,color='red',label=r'$'+L2name+'_r$')
-                        if not n_line:
-                            ax1.plot(wave_i,mHB,linewidth=1,color='blue',label=r'$'+LHname+'_b$')
-                            ax1.plot(wave_i,mHR,linewidth=1,color='red',label=r'$'+LHname+'_r$')
-                            ax1.plot(wave_i,m1B,linewidth=1,color='blue',label=r'$'+L1name+'_b$')
-                            ax1.plot(wave_i,m1R,linewidth=1,color='red',label=r'$'+L1name+'_r$')
-                    fontsize=14
-                    ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
-                    ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
-                    ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
-                    ax1.legend(fontsize=fontsize)
-                    plt.tight_layout()
-                    fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
-                    plt.show()
-                    if single:
-                        if skew:
-                            labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3", "alph1", "alphB"]
-                        else:
-                            if broad:
-                                labels = ['A1','A3','dv1','FWHM_N']
-                            else:
-                                if n_line:
-                                    labels = ['A1','dv1','FWHM_N']
-                                else:
-                                    labels = ['A1','A3','dv1','FWHM_N',"FWHM_B","A7","dv3"]
-                        if hbfit:
-                            if skew:
-                                labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        labels2 = ['A1','dv1','FWHM_N']
-                                    else:
-                                        if outflow:
-                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{OIII,out}$',r'$F_{H\beta,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = [r'$A_{OIII}$',r'$A_{H\beta}$',r'$\Delta v$',r'$FWHM_n$']
-                        else:
-                            if skew:
-                                labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        labels2 = ['A1','dv1','FWHM_N']
-                                    else:
-                                        if outflow:
-                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$',r'$F_{NII,out}$',r'$F_{H\alpha,out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$alpha_{out}$']
-                                        else:
-                                            labels2 = [r'$A_{NII}$',r'$A_{H\alpha}$',r'$\Delta v$',r'$FWHM_n$']
-                    else:
-                        if skew:
-                            labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3", "alph1", "alphB"]
-                        else:
-                            if broad:
-                                labels = ['A1','A3','fac','dv1','dv2','FWHM']
-                            else:
-                                if n_line:
-                                    labels = ['A1','fac','dv1','dv2','FWHM']
-                                else:
-                                    labels = ['A1','A3','fac','dv1','dv2','FWHM',"FWHM_B","A7","dv3"]
-                        if hbfit:
-                            if skew:
-                                labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        labels2 = ['A1','fac','dv1','dv2','FWHM']
-                                    else:
-                                        labels2 = [r'$A_{OIII,b}$',r'$A_{H\beta,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$']
-                        else:
-                            if skew:
-                                labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$',r'$\alpha_n$',r'$\alpha_b$']
-                            else:
-                                if broad:
-                                    labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$',r'$FWHM_b$',r'$A_{b}$',r'$\Delta v_{br}$']
-                                else:
-                                    if n_line:
-                                        labels2 = ['A1','fac','dv1','dv2','FWHM']
-                                    else:
-                                        labels2 = [r'$A_{NII,b}$',r'$A_{H\alpha,b}$',r'$f_c$',r'$\Delta v_b$',r'$\Delta v_r$',r'$FWHM_n$']
-                    import corner  
-                    fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
-                    fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-                    fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
+                    initial = np.array([*Inpvalues])
+
+            ndim = len(initial)
+            p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
+            tim=True #allways allow to print the time stamp
+            sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
+            samples = sampler.flatchain
+            theta_max  = samples[np.argmax(sampler.flatlnprobability)]
                 
+            if skew:
+                *f_parm,alph1_f,alphB_f=theta_max
+                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True,  skew=skew)
+            else:
+                if outflow:
+                    *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
+                else:
+                    f_parm=theta_max
+                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, outflow=outflow)
+ 
+            model_all[:]=model
+            model_Inp[:]=fluxt
+            model_InpE[:]=fluxtE
+            for myt in range(0,n_lines):
+                model_Ind[:,myt]=modsI[myt]
+                inNaM=facN0[myt]
+                velinNaM=velfacN0[myt]
+                fwhinNaM=fwhfacN0[myt]
+                valname='None'
+                velvalname='None'
+                fwhvalname='None'
+                indf=-1
+                velindf=-1
+                fwhindf=-1
+                vt1='AoN'.replace('N',str(myt))
+                vt2='dvoN'.replace('N',str(myt))
+                vt3='fwhmoN'.replace('N',str(myt))
+                for atp in range(0, len(names0)):
+                    if names0[atp] == inNaM:
+                        valname='AoN'.replace('N',str(atp))
+                    if names0[atp] == velinNaM:
+                        velvalname='dvoN'.replace('N',str(atp))      
+                    if names0[atp] == fwhinNaM:
+                        fwhvalname='fwhmoN'.replace('N',str(atp))    
+                for atp in range(0, len(vals)):
+                    if vals[atp] == valname:
+                        indf=atp
+                    if vals[atp] == velvalname:
+                        velindf=atp
+                    if vals[atp] == fwhvalname:
+                        fwhindf=atp    
+                if indf >= 0:
+                    model_param[myt*3+0]=f_parm[indf]/fac0[myt]/flux_f
+                else: 
+                    for atp in range(0, len(vals)):
+                        if vals[atp] == vt1:
+                            indfT1=atp
+                    model_param[myt*3+0]=f_parm[indfT1]/flux_f   
+                if velindf >= 0:
+                    model_param[myt*3+1]=f_parm[velindf]*velfac0[myt]
+                else:      
+                    for atp in range(0, len(vals)):
+                        if vals[atp] == vt2:
+                            indfT2=atp  
+                    model_param[myt*3+1]=f_parm[indfT2]        
+                if fwhindf >= 0:
+                    model_param[myt*3+2]=f_parm[fwhindf]*fwhfac0[myt]
+                else: 
+                    for atp in range(0, len(vals)):
+                        if vals[atp] == vt3:
+                            indfT3=atp   
+                    model_param[myt*3+2]=f_parm[indfT3]       
+            model_param[n_lines*3]=fluxe_t/flux_f
+            if cont:
+                model_param[n_lines*3+1]=fluxpt/flux_f
+                ind=n_lines*3+1
+            else:
+                ind=n_lines*3
+            if skew:
+                model_param[ind+1]=alph1_f
+                model_param[ind+2]=alphB_f
+            if outflow:
+                model_param[ind+1]=F1o_f
+                model_param[ind+2]=dvO_f
+                model_param[ind+3]=fwhmO_f
+                model_param[ind+4]=alphaO_f
+
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, x=wave_i, xo1=L2wave, xo2=LHwave, xo3=L1wave, single=single, lfac12=lfac12, skew=skew, broad=broad, lorentz=lorentz, n_line=n_line, outflow=outflow)
-                    
-                    
-                    import matplotlib.pyplot as plt
-                    fig = plt.figure(figsize=(6*1.5,3*1.5))
-                    ax1 = fig.add_subplot(1,1,1)
-                    #ax1.set_xlim(lA1,lA2)
-                    ax1.plot(wave_i,fluxt,label='Input spectrum')
-                    ax1.plot(wave_i,model,label='Highest Likelihood Model')
-                    plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
-                    plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
-                    ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
-                    ax1.legend(fontsize=14)
-                    plt.tight_layout()
-                    plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                    #plt.show()
-                if True:  
-                    if single:  
-                        if skew:
-                            print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
+            # Make plots
+            colors=['blue','red','purple','brown','pink']
+            fig = plt.figure(figsize=(7,5))
+            ax1 = fig.add_subplot(1,1,1)
+            ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
+            ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
+            ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
+            ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')    
+            for namel in names0:
+                if namel != 'None':
+                    indl=names0.index(namel)
+                    ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
+            if outflow:
+                ct1a=0
+                for namel in names0:
+                    if namel != 'None':
+                        indl=names0.index(namel)
+                        if ct1a == 0:
+                            ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
                         else:
-                            if broad:
-                                print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
-                            else:
-                                if n_line:
-                                    print("A1=",A1_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
-                                else:
-                                    if outflow:
-                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f,"F1o=",F1o_f,"F3o=",F3o_f,"dvO=",dvO_f,"fwhmO=",fwhmO_f,"alph0=",alphaO_f)
-                                    else:
-                                        print("A1=",A1_f,"A3=",A3_f,"dv1=",dv1_f,"fwhm=",fwhm1_f)
+                            ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
+                        ct1a=ct1a+1
+            fontsize=14
+            ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
+            ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
+            ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
+            ax1.legend(fontsize=fontsize)
+            plt.tight_layout()
+            fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
+            plt.show()
+
+            if skew:
+                labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
+            else:
+                if outflow:
+                    labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
+                else:
+                    labels2 = valsL
+            fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
+            fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
+            fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
+                                   
+            med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
+                       
+            
+            fig = plt.figure(figsize=(6*1.5,3*1.5))
+            ax1 = fig.add_subplot(1,1,1)
+            #ax1.set_xlim(lA1,lA2)
+            ax1.plot(wave_i,fluxt,label='Input spectrum')
+            ax1.plot(wave_i,model,label='Highest Likelihood Model')
+            plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
+            plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
+            ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
+            ax1.legend(fontsize=14)
+            plt.tight_layout()
+            plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
+                
+            if verbose:    
+                #print Best fit parameters
+                pritn('Best fit parameters:')
+                linet=''
+                for itar in range(0, len(vals)):
+                    linet=linet+vals[itar]+'='+str(f_parm[itar])+' '
+                if skew:
+                    print(linet+'alph1='+str(alph1_f)+' alphB='+str(alphB_f))
+                else:
+                    if outflow:
+                        print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                     else:
-                        if skew:
-                            print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f,"alph1=",alph1_f,"alphB=",alphB_f)
-                        else:
-                            if broad:    
-                                print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f,"fwhm2=",fwhm2_f,"A7=",A7_f,"dv3=",dv3_f)
-                            else:   
-                                if n_line:
-                                    print("A1=",A1_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
-                                else: 
-                                    print("A1=",A1_f,"A3=",A3_f,"FAC=",fac_f,"dv1=",dv1_f,"dv2=",dv2_f,"fwhm=",fwhm1_f)
+                        print(linet)  
+                    
                
-    
-    if single:
-        h1=fits.PrimaryHDU(model_all)
-        h2=fits.ImageHDU(model_Blue)
-        h4=fits.ImageHDU(model_Broad)
-    else:
-        h1=fits.PrimaryHDU(model_all)
-        h2=fits.ImageHDU(model_Blue)
-        h3=fits.ImageHDU(model_Red)
-        h4=fits.ImageHDU(model_Broad)
-    h_k=h1.header
+    hli=[]
+    hli.extend([fits.PrimaryHDU(model_all)])
+    for myt in range(0,n_lines):
+        temp=model_Ind[:,:,:,myt]
+        hli.extend([fits.ImageHDU(temp)])
+    hli.extend([fits.ImageHDU(model_Inp)])    
+    hli.extend([fits.ImageHDU(model_InpE)])    
+    if outflow:
+        hli.extend([fits.ImageHDU(model_Outflow)])    
+    h_k=hli[0].header
+    keys=list(hdr.keys())
+    for i in range(0, len(keys)):
+        h_k[keys[i]]=hdr[keys[i]]
+        h_k.comments[keys[i]]=hdr.comments[keys[i]]
     h_k['EXTNAME'] ='Model'    
     h_k.update()
-    if single:
-        h_t=h2.header
-        h_t['EXTNAME'] ='Narrow_Component'
+    for myt in range(0,n_lines):
+        h_t=hli[1+myt].header
+        for i in range(0, len(keys)):
+            h_t[keys[i]]=hdr[keys[i]]
+            h_t.comments[keys[i]]=hdr.comments[keys[i]]
+        h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
-    else:
-        h_t=h2.header
-        h_t['EXTNAME'] ='Blue_Component'
-        h_t.update()
-        h_r=h3.header
-        h_r['EXTNAME'] ='Red_Component'
-        h_r.update()    
-    h_y=h4.header
-    h_y['EXTNAME'] ='Broad_Component'
+    h_y=hli[1+n_lines].header
+    for i in range(0, len(keys)):
+        h_y[keys[i]]=hdr[keys[i]]
+        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+    h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
-    if single:
-        hlist=fits.HDUList([h1,h2,h4])
-    else:
-        hlist=fits.HDUList([h1,h2,h3,h4])
+    h_y=hli[2+n_lines].header
+    for i in range(0, len(keys)):
+        h_y[keys[i]]=hdr[keys[i]]
+        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+    h_y['EXTNAME'] ='InputE_Component'
+    h_y.update()  
+    if outflow:
+        h_y=hli[3+n_lines].header
+        for i in range(0, len(keys)):
+            h_y[keys[i]]=hdr[keys[i]]
+            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        h_y['EXTNAME'] ='Outflow_Component'
+        h_y.update()  
+    hlist=fits.HDUList(hli)
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
-    tol.sycall('gzip -f '+file_out+'.fits')  
-    
-    h1=fits.PrimaryHDU(model_param)
-    h=h1.header
-    if single:
-        if hbfit:
-            h['Val_0'] ='OIII_5007_Amplitude'
-            h['Val_1'] ='OIII_4959Amplitude'
-            h['Val_2'] ='H_beta_Amplitude'
-            h['Val_3'] ='H_beta_Broad_Amplitude'
-            h['Val_4'] ='Narrow_vel'
-            h['Val_5'] ='Broad_vel'
-            h['Val_6'] ='FWHM_Narrow'
-            h['Val_7'] ='FWHM_Broad' 
-            h['Val_8'] ='Noise_Median'
-        else:
-            h['Val_0'] ='NII_6585_Amplitude'
-            h['Val_1'] ='NII_6549_Amplitude'
-            h['Val_2'] ='H_alpha_Amplitude'
-            h['Val_3'] ='H_alpha_Broad_Amplitude'
-            h['Val_4'] ='Narrow_vel'
-            h['Val_5'] ='Broad_vel'
-            h['Val_6'] ='FWHM_Narrow'
-            h['Val_7'] ='FWHM_Broad' 
-            h['Val_8'] ='Noise_Median'
-        if cont:
-            h['Val_9'] ='Continum'
-            ind=9
-        else:
-            ind=8
-        if skew:
-            h['Val_'+str(ind+1)]='Alpha_Narrow'
-            h['Val_'+str(ind+2)]='Alpha_Broad' 
-        if outflow:
-            h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
-            h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
-            h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
-            h['Val_'+str(ind+4)]='Vel_outflow' 
-            h['Val_'+str(ind+5)]='FWHM_outflow'     
-    else:
-        if hbfit:      
-            h['Val_0'] ='OIII_5007_Amplitude_blue'
-            h['Val_1'] ='OIII_4959_Amplitude_blue'
-            h['Val_2'] ='H_beta_Amplitude_blue'
-            h['Val_3'] ='H_beta_Broad_Amplitude'
-            h['Val_4'] ='Blue_Red_Factor'
-            h['Val_5'] ='NII_5007_Amplitude_red'
-            h['Val_6'] ='NII_4959_Amplitude_red'
-            h['Val_7'] ='H_beta_Amplitude_red'
-            h['Val_8'] ='Blue_vel'
-            h['Val_9'] ='Red_vel'
-            h['Val_10'] ='Broad_vel'
-            h['Val_11'] ='FWHM_Narrow'
-            h['Val_12'] ='FWHM_Broad'
-            h['Val_13'] ='Noise_Median'  
-        else:  
-            h['Val_0'] ='NII_6585_Amplitude_blue'
-            h['Val_1'] ='NII_6549_Amplitude_blue'
-            h['Val_2'] ='H_alpha_Amplitude_blue'
-            h['Val_3'] ='H_alpha_Broad_Amplitude'
-            h['Val_4'] ='Blue_Red_Factor'
-            h['Val_5'] ='NII_6585_Amplitude_red'
-            h['Val_6'] ='NII_6549_Amplitude_red'
-            h['Val_7'] ='H_alpha_Amplitude_red'
-            h['Val_8'] ='Blue_vel'
-            h['Val_9'] ='Red_vel'
-            h['Val_10'] ='Broad_vel'
-            h['Val_11'] ='FWHM_Narrow'
-            h['Val_12'] ='FWHM_Broad'  
-            h['Val_13'] ='Noise_Median' 
-        if cont:
-            h['Val_14'] ='Continum'
-            ind=14
-        else:
-            ind=13  
-        if skew:
-            h['Val_'+str(ind+1)]='Alpha_Narrow'
-            h['Val_'+str(ind+2)]='Alpha_Broad'    
+    tol.sycall('gzip -f '+file_out+'.fits')
     
 
+    h1=fits.PrimaryHDU(model_param)
+    h=h1.header
+    for i in range(0, valsH):
+        h['Val_'+str(i)]=valsH[i] 
+    h['Val_'+str(n_lines*3)] ='Noise_Median'
+    if cont:
+        h['Val_'+str(n_lines*3)+1] ='Continum'
+        ind=n_lines*3+1
+    else:
+        ind=n_lines*3
+    if skew:
+        h['Val_'+str(ind+1)]='Alpha_Narrow'
+        h['Val_'+str(ind+2)]='Alpha_Broad' 
+    if outflow:
+        h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
+        h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
+        h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
+        h['Val_'+str(ind+4)]='Vel_outflow' 
+        h['Val_'+str(ind+5)]='FWHM_outflow'     
     h.update()        
     hlist=fits.HDUList([h1])
     hlist.update_extend()
@@ -744,11 +631,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             except:
                 print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
                 return
-        model_Ind=np.zeros([len(nw),nx,ny,n_lines])
-
     else:
         print('No configuration line model file')
         return
+    model_Ind=np.zeros([len(nw),nx,ny,n_lines])    
 
     if cont:
         oft=2
@@ -773,7 +659,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     for i in range(0, nx):
         for j in range(0, ny):
             val=mask[i,j]
-            #val=1
             if test:
                 if j_t*i_t == 0:
                     j_t=int(ny/2)
@@ -793,10 +678,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
                 fluxe_t=np.nanmean(fluxtE)
+                #Defining the input data for the fitting model
                 data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow)
                 nwalkers=240
                 niter=1024
-
+                #Defining the initian conditions
                 if skew:  
                     initial = np.array([*Inpvalues, 0.0, 0.0])
                 else:
@@ -895,7 +781,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
 
                 if plot_f:
                     colors=['blue','red','purple','brown','pink']
-                    import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
@@ -933,8 +818,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                             labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
                         else:
                             labels2 = valsL
-                              
-                    import corner  
+                               
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
                     fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
@@ -942,8 +826,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     
                     med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
                     
-                    
-                    import matplotlib.pyplot as plt
                     fig = plt.figure(figsize=(6*1.5,3*1.5))
                     ax1 = fig.add_subplot(1,1,1)
                     #ax1.set_xlim(lA1,lA2)
@@ -981,7 +863,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     hli.extend([fits.ImageHDU(model_InpE)])    
     if outflow:
         hli.extend([fits.ImageHDU(model_Outflow)])    
-    
     h_k=hli[0].header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
@@ -996,22 +877,20 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
             h_t.comments[keys[i]]=hdr.comments[keys[i]]
         h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
-    
-    h_y=hli[2+n_lines].header
+    h_y=hli[1+n_lines].header
     for i in range(0, len(keys)):
         h_y[keys[i]]=hdr[keys[i]]
         h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
-    
-    h_y=hli[3+n_lines].header
+    h_y=hli[2+n_lines].header
     for i in range(0, len(keys)):
         h_y[keys[i]]=hdr[keys[i]]
         h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='InputE_Component'
     h_y.update()  
     if outflow:
-        h_y=hli[4+n_lines].header
+        h_y=hli[3+n_lines].header
         for i in range(0, len(keys)):
             h_y[keys[i]]=hdr[keys[i]]
             h_y.comments[keys[i]]=hdr.comments[keys[i]]
