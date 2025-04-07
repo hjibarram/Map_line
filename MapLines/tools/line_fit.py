@@ -432,29 +432,16 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     h_k['EXTNAME'] ='Model'    
     h_k.update()
     for myt in range(0,n_lines):
-        h_t=hli[1+myt].header
-        for i in range(0, len(keys)):
-            h_t[keys[i]]=hdr[keys[i]]
-            h_t.comments[keys[i]]=hdr.comments[keys[i]]
         h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
     h_y=hli[1+n_lines].header
-    for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
     h_y=hli[2+n_lines].header
-    for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
     h_y['EXTNAME'] ='InputE_Component'
     h_y.update()  
     if outflow:
         h_y=hli[3+n_lines].header
-        for i in range(0, len(keys)):
-            h_y[keys[i]]=hdr[keys[i]]
-            h_y.comments[keys[i]]=hdr.comments[keys[i]]
         h_y['EXTNAME'] ='Outflow_Component'
         h_y.update()  
     hlist=fits.HDUList(hli)
