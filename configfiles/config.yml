@@ -16,7 +16,7 @@ files:
     # Wavelenght Range
     wave_ini: 4700.0 #initial wave vale, it overrides wave_range if not None
     wave_fin: 5050.0 #final wave vale, it overrides wave_range if not None
-    wave_range: Hbeta #name of the spectral range, options are Hbeta, Halpha and None
+    wave_range: HbOIII #name of the spectral range, options are Hbeta, Halpha and None
 
     # Model Components
     kskew: False #flag to run skew line profile mode
