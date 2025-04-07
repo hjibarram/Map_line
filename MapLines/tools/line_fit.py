@@ -429,10 +429,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     if outflow:
         hli.extend([fits.ImageHDU(model_Outflow)])    
     h_k=hli[0].header
-    keys=list(hdr.keys())
-    for i in range(0, len(keys)):
-        h_k[keys[i]]=hdr[keys[i]]
-        h_k.comments[keys[i]]=hdr.comments[keys[i]]
     h_k['EXTNAME'] ='Model'    
     h_k.update()
     for myt in range(0,n_lines):
