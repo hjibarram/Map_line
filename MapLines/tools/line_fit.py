@@ -406,7 +406,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 
             if verbose:    
                 #print Best fit parameters
-                pritn('Best fit parameters:')
+                print('Best fit parameters:')
                 linet=''
                 for itar in range(0, len(vals)):
                     linet=linet+vals[itar]+'='+str(f_parm[itar])+' '
