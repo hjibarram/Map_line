@@ -432,6 +432,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     h_k['EXTNAME'] ='Model'    
     h_k.update()
     for myt in range(0,n_lines):
+        h_t=hli[1+myt].header
         h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
     h_y=hli[1+n_lines].header
