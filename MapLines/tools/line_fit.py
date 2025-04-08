@@ -464,12 +464,11 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     if skew:
         h['Val_'+str(ind+1)]='Alpha_Narrow'
         h['Val_'+str(ind+2)]='Alpha_Broad' 
-    if outflow:
-        h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
-        h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
-        h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
-        h['Val_'+str(ind+4)]='Vel_outflow' 
-        h['Val_'+str(ind+5)]='FWHM_outflow'     
+    if outflow: 
+        h['Val_'+str(ind+1)]='Amp_Factor_outflow'
+        h['Val_'+str(ind+2)]='Vel_outflow' 
+        h['Val_'+str(ind+3)]='FWHM_outflow'
+        h['Val_'+str(ind+4)]='Alpha_outflow'     
     h.update()        
     hlist=fits.HDUList([h1])
     hlist.update_extend()
@@ -904,11 +903,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
         h['Val_'+str(ind+1)]='Alpha_Narrow'
         h['Val_'+str(ind+2)]='Alpha_Broad' 
     if outflow:
-        h['Val_'+str(ind+1)]='FirstLineA_Ampl_outflow'
-        h['Val_'+str(ind+2)]='FirstLineB_Ampl_outflow' 
-        h['Val_'+str(ind+3)]='SecondLine_Ampl_outflow' 
-        h['Val_'+str(ind+4)]='Vel_outflow' 
-        h['Val_'+str(ind+5)]='FWHM_outflow'     
+        h['Val_'+str(ind+1)]='Amp_Factor_outflow'
+        h['Val_'+str(ind+2)]='Vel_outflow' 
+        h['Val_'+str(ind+3)]='FWHM_outflow'
+        h['Val_'+str(ind+4)]='Alpha_outflow'     
     try:    
         del h['CRVAL3']
         del h['CRPIX3']
