@@ -699,7 +699,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                         *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                     else:
                         f_parm=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, outflow=outflow)
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
