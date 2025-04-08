@@ -13,7 +13,7 @@ from tqdm import tqdm
 import corner 
 import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
         hdu_list = fits.open(file1)
@@ -250,7 +250,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 fluxt=fluxt-fluxpt
             fluxe_t=np.nanmean(fluxtE)
             #Defining the input data for the fitting model
-            data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, lorentz, outflow)
+            data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow)
             nwalkers=240
             niter=1024
             #Defining the initian conditions
@@ -260,7 +260,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 if outflow:
                     initial = np.array([*Inpvalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                 else:
-                    initial = np.array([*Inpvalues])
+                    if voigt:
+                        initial = np.array([*Inpvalues, valsp['gam1']])
+                    else:
+                        initial = np.array([*Inpvalues])
 
             ndim = len(initial)
             p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
@@ -276,8 +279,12 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                 if outflow:
                     *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
                 else:
-                    f_parm=theta_max
-                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, outflow=outflow)
+                    if voigt:
+                        *f_parm,gam1_f=theta_max
+                    else:
+                        gam1_f=0.0
+                        f_parm=theta_max
+                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)
  
             model_all[:]=model
             model_Inp[:]=fluxt

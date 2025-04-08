@@ -4,6 +4,7 @@ from scipy.ndimage import gaussian_filter1d as filt1d
 import os
 import os.path as ptt
 from scipy.special import erf as errf
+from scipy.special import voigt_profile as vprf
 import yaml
 import sys
 from astropy.io import fits
@@ -32,6 +33,17 @@ def conv(xt,ke=2.5):
     krn=ke
     xf=filt1d(xt,ke)
     return xf
+
+def voigt(x,sigma=1.0,xo=0.0,A1=1.0,gam1=0.0):
+    At=A1/vprf(0, sigma, gam1)
+    #sigma=sigma/2.0
+    #gam=gam/2.0
+    x1=x-xo
+    #A1=A1/(np.sqrt(2.0*np.pi)*sigma)
+    #y=A1*vprf(x,sigma,gam)
+    y=At*vprf(x1,sigma,gam1)
+    return y
+
 
 def lorentz(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*(0.5*sigma)**2.0/((x-xo)**2.0+(0.5*sigma)**2.0) 

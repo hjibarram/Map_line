@@ -2,7 +2,7 @@
 import MapLines.tools.tools as tol
 import numpy as np
 
-def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0], skew=False, lorentz=False):
+def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0], gam=[0.0], skew=False, lorentz=False, voigt=False):
     ct=299792.458
     model_out=[]
     for i in range(len(dv)):
@@ -18,6 +18,12 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
         else:
             if lorentz:
                 model=tol.lorentz(x,sigma=(sigma*(2.0*np.sqrt(2.0*np.log(2.0)))),xo=xm,A1=A1)
+            elif voigt:
+                if len(gam) > 0:
+                    gam1=gam[i]
+                    model=tol.voigt(x,sigma=sigma,xo=xm,A1=A1,gam1=gam1)
+                else:
+                    model=tol.gauss_M(x,sigma=sigma,xo=xm,A1=A1)
             else:
                 model=tol.gauss_M(x,sigma=sigma,xo=xm,A1=A1)
         model_out.extend([model])
@@ -27,11 +33,12 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
     return model_out
         
 
-def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False):
+def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False, voigt=False):
     '''Model for the line complex'''
 
     alph=[]
     alphb=[]
+    gam=[]
     if skew:
         *f_parm,alp1,alpb=theta 
     else:
@@ -42,7 +49,10 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
             fwhmO=[]
             alphO=[]
         else:
-            f_parm=theta
+            if voigt:
+                *f_parm,gam1=theta
+            else:
+                f_parm=theta
 
     A1=[]
     dv=[]
@@ -107,9 +117,12 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
                 dvO.extend([dvo])
                 fwhmO.extend([fwhmo])
                 alphO.extend([alpho])
+            else:
+                if voigt:
+                    gam.extend([gam1])
 
 
-    ModA=emission_line_model(x, xo=waves0, A=A1, dv=dv ,fwhm=fwhm, alph=alph, skew=skew, lorentz=lorentz)
+    ModA=emission_line_model(x, xo=waves0, A=A1, dv=dv ,fwhm=fwhm, alph=alph, gam=gam, skew=skew, lorentz=lorentz, voigt=voigt)
     if outflow:
         ModAo=emission_line_model(x, xo=waves0, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
         
