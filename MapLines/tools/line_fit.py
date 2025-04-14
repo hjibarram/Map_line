@@ -641,7 +641,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
 
     hdr["CRVAL3"]=wave_i[0]
     try:
-        hdr["CD3_3"]=cdelt
+        hdr["CD3_3"]=cdelt/(1+z)
     except:
         hdr["CDELT3"]=cdelt/(1+z)
     if pgr_bar:
