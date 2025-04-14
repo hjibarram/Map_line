@@ -369,11 +369,11 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     h['BUNIT']='erg/s/cm^2/Angstrom'
     h.update()  
     h3=fits.ImageHDU(cube2,header=hdr2)
-    h=h3.header
-    h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
-    h['CDELT3']=h['CDELT3']*1e4/(1+zt)
-    h['CUNIT3']='Angstrom'
-    h.update()  
+    #h=h3.header
+    #h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
+    #h['CDELT3']=h['CDELT3']*1e4/(1+zt)
+    #h['CUNIT3']='Angstrom'
+    #h.update()  
     hlist=fits.HDUList([h1,h2,h3])
     hlist.update_extend()
     hlist.writeto(filename_out, overwrite=True)
