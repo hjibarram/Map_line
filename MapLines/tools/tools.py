@@ -346,16 +346,19 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     [cube1, hdr1]=fits.getdata(filename, 1, header=True)
     [cube2, hdr2]=fits.getdata(filename, 2, header=True)
 
-    crpix=hdr["CRPIX3"]
-    cdelt=hdr["CDELT3"]
-    crval=hdr["CRVAL3"]
+    crpix=hdr1["CRPIX3"]
+    cdelt=hdr1["CDELT3"]
+    crval=hdr1["CRVAL3"]
     wave=crval+cdelt*(np.arange(nz)+1-crpix)
-    
+    dx=hdr1['CDELT1']*3600.
+    dy=hdr1['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    pixS=(pix*pi/180.0)
     nz,nx,ny=cube1.shape
     for i in range(0,nx):
         for j in range(0,ny):
-            cube1[:,i,j]=cube1[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16
-            cube2[:,i,j]=cube2[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16
+            cube1[:,i,j]=cube1[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16*pixS**2
+            cube2[:,i,j]=cube2[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16*pixS**2
 
     h1=fits.PrimaryHDU()
     h2=fits.ImageHDU(cube1,header=hdr1)
@@ -363,8 +366,14 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
     h['CDELT3']=h['CDELT3']*1e4/(1+zt)
     h['CUNIT3']='Angstrom'
+    h['BUNIT']='erg/s/cm^2/Angstrom'
     h.update()  
     h3=fits.ImageHDU(cube2,header=hdr2)
+    h=h3.header
+    h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
+    h['CDELT3']=h['CDELT3']*1e4/(1+zt)
+    h['CUNIT3']='Angstrom'
+    h.update()  
     hlist=fits.HDUList([h1,h2,h3])
     hlist.update_extend()
     hlist.writeto(filename_out, overwrite=True)
