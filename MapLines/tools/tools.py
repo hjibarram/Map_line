@@ -335,3 +335,19 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     image[nt3]=wagn
     image[nt4]=ret
     return image    
+
+def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
+    filename=path+file
+    filename_out=path_out+'/'+file_out
+    #[cube0, hdr0]=fits.getdata(filename, 0, header=True)
+    [cube1, hdr1]=fits.getdata(filename, 1, header=True)
+    [cube2, hdr2]=fits.getdata(filename, 2, header=True)
+
+
+    h1=fits.PrimaryHDU()
+    h2=fits.ImageHDU(cube1,header=hdr1)
+    h3=fits.ImageHDU(cube2,header=hdr1)
+    hlist=fits.HDUList([h1,h2,h3])
+    hlist.update_extend()
+    hlist.writeto(filename_out, overwrite=True)
+    tools.sycall('gzip -f '+filename_out)
