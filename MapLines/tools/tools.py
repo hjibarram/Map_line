@@ -350,4 +350,4 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     hlist=fits.HDUList([h1,h2,h3])
     hlist.update_extend()
     hlist.writeto(filename_out, overwrite=True)
-    tools.sycall('gzip -f '+filename_out)
+    sycall('gzip -f '+filename_out)
