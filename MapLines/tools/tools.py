@@ -338,7 +338,7 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
 
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     filename=path+file
-    filename_out=path_out+'/'+file_out
+    filename_out=path_out+file_out
     #[cube0, hdr0]=fits.getdata(filename, 0, header=True)
     [cube1, hdr1]=fits.getdata(filename, 1, header=True)
     [cube2, hdr2]=fits.getdata(filename, 2, header=True)
