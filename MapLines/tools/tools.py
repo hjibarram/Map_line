@@ -337,18 +337,30 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     return image    
 
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
+    erg2Mjy=1.0e-20
+    vel_light=299792458.0
+    ang=1e-10
     filename=path+file
     filename_out=path_out+file_out
     #[cube0, hdr0]=fits.getdata(filename, 0, header=True)
     [cube1, hdr1]=fits.getdata(filename, 1, header=True)
     [cube2, hdr2]=fits.getdata(filename, 2, header=True)
 
+    crpix=hdr["CRPIX3"]
+    cdelt=hdr["CDELT3"]
+    crval=hdr["CRVAL3"]
+    wave=crval+cdelt*(np.arange(nz)+1-crpix)
+    
+    nz,nx,ny=cube1.shape
+    for i in range(0,nx):
+        for j in range(0,ny):
+            cube1[:,i,j]=cube1[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16
+            cube2[:,i,j]=cube2[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16
 
     h1=fits.PrimaryHDU()
     h2=fits.ImageHDU(cube1,header=hdr1)
     h=h2.header
     h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
-    #h['CRPIX3']=
     h['CDELT3']=h['CDELT3']*1e4/(1+zt)
     h['CUNIT3']='Angstrom'
     h.update()  
