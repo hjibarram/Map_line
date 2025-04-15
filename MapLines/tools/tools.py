@@ -349,12 +349,12 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     crpix=hdr1["CRPIX3"]
     cdelt=hdr1["CDELT3"]
     crval=hdr1["CRVAL3"]
-    dx=hdr1['CDELT1']*3600.
-    dy=hdr1['CDELT2']*3600.
+    dx=hdr1['CDELT1']#*3600.
+    dy=hdr1['CDELT2']#*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
-    print(pix)
+    #print(pix)
     pixS=(pix*np.pi/180.0)
-    print(pixS)
+    #print(pixS)
     nz,nx,ny=cube1.shape
     wave=crval+cdelt*(np.arange(nz)+1-crpix)
     for i in range(0,nx):
