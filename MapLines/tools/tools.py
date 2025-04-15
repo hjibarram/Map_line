@@ -337,7 +337,7 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     return image    
 
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
-    erg2Mjy=1.0e-20
+    erg2jy=1.0e-23
     vel_light=299792458.0
     ang=1e-10
     filename=path+file
@@ -352,15 +352,15 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     dx=hdr1['CDELT1']#*3600.
     dy=hdr1['CDELT2']#*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
-    #print(pix)
+    print(pix)
     pixS=(pix*np.pi/180.0)
-    #print(pixS)
+    print(pixS)
     nz,nx,ny=cube1.shape
-    wave=crval+cdelt*(np.arange(nz)+1-crpix)
+    wave=(crval+cdelt*(np.arange(nz)+1-crpix))*1e4
     for i in range(0,nx):
         for j in range(0,ny):
-            cube1[:,i,j]=cube1[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16*pixS**2
-            cube2[:,i,j]=cube2[:,i,j]*erg2Mjy*vel_light/wave**2.0/ang/1e-16*pixS**2
+            cube1[:,i,j]=cube1[:,i,j]*erg2jy*vel_light/wave**2.0/ang/1e-17*pixS**2*1e6
+            cube2[:,i,j]=cube2[:,i,j]*erg2jy*vel_light/wave**2.0/ang/1e-17*pixS**2*1e6
 
     h1=fits.PrimaryHDU()
     h2=fits.ImageHDU(cube1,header=hdr1)
