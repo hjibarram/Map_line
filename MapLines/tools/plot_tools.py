@@ -39,7 +39,7 @@ def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=No
     max_f=At
     min_f=At*0.005#6.5#3.8#1.5#3#*0.01#6.5#At*0.05#6.5#At*0.1#6.5
     n_b=15#25#15
-    flux_range=10**((np.arange(0,n_b)/np.float(n_b)+0.02)*(np.log10(max_f)-np.log10(min_f))+np.log10(min_f))    
+    flux_range=10**((np.arange(0,n_b)/float(n_b)+0.02)*(np.log10(max_f)-np.log10(min_f))+np.log10(min_f))    
     
     
     lev=flux_range
