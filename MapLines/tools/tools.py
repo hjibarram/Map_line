@@ -336,6 +336,23 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     image[nt4]=ret
     return image    
 
+
+def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1):
+    nt1=np.where((logew>=np.log10(10)) & (logsig>=np.log10(57))) #AGN
+    nt2=np.where((logew>=np.log10(6)) & (logsig<np.log10(57))) #SF
+    nt3=np.where((logew>=np.log10(3)) & (logew<np.log10(10)) & (logsig>=np.log10(57))) #WAGN
+    nt4=np.where((logew<np.log10(3))) #Ret
+    nt5=np.where((logew>=np.log10(3)) & (logew<np.log10(6)) & (logsig<np.log10(57))) #Unk
+    image=np.copy(logew)
+    image[:,:]=np.nan
+    image[nt1]=agn
+    image[nt2]=sf
+    image[nt3]=wagn
+    image[nt4]=ret
+    image[nt5]=unk
+    return image
+
+
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     erg2jy=1.0e-23
     vel_light=299792458.0
