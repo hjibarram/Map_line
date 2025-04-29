@@ -9,7 +9,7 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/
         max_f=vmax-(vmax-vmin)*0.05
         min_f=vmin+(vmax-vmin)*0.05
         n_b=15
-        flux_range=(np.arange(0,n_b)/np.float(n_b-1))*(max_f-min_f)+min_f    
+        flux_range=(np.arange(0,n_b)/float(n_b-1))*(max_f-min_f)+min_f    
         lev=flux_range
     cm=plt.cm.get_cmap('jet')
     plt.title(r'$'+tit+'$',fontsize=18)
