@@ -2,6 +2,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+from matplotlib.patches import Circle
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import ICRS, Galactic, FK4, FK5
+from astropy import units as u
+from astropy.wcs.utils import skycoord_to_pixel
+from astropy.wcs import WCS
+import MapLines.tools.tools as tools
 
 def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1):
     nx,ny=flux.shape
@@ -99,3 +106,21 @@ def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=No
         plt.savefig(name+'_map.pdf')
     else:
         plt.show()   
+
+
+def plot_apertures(ax,hdr,plt,nx,ny,dpix,reg_dir='./',reg_file='test.reg'):
+    file=reg_dir+reg_file
+    ra,dec,rad,l1,l2,th,colr,namet,typ=tools.get_apertures(file)
+    for i in range(0, len(ra)):
+        sky1=SkyCoord(ra[i]+' '+dec[i],frame=FK5, unit=(u.hourangle,u.deg))
+        wcs = WCS(hdr)
+        wcs=wcs.celestial
+        ypos,xpos=skycoord_to_pixel(sky1,wcs)
+        xposf=(xpos-nx/2.0+1)*dpix
+        yposf=(ypos-ny/2.0+1)*dpix
+        c = Circle((yposf, xposf), rad[i], edgecolor=colr[i], facecolor='none',lw=5,zorder=3)
+        ax.add_patch(c)
+        if namet[i] == '1':
+            plt.text(yposf+dpix*0.5,xposf-dpix*2,namet[i], fontsize=25,color=colr[i],weight='bold')
+        else:
+            plt.text(yposf+dpix*0.5,xposf,namet[i], fontsize=25,color=colr[i],weight='bold')
