@@ -3,19 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]'):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1):
     nx,ny=flux.shape
-    #max_f=vmax-(vmax-vmin)*0.05
-    #min_f=vmin+(vmax-vmin)*0.05
-    #n_b=15
-    #flux_range=(np.arange(0,n_b)/np.float(n_b-1))*(max_f-min_f)+min_f    
-    #lev=flux_range
+    if cont:
+        max_f=vmax-(vmax-vmin)*0.05
+        min_f=vmin+(vmax-vmin)*0.05
+        n_b=15
+        flux_range=(np.arange(0,n_b)/np.float(n_b-1))*(max_f-min_f)+min_f    
+        lev=flux_range
     cm=plt.cm.get_cmap('jet')
     plt.title(r'$'+tit+'$',fontsize=18)
     plt.xlabel(r'$\Delta \alpha\ [arcsec]$',fontsize=18)
     plt.ylabel(r'$\Delta \delta\ [arcsec]$',fontsize=18)
-    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],vmax=vmax,vmin=vmin)#,alpha=0.5)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
-    #plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],zorder=1)
+    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
+    if cont:
+        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],zorder=1)
     cbar=plt.colorbar(ict)
     plt.xlim(-ny*pix/2,ny*pix/2)
     plt.ylim(-nx*pix/2,nx*pix/2)    
