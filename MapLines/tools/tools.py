@@ -258,6 +258,42 @@ def get_apertures(file):
     return ra,dec,rad,l1,l2,th,colr,namet,typ
 
 
+def get_segment(reg_dir='./',reg_name='test.reg'):
+    raL=[]
+    decL=[]
+    colr=[]
+    namet=[]
+    f=open(reg_dir+reg_name,'r')
+    ct=1
+    for line in f:
+        if not 'Region' in line and not 'fk5' in line and not 'global' in line:
+            if 'segment' in line:
+                data=line.replace('\n','').replace('# segment(',')').split(')')
+                data=list(filter(None,data))
+                data1=data[0].split(',')
+                data1=list(filter(None,data1))
+                rat=[]
+                dect=[]
+                for k in range(0, len(data1),2):
+                    rat.extend([data1[k]])
+                    dect.extend([data1[k+1]])
+                rat=np.array(rat)
+                dect=np.array(dect)
+                raL.extend([rat])
+                decL.extend([dect])
+                data2=data[1].replace('color=','').replace(' width=',' , ').replace(' text={',' , ').replace('}',' ')
+                data2=data2.split(',')
+                data2=list(filter(None,data2))
+                colr.extend([data2[0].replace(' ','')])
+                try:
+                    namet.extend([data2[2].replace(' ','')])
+                except:
+                    namet.extend([str(int(ct))])
+            ct=ct+1
+    colr=np.array(colr)
+    namet=np.array(namet)
+    return raL,decL,colr,namet    
+
 def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
     ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
@@ -379,7 +415,7 @@ def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5
             plt.ylim(0,ltf*dpix) 
             plt.show()
     return slides,wave_f,dpix,vals,hdr,colr,namet,namesS
-    
+
 
 def extract_regs(map,hdr,reg_file='file.reg',avgra=False):
     try:
