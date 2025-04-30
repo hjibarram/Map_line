@@ -376,7 +376,7 @@ def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5
                 
                 #flux1t=flux1t*spl/(wave[nw]*(1+z)*1e-10)**2.*1e-10*1e-23*2.35040007004737e-13/1e-16/1e3
             if cosmetic:
-                slideT=tools.conv(slideT,ke=sigT)
+                slideT=conv(slideT,ke=sigT)
                 #slideT[k,:]=flux1t
             slidesT.extend([slideT])
             ltf=1+ltf 
