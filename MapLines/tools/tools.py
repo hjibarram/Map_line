@@ -257,6 +257,130 @@ def get_apertures(file):
     th=np.array(th)
     return ra,dec,rad,l1,l2,th,colr,namet,typ
 
+
+def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
+    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
+    nz,nx,ny=pdl_cube.shape
+    crpix=hdr["CRPIX3"]
+    try:
+        cdelt=hdr["CD3_3"]
+    except:
+        cdelt=hdr["CDELT3"]
+    crval=hdr["CRVAL3"]
+    
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            dx=hdr['CDELT1']*3600.
+            dy=hdr['CDELT2']*3600.
+    dpix=(np.abs(dx)+np.abs(dy))/2.0  
+    
+    wave=(crval+cdelt*(np.arange(nz)+1-crpix))#*1e4 
+    
+    spl=299792458.0
+    wave=wave/(1+z)
+    nw=np.where((wave >= lA1) & (wave <= lA2))[0]
+    wave_f=wave[nw]
+    if wcs == None:
+        print('TEST')
+        wcs = WCS(hdr)
+        wcs=wcs.celestial
+    slides=[]
+    vals=[]
+    namesS=[]
+    for i in range(0, len(ra)):
+        raT=ra[i]
+        decT=dec[i]
+        cosT=np.zeros([len(raT)-1])
+        sinT=np.zeros([len(raT)-1])
+        rtf=np.zeros([len(raT)-1])
+        xposT=np.zeros([len(raT)-1])
+        yposT=np.zeros([len(raT)-1])
+        lT=np.zeros([len(raT)-1],dtype=int)
+        slidesT=[]
+        ltf=0
+        flux1t=pdl_cube[nw,:,:]
+        namesST=[]
+        for j in range(0, len(raT)-1):
+            sky1=SkyCoord(raT[j]+' '+decT[j],frame=FK5, unit=(u.hourangle,u.deg))
+            sky2=SkyCoord(raT[j+1]+' '+decT[j+1],frame=FK5, unit=(u.hourangle,u.deg))
+            ypos1,xpos1=skycoord_to_pixel(sky1,wcs)
+            ypos2,xpos2=skycoord_to_pixel(sky2,wcs)
+            rt=np.sqrt((xpos2-xpos1)**2.0+(ypos2-ypos1)**2.0)
+            cosT[j]=(ypos2-ypos1)/rt
+            sinT[j]=(xpos2-xpos1)/rt
+            xposT[j]=xpos1
+            yposT[j]=ypos1
+            rtf[j]=rt*dpix
+            lt=int(np.round(rt))+1
+            lT[j]=lt
+            
+            slideT=np.zeros(len(nw))
+            radis=np.zeros([nx,ny])
+            for ii in range(0, nx):
+                for jj in range(0, ny):
+                    x_n=ii-xpos1
+                    y_n=jj-ypos1
+                    r_n=np.sqrt((y_n)**2.0+(x_n)**2.0)*dpix
+                    radis[ii,jj]=r_n
+            ntp=np.where(radis <= rad)
+            for ii in range(0, len(nw)):
+                slideT[ii]=np.nansum(flux1t[ii,ntp])
+            namesST.extend([str(int(j))])
+            #for k in range(0, lt):
+            #    yt=int(np.round(ypos1+k*cosT[j]))
+            #    xt=int(np.round(xpos1+k*sinT[j]))
+                
+                
+                #flux1t=flux1t*spl/(wave[nw]*(1+z)*1e-10)**2.*1e-10*1e-23*2.35040007004737e-13/1e-16/1e3
+            if cosmetic:
+                slideT=tools.conv(slideT,ke=sigT)
+                #slideT[k,:]=flux1t
+            slidesT.extend([slideT])
+            ltf=1+ltf 
+            
+            if j == len(raT)-2:
+                slideT=np.zeros(len(nw))
+                radis=np.zeros([nx,ny])
+                for ii in range(0, nx):
+                    for jj in range(0, ny):
+                        x_n=ii-xpos2
+                        y_n=jj-ypos2
+                        r_n=np.sqrt((y_n)**2.0+(x_n)**2.0)*dpix
+                        radis[ii,jj]=r_n
+                ntp=np.where(radis <= rad)
+                for ii in range(0, len(nw)):
+                    slideT[ii]=np.nansum(flux1t[ii,ntp])
+                slidesT.extend([slideT])
+                ltf=1+ltf 
+                namesST.extend([str(int(j+1))])
+        namesS.extend([namesST])
+        slide=np.zeros([ltf,len(nw)])
+        #ct=0
+        for j in range(0, len(raT)):
+            sldT=slidesT[j]
+            #for k in range(0, lT[j]):
+            slide[j,:]=sldT#[k,:]     
+               # ct=ct+1
+        #out={'Slide':slide,'Lt':lt}
+        slides.extend([slide])
+        vals.extend([[cosT,sinT,rtf,yposT,xposT]])
+        if plot_t:
+            cm=plt.cm.get_cmap('jet')    
+            fig, ax = plt.subplots(figsize=(6.8*1.1,5.5*1.2))
+            ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wave_f[0],wave_f[len(nw)-1],0,ltf*dpix],aspect='auto')
+            plt.xlim(wave_f[0],wave_f[len(nw)-1])
+            plt.ylim(0,ltf*dpix) 
+            plt.show()
+    return slides,wave_f,dpix,vals,hdr,colr,namet,namesS
+    
+
 def extract_regs(map,hdr,reg_file='file.reg',avgra=False):
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0

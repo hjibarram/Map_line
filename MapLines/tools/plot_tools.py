@@ -124,3 +124,13 @@ def plot_apertures(ax,hdr,plt,nx,ny,dpix,reg_dir='./',reg_file='test.reg'):
             plt.text(yposf+dpix*0.5,xposf-dpix*2,namet[i], fontsize=25,color=colr[i],weight='bold')
         else:
             plt.text(yposf+dpix*0.5,xposf,namet[i], fontsize=25,color=colr[i],weight='bold')
+
+def plot_circle(ax,xpos,ypos,nx,ny,dpix,rad=2,color='black',name='1',dtex=0,dtey=0):
+    xposf=(xpos-nx/2.0+1)*dpix
+    yposf=(ypos-ny/2.0+1)*dpix
+    c = Circle((yposf, xposf), rad, edgecolor=color, facecolor='none',lw=5,zorder=3)
+    ax.add_patch(c)
+    if name == '1':
+        plt.text(yposf+dpix*0.5+dtey,xposf-dpix*2+dtex,name, fontsize=25,color=color,weight='bold')
+    else:
+        plt.text(yposf+dpix*0.5+dtey,xposf+dtex,name, fontsize=25,color=color,weight='bold')    
