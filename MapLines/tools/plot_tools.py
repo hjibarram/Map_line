@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle
 from astropy.coordinates import SkyCoord
@@ -9,6 +10,28 @@ from astropy import units as u
 from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
 import MapLines.tools.tools as tools
+
+def plot_single_map(file,valmax,valmin,name='',basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,tit='',lab='',facp=0.8,pix=0.2,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+    [data,hdr]=fits.getdata(path+file, hd, header=True)
+    try:
+        dx=np.sqrt((hdrt['CD1_1'])**2.0+(hdrt['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdrt['CD2_1'])**2.0+(hdrt['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdrt['CD1_1']*3600.0
+            dy=hdrt['CD2_2']*3600.0
+        except:
+            dx=hdrt['CDELT1']*3600.
+            dy=hdrt['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    map_val=data[indx,:,:]
+    plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
+    get_plot_map(plt,vel,valmax,valmin,pix=pix,tit=tit,lab=lab,cont=cont,orientation=orientation,location=location)
+    if savefig:
+        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
+        plt.tight_layout()
+    else:
+        plt.show()
 
 def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
