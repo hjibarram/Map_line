@@ -10,7 +10,7 @@ from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
 import MapLines.tools.tools as tools
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if cont:
         max_f=vmax-(vmax-vmin)*0.05
@@ -25,7 +25,7 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/
     ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
         plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],zorder=1)
-    cbar=plt.colorbar(ict)
+    cbar=plt.colorbar(ict,orientation=orientation,location=location)
     plt.xlim(-ny*pix/2,ny*pix/2)
     plt.ylim(-nx*pix/2,nx*pix/2)    
     cbar.set_label(r"$"+lab+"$",fontsize=18)      
