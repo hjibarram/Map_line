@@ -324,7 +324,7 @@ def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5
     nw=np.where((wave >= lA1) & (wave <= lA2))[0]
     wave_f=wave[nw]
     if wcs == None:
-        print('TEST')
+        #print('TEST')
         wcs = WCS(hdr)
         wcs=wcs.celestial
     slides=[]
