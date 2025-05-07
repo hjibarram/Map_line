@@ -12,7 +12,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 import MapLines.tools.tools as tools
 
-def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
@@ -25,7 +25,7 @@ def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,basefigname='
             dx=hdr['CDELT1']*3600.
             dy=hdr['CDELT2']*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
-    map_val=data[indx,:,:]
+    map_val=data[indx,:,:]*scalef
     if sb:
         map_val=map_val/pix**2
     if logs:
