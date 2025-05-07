@@ -26,7 +26,7 @@ def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,zerofil=False
             dy=hdr['CDELT2']*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
     map_val=data[indx,:,:]*scalef
-    if indx2 not None:
+    if not None in indx2:
         val2=data[indx,:,:]*scalef
         map_val=map_val/val2
     if zerofil:
