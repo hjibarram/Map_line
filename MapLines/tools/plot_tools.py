@@ -9,6 +9,7 @@ from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy import units as u
 from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
+from astropy.io import fits
 import MapLines.tools.tools as tools
 
 def plot_single_map(file,valmax,valmin,name='',basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
