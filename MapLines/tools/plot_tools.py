@@ -13,7 +13,7 @@ from astropy.io import fits
 import MapLines.tools.tools as tools
 
 def plot_single_map(file,valmax,valmin,name='',basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
-    [data,hdr]=fits.getdata(path+file, hd, header=True)
+    [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
         dx=np.sqrt((hdrt['CD1_1'])**2.0+(hdrt['CD1_2'])**2.0)*3600.0
         dy=np.sqrt((hdrt['CD2_1'])**2.0+(hdrt['CD2_2'])**2.0)*3600.0
