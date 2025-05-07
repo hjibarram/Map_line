@@ -19,7 +19,7 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/
         flux_range=(np.arange(0,n_b)/float(n_b-1))*(max_f-min_f)+min_f    
         lev=flux_range
     cm=plt.get_cmap('jet')
-    if orientation not 'horizontal':
+    if location not 'top':
         plt.title(r'$'+tit+'$',fontsize=18)
     plt.xlabel(r'$\Delta \alpha\ [arcsec]$',fontsize=18)
     plt.ylabel(r'$\Delta \delta\ [arcsec]$',fontsize=18)
@@ -29,7 +29,7 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/
     cbar=plt.colorbar(ict,orientation=orientation,location=location)
     plt.xlim(-ny*pix/2,ny*pix/2)
     plt.ylim(-nx*pix/2,nx*pix/2)  
-    if orientation == 'horizontal':
+    if location == 'top':
         cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=18)
     else:
         cbar.set_label(r"$"+lab+"$",fontsize=18)      
