@@ -28,7 +28,7 @@ def plot_single_map(file,valmax,valmin,name='',basefigname='Ha_vel_map_NAME',pat
     map_val=data[indx,:,:]
     plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
     get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,lab=lab,cont=cont,orientation=orientation,location=location)
-    if savefig:
+    if savef:
         plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
         plt.tight_layout()
     else:
