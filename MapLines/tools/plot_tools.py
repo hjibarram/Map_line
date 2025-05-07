@@ -27,7 +27,7 @@ def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,basefigname='
     pix=(np.abs(dx)+np.abs(dy))/2.0 
     map_val=data[indx,:,:]
     if sb:
-        map_val=map_val/dpix**2
+        map_val=map_val/pix**2
     if logs:
         map_val=np.log10(map_val)
     plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
