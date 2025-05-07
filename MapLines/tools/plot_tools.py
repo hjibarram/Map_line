@@ -19,7 +19,7 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/
         flux_range=(np.arange(0,n_b)/float(n_b-1))*(max_f-min_f)+min_f    
         lev=flux_range
     cm=plt.get_cmap('jet')
-    if location not 'top':
+    if location != 'top':
         plt.title(r'$'+tit+'$',fontsize=18)
     plt.xlabel(r'$\Delta \alpha\ [arcsec]$',fontsize=18)
     plt.ylabel(r'$\Delta \delta\ [arcsec]$',fontsize=18)
