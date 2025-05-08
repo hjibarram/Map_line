@@ -65,9 +65,13 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
         scale=2
         xlab=r'\alpha\ '
         ylab=r'\delta\ '
+        dx=0
+        dy=0
     else:
         xlab=r'\Delta \alpha\ '
         ylab=r'\Delta \delta\ '
+        dx=ny*pix/2.0
+        dy=nx*pix/2.0
     if scale == 0:
         fac=1
         labs='[arcsec]'
@@ -83,6 +87,8 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
     else:
         fac=1
         labs='[arcsec]'
+    dx=dx/fac
+    dy=dy/fac
     nx,ny=flux.shape
     if cont:
         max_f=vmax-(vmax-vmin)*0.05
@@ -95,12 +101,12 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
         plt.title(r'$'+tit+'$',fontsize=18)
     plt.xlabel(r'$'+xlab+labs+'$',fontsize=18)
     plt.ylabel(r'$'+ylab+labs+'$',fontsize=18)
-    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2./fac,ny*pix/2./fac,-nx*pix/2./fac,nx*pix/2./fac],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
+    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
-        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac,ny*pix/2./fac,-nx*pix/2./fac,nx*pix/2./fac],zorder=1)
+        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],zorder=1)
     cbar=plt.colorbar(ict,orientation=orientation,location=location)
-    plt.xlim(-ny*pix/2/fac,ny*pix/2/fac)
-    plt.ylim(-nx*pix/2/fac,nx*pix/2/fac)  
+    plt.xlim(-ny*pix/2/fac+dx,ny*pix/2/fac+dx)
+    plt.ylim(-nx*pix/2/fac+dy,nx*pix/2/fac+dy)  
     if location == 'top':
         cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=18)
     else:
