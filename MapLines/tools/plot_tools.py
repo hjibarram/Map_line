@@ -43,7 +43,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     
     plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
     if fwcs:
-        wcs = WCS(hdr)
+        wcs = WCS(hdr).celestial
         plt.subplot(projection=wcs)
     get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
     if savef:
