@@ -45,7 +45,13 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     if fwcs:
         wcs = WCS(hdr).celestial
         plt.subplot(projection=wcs)
-    get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
+        try:
+            objsys=hdr['OBJSYS']
+        else:
+            objsys='J2000'
+    else:
+        objsys='J2000'
+    get_plot_map(plt,map_val,valmax,valmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
@@ -54,7 +60,14 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+    if fwcs:
+        scale=2
+        xlab=r'\alpha\ '
+        ylab=r'\delta\ '
+    else:
+        xlab=r'\Delta \alpha\ '
+        ylab=r'\Delta \delta\ '
     if scale == 0:
         fac=1
         labs='[arcsec]'
@@ -63,7 +76,10 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,tit='flux',lab='[10^{-16}erg
         labs='[arcmin]'
     elif scale == 2:
         fac=3600
-        labs='[arcdeg]'
+        if fwcs:
+            labs='['+objsys+']'
+        else:
+            labs='[arcdeg]'
     else:
         fac=1
         labs='[arcsec]'
