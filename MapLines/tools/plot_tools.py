@@ -12,7 +12,11 @@ from astropy.wcs import WCS
 from astropy.io import fits
 import MapLines.tools.tools as tools
 
+<<<<<<< Updated upstream
 def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,logs=False,zerofil=False,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+=======
+def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+>>>>>>> Stashed changes
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
@@ -30,7 +34,10 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,logs=False,zerof
         val2=data[indx2,:,:]*scalef
         map_val=map_val/val2
     if zerofil:
-        map_val[np.where(map_val == 0)]=np.nan
+        if valz == None:
+            map_val[np.where(map_val == 0)]=np.nan
+        else:
+            map_val[np.where(map_val <= valz)]=np.nan
     if sb:
         map_val=map_val/pix**2
     if logs:
