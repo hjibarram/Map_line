@@ -24,8 +24,12 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
             dx=hdr['CD1_1']*3600.0
             dy=hdr['CD2_2']*3600.0
         except:
-            dx=hdr['CDELT1']*3600.
-            dy=hdr['CDELT2']*3600.
+            try:
+                dx=hdr['PC1_1']*3600.
+                dy=hdr['PC2_2']*3600.
+            except:
+                dx=hdr['CDELT1']*3600.
+                dy=hdr['CDELT2']*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
     map_val=data[indx,:,:]*scalef
     if indx2 != None:
@@ -63,6 +67,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
 def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if fwcs:
+        pix=3600.
         scale=2
         xlab=r'\alpha\ '
         ylab=r'\delta\ '
