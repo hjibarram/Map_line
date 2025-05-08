@@ -47,7 +47,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
         plt.subplot(projection=wcs)
     get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
     if fwcs:
-        plt.grid(color='white', ls='solid')
+        plt.grid(color='black', ls='solid')
     if savef:
         plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
         plt.tight_layout()
