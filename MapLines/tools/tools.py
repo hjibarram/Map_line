@@ -4,6 +4,7 @@ from scipy.ndimage import gaussian_filter1d as filt1d
 import os
 import os.path as ptt
 from scipy.special import erf as errf
+from scipy.special import voigt_profile as vprf
 import yaml
 import sys
 from astropy.io import fits
@@ -32,6 +33,17 @@ def conv(xt,ke=2.5):
     krn=ke
     xf=filt1d(xt,ke)
     return xf
+
+def voigt(x,sigma=1.0,xo=0.0,A1=1.0,gam1=0.0):
+    At=A1/vprf(0, sigma, gam1)
+    #sigma=sigma/2.0
+    #gam=gam/2.0
+    x1=x-xo
+    #A1=A1/(np.sqrt(2.0*np.pi)*sigma)
+    #y=A1*vprf(x,sigma,gam)
+    y=At*vprf(x1,sigma,gam1)
+    return y
+
 
 def lorentz(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*(0.5*sigma)**2.0/((x-xo)**2.0+(0.5*sigma)**2.0) 
@@ -245,6 +257,166 @@ def get_apertures(file):
     th=np.array(th)
     return ra,dec,rad,l1,l2,th,colr,namet,typ
 
+
+def get_segment(reg_dir='./',reg_name='test.reg'):
+    raL=[]
+    decL=[]
+    colr=[]
+    namet=[]
+    f=open(reg_dir+reg_name,'r')
+    ct=1
+    for line in f:
+        if not 'Region' in line and not 'fk5' in line and not 'global' in line:
+            if 'segment' in line:
+                data=line.replace('\n','').replace('# segment(',')').split(')')
+                data=list(filter(None,data))
+                data1=data[0].split(',')
+                data1=list(filter(None,data1))
+                rat=[]
+                dect=[]
+                for k in range(0, len(data1),2):
+                    rat.extend([data1[k]])
+                    dect.extend([data1[k+1]])
+                rat=np.array(rat)
+                dect=np.array(dect)
+                raL.extend([rat])
+                decL.extend([dect])
+                data2=data[1].replace('color=','').replace(' width=',' , ').replace(' text={',' , ').replace('}',' ')
+                data2=data2.split(',')
+                data2=list(filter(None,data2))
+                colr.extend([data2[0].replace(' ','')])
+                try:
+                    namet.extend([data2[2].replace(' ','')])
+                except:
+                    namet.extend([str(int(ct))])
+            ct=ct+1
+    colr=np.array(colr)
+    namet=np.array(namet)
+    return raL,decL,colr,namet    
+
+def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
+    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
+    nz,nx,ny=pdl_cube.shape
+    crpix=hdr["CRPIX3"]
+    try:
+        cdelt=hdr["CD3_3"]
+    except:
+        cdelt=hdr["CDELT3"]
+    crval=hdr["CRVAL3"]
+    
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            dx=hdr['CDELT1']*3600.
+            dy=hdr['CDELT2']*3600.
+    dpix=(np.abs(dx)+np.abs(dy))/2.0  
+    
+    wave=(crval+cdelt*(np.arange(nz)+1-crpix))#*1e4 
+    
+    spl=299792458.0
+    wave=wave/(1+z)
+    nw=np.where((wave >= lA1) & (wave <= lA2))[0]
+    wave_f=wave[nw]
+    if wcs == None:
+        #print('TEST')
+        wcs = WCS(hdr)
+        wcs=wcs.celestial
+    slides=[]
+    vals=[]
+    namesS=[]
+    for i in range(0, len(ra)):
+        raT=ra[i]
+        decT=dec[i]
+        cosT=np.zeros([len(raT)-1])
+        sinT=np.zeros([len(raT)-1])
+        rtf=np.zeros([len(raT)-1])
+        xposT=np.zeros([len(raT)-1])
+        yposT=np.zeros([len(raT)-1])
+        lT=np.zeros([len(raT)-1],dtype=int)
+        slidesT=[]
+        ltf=0
+        flux1t=pdl_cube[nw,:,:]
+        namesST=[]
+        for j in range(0, len(raT)-1):
+            sky1=SkyCoord(raT[j]+' '+decT[j],frame=FK5, unit=(u.hourangle,u.deg))
+            sky2=SkyCoord(raT[j+1]+' '+decT[j+1],frame=FK5, unit=(u.hourangle,u.deg))
+            ypos1,xpos1=skycoord_to_pixel(sky1,wcs)
+            ypos2,xpos2=skycoord_to_pixel(sky2,wcs)
+            rt=np.sqrt((xpos2-xpos1)**2.0+(ypos2-ypos1)**2.0)
+            cosT[j]=(ypos2-ypos1)/rt
+            sinT[j]=(xpos2-xpos1)/rt
+            xposT[j]=xpos1
+            yposT[j]=ypos1
+            rtf[j]=rt*dpix
+            lt=int(np.round(rt))+1
+            lT[j]=lt
+            
+            slideT=np.zeros(len(nw))
+            radis=np.zeros([nx,ny])
+            for ii in range(0, nx):
+                for jj in range(0, ny):
+                    x_n=ii-xpos1
+                    y_n=jj-ypos1
+                    r_n=np.sqrt((y_n)**2.0+(x_n)**2.0)*dpix
+                    radis[ii,jj]=r_n
+            ntp=np.where(radis <= rad)
+            for ii in range(0, len(nw)):
+                slideT[ii]=np.nansum(flux1t[ii,ntp])
+            namesST.extend([str(int(j))])
+            #for k in range(0, lt):
+            #    yt=int(np.round(ypos1+k*cosT[j]))
+            #    xt=int(np.round(xpos1+k*sinT[j]))
+                
+                
+                #flux1t=flux1t*spl/(wave[nw]*(1+z)*1e-10)**2.*1e-10*1e-23*2.35040007004737e-13/1e-16/1e3
+            if cosmetic:
+                slideT=conv(slideT,ke=sigT)
+                #slideT[k,:]=flux1t
+            slidesT.extend([slideT])
+            ltf=1+ltf 
+            
+            if j == len(raT)-2:
+                slideT=np.zeros(len(nw))
+                radis=np.zeros([nx,ny])
+                for ii in range(0, nx):
+                    for jj in range(0, ny):
+                        x_n=ii-xpos2
+                        y_n=jj-ypos2
+                        r_n=np.sqrt((y_n)**2.0+(x_n)**2.0)*dpix
+                        radis[ii,jj]=r_n
+                ntp=np.where(radis <= rad)
+                for ii in range(0, len(nw)):
+                    slideT[ii]=np.nansum(flux1t[ii,ntp])
+                slidesT.extend([slideT])
+                ltf=1+ltf 
+                namesST.extend([str(int(j+1))])
+        namesS.extend([namesST])
+        slide=np.zeros([ltf,len(nw)])
+        #ct=0
+        for j in range(0, len(raT)):
+            sldT=slidesT[j]
+            #for k in range(0, lT[j]):
+            slide[j,:]=sldT#[k,:]     
+               # ct=ct+1
+        #out={'Slide':slide,'Lt':lt}
+        slides.extend([slide])
+        vals.extend([[cosT,sinT,rtf,yposT,xposT]])
+        if plot_t:
+            cm=plt.cm.get_cmap('jet')    
+            fig, ax = plt.subplots(figsize=(6.8*1.1,5.5*1.2))
+            ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wave_f[0],wave_f[len(nw)-1],0,ltf*dpix],aspect='auto')
+            plt.xlim(wave_f[0],wave_f[len(nw)-1])
+            plt.ylim(0,ltf*dpix) 
+            plt.show()
+    return slides,wave_f,dpix,vals,hdr,colr,namet,namesS
+
+
 def extract_regs(map,hdr,reg_file='file.reg',avgra=False):
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
@@ -325,97 +497,61 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     return image    
 
 
-def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=None,cbtr=True,bpte=False,maxmin=[],ewp=False):
-    nx,ny=flux.shape
-    if len(outs) > 0:
-        aptr=True
-        ypos0=(outs[0]-nx/2.0)*pix
-        ypos1=(outs[1]-nx/2.0)*pix
-        xpos0=(outs[2]-ny/2.0)*pix
-        xpos1=(outs[3]-ny/2.0)*pix
-        cpos='red'#outs[4]
-        lpos=outs[5]
-    else:
-        aptr=False
-    if not bpte:
-        flux=flux/pix**2.0
-    At=np.nanmax(flux)#flux[x_m,y_m]
-    max_f=At
-    min_f=At*0.005#6.5#3.8#1.5#3#*0.01#6.5#At*0.05#6.5#At*0.1#6.5
-    n_b=15#25#15
-    flux_range=10**((np.arange(0,n_b)/np.float(n_b)+0.02)*(np.log10(max_f)-np.log10(min_f))+np.log10(min_f))    
-    import matplotlib.pyplot as plt
-    from matplotlib.colors import LogNorm
-    lev=flux_range
-    cm=plt.cm.get_cmap('jet')
-    if savef:
-        fig, ax = plt.subplots(figsize=(6.8*1.2,5.5*1.2))
-    else:
-        fig, ax = plt.subplots(figsize=(6.8*1.1,5.5*1.2))
-    plt.title(title,fontsize=18)
-    plt.xlabel(r'$\Delta \alpha\ [arcsec]$',fontsize=18)
-    plt.ylabel(r'$\Delta \delta\ [arcsec]$',fontsize=18)
-    if not bpte:
-        if len(maxmin) > 0:
-            mav=maxmin[1]
-            miv=maxmin[0]
-        else:
-            mav=100
-            miv=1
-        ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],norm=LogNorm(miv,mav))#0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
-    else:
-        if len(maxmin) > 0:
-            mav=maxmin[1]
-            miv=maxmin[0]
-        else:
-            mav=4
-            miv=1
-        ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],vmax=mav,vmin=miv)#0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
-    if cbtr:
-        cbar=plt.colorbar(ict)
-    if aptr:
-        for kk in range(0, len(xpos0)):
-            if not 'T' in lpos[kk]:# and not 'K' in lpos[kk]:
-                plt.plot([xpos0[kk],xpos1[kk]],[ypos0[kk],ypos0[kk]],lw=2,color=cpos)
-                plt.plot([xpos0[kk],xpos1[kk]],[ypos1[kk],ypos1[kk]],lw=2,color=cpos)
-                plt.plot([xpos0[kk],xpos0[kk]],[ypos0[kk],ypos1[kk]],lw=2,color=cpos)
-                plt.plot([xpos1[kk],xpos1[kk]],[ypos0[kk],ypos1[kk]],lw=2,color=cpos)
-                if not 'E' in lpos[kk] and not 'M' in lpos[kk] and not 'G' in lpos[kk] and not 'K' in lpos[kk] and not 'F' in lpos[kk]: 
-                    plt.text((xpos0[kk]+xpos1[kk])/2.0-2,ypos1[kk]+(ypos1[0]-ypos0[0])*0.09,lpos[kk], fontsize=18,color=cpos)
-                else:
-                    if 'E' in lpos[kk] or 'F' in lpos[kk]:
-                        dxt=+1
-                    else:
-                        dxt=-(xpos0[kk]-xpos1[kk])-5
-                    plt.text(xpos1[kk]+(xpos0[kk]-xpos1[kk])+dxt,(ypos1[kk]+ypos0[kk])/2.0-1,lpos[kk], fontsize=18,color=cpos)    
-    
-    plt.xlim(-ny*pix/2,ny*pix/2)
-    plt.ylim(-nx*pix/2,nx*pix/2)
-    if cbtr:    
-        if not ewp:
-            cbar.set_label(r"$"+tit+"\ [10^{-16}erg/s/cm^2/arcsec^2]$",fontsize=18)
-        else:
-            cbar.set_label(r"$"+tit+"$",fontsize=18)
-    fig.tight_layout()
-    if savef:
-        plt.savefig(name+'_map.pdf')
-    else:
-        plt.show()
+def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1):
+    nt1=np.where((logew>=np.log10(10)) & (logsig>=np.log10(57))) #AGN
+    nt2=np.where((logew>=np.log10(6)) & (logsig<np.log10(57))) #SF
+    nt3=np.where((logew>=np.log10(3)) & (logew<np.log10(10)) & (logsig>=np.log10(57))) #WAGN
+    nt4=np.where((logew<np.log10(3))) #Ret
+    nt5=np.where((logew>=np.log10(3)) & (logew<np.log10(6)) & (logsig<np.log10(57))) #Unk
+    image=np.copy(logew)
+    image[:,:]=np.nan
+    image[nt1]=agn
+    image[nt2]=sf
+    image[nt3]=wagn
+    image[nt4]=ret
+    image[nt5]=unk
+    return image
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]'):
-    nx,ny=flux.shape
-    #max_f=vmax-(vmax-vmin)*0.05
-    #min_f=vmin+(vmax-vmin)*0.05
-    #n_b=15
-    #flux_range=(np.arange(0,n_b)/np.float(n_b-1))*(max_f-min_f)+min_f    
-    #lev=flux_range
-    cm=plt.cm.get_cmap('jet')
-    plt.title(r'$'+tit+'$',fontsize=18)
-    plt.xlabel(r'$\Delta \alpha\ [arcsec]$',fontsize=18)
-    plt.ylabel(r'$\Delta \delta\ [arcsec]$',fontsize=18)
-    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],vmax=vmax,vmin=vmin)#,alpha=0.5)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
-    #plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],zorder=1)
-    cbar=plt.colorbar(ict)
-    plt.xlim(-ny*pix/2,ny*pix/2)
-    plt.ylim(-nx*pix/2,nx*pix/2)    
-    cbar.set_label(r"$"+lab+"$",fontsize=18)         
+
+def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
+    erg2jy=1.0e-23
+    vel_light=299792458.0
+    ang=1e-10
+    filename=path+file
+    filename_out=path_out+file_out
+    #[cube0, hdr0]=fits.getdata(filename, 0, header=True)
+    [cube1, hdr1]=fits.getdata(filename, 1, header=True)
+    [cube2, hdr2]=fits.getdata(filename, 2, header=True)
+
+    crpix=hdr1["CRPIX3"]
+    cdelt=hdr1["CDELT3"]
+    crval=hdr1["CRVAL3"]
+    dx=hdr1['CDELT1']
+    dy=hdr1['CDELT2']
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    pixS=(pix*np.pi/180.0)
+    nz,nx,ny=cube1.shape
+    wave=(crval+cdelt*(np.arange(nz)+1-crpix))*1e4
+    for i in range(0,nx):
+        for j in range(0,ny):
+            cube1[:,i,j]=cube1[:,i,j]*erg2jy*vel_light/wave**2.0/ang/1e-17*pixS**2*1e6
+            cube2[:,i,j]=cube2[:,i,j]*erg2jy*vel_light/wave**2.0/ang/1e-17*pixS**2*1e6
+
+    h1=fits.PrimaryHDU()
+    h2=fits.ImageHDU(cube1,header=hdr1)
+    h=h2.header
+    h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
+    h['CDELT3']=h['CDELT3']*1e4/(1+zt)
+    h['CUNIT3']='Angstrom'
+    h['BUNIT']='erg/s/cm^2/Angstrom'
+    h.update()  
+    h3=fits.ImageHDU(cube2,header=hdr2)
+    #h=h3.header
+    #h['CRVAL3']=h['CRVAL3']*1e4/(1+zt)
+    #h['CDELT3']=h['CDELT3']*1e4/(1+zt)
+    #h['CUNIT3']='Angstrom'
+    #h.update()  
+    hlist=fits.HDUList([h1,h2,h3])
+    hlist.update_extend()
+    hlist.writeto(filename_out, overwrite=True)
+    sycall('gzip -f '+filename_out)
