@@ -95,7 +95,6 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
         labs='[arcsec]'
     dx=dx/fac
     dy=dy/fac
-    print(pix)
     if cont:
         max_f=vmax-(vmax-vmin)*0.05
         min_f=vmin+(vmax-vmin)*0.05
