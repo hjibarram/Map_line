@@ -65,13 +65,13 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
         scale=2
         xlab=r'\alpha\ '
         ylab=r'\delta\ '
-        dx=0
-        dy=0
+        dx=ny*pix/2.0
+        dy=nx*pix/2.0
     else:
         xlab=r'\Delta \alpha\ '
         ylab=r'\Delta \delta\ '
-        dx=ny*pix/2.0
-        dy=nx*pix/2.0
+        dx=0.0
+        dy=0.0
     if scale == 0:
         fac=1
         labs='[arcsec]'
