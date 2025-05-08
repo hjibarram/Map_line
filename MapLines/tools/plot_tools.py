@@ -12,7 +12,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 import MapLines.tools.tools as tools
 
-def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,zerofil=False,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,logs=False,zerofil=False,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
@@ -36,14 +36,26 @@ def plot_single_map(file,valmax,valmin,name='',sb=False,logs=False,zerofil=False
     if logs:
         map_val=np.log10(map_val)
     plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
-    get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,lab=lab,cont=cont,orientation=orientation,location=location)
+    get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
     if savef:
         plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
         plt.tight_layout()
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+    if scale == 0:
+        fac=1
+        labs='[arcsec]'
+    elif scale == 1:
+        fac=60
+        labs='[arcmin]'
+    elif scale == 2:
+        fac=3600
+        labs='[arcdeg]'
+    else:
+        fac=1
+        labs='[arcsec]'
     nx,ny=flux.shape
     if cont:
         max_f=vmax-(vmax-vmin)*0.05
@@ -54,14 +66,14 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,tit='flux',lab='[10^{-16}erg/s/cm^2/
     cm=plt.get_cmap('jet')
     if location != 'top':
         plt.title(r'$'+tit+'$',fontsize=18)
-    plt.xlabel(r'$\Delta \alpha\ [arcsec]$',fontsize=18)
-    plt.ylabel(r'$\Delta \delta\ [arcsec]$',fontsize=18)
-    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
+    plt.xlabel(r'$\Delta \alpha\ '+labs+'$',fontsize=18)
+    plt.ylabel(r'$\Delta \delta\ '+labs+'$',fontsize=18)
+    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2./fac,ny*pix/2./fac,-nx*pix/2./fac,nx*pix/2./fac],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
-        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2.,ny*pix/2.,-nx*pix/2.,nx*pix/2.],zorder=1)
+        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac,ny*pix/2./fac,-nx*pix/2./fac,nx*pix/2./fac],zorder=1)
     cbar=plt.colorbar(ict,orientation=orientation,location=location)
-    plt.xlim(-ny*pix/2,ny*pix/2)
-    plt.ylim(-nx*pix/2,nx*pix/2)  
+    plt.xlim(-ny*pix/2/fac,ny*pix/2/fac)
+    plt.ylim(-nx*pix/2/fac,nx*pix/2/fac)  
     if location == 'top':
         cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=18)
     else:
