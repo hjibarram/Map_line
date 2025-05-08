@@ -93,8 +93,8 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
     cm=plt.get_cmap('jet')
     if location != 'top':
         plt.title(r'$'+tit+'$',fontsize=18)
-    plt.xlabel(r'$\Delta \alpha\ '+labs+'$',fontsize=18)
-    plt.ylabel(r'$\Delta \delta\ '+labs+'$',fontsize=18)
+    plt.xlabel(r'$'+xlab+labs+'$',fontsize=18)
+    plt.ylabel(r'$'+ylab+labs+'$',fontsize=18)
     ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2./fac,ny*pix/2./fac,-nx*pix/2./fac,nx*pix/2./fac],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
         plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac,ny*pix/2./fac,-nx*pix/2./fac,nx*pix/2./fac],zorder=1)
