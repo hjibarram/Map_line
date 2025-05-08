@@ -47,7 +47,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
         plt.subplot(projection=wcs)
         try:
             objsys=hdr['OBJSYS']
-        else:
+        except:
             objsys='J2000'
     else:
         objsys='J2000'
