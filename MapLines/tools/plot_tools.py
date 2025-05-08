@@ -13,7 +13,7 @@ from astropy.io import fits
 import MapLines.tools.tools as tools
 
 
-def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
 
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
@@ -40,7 +40,11 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,logs=False,zerof
         map_val=map_val/pix**2
     if logs:
         map_val=np.log10(map_val)
+    
     plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
+    if fwcs:
+        wcs = WCS(hdu.header)
+        plt.subplot(projection=wcs)
     get_plot_map(plt,map_val,valmax,valmin,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
     if savef:
         plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
