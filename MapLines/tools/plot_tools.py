@@ -61,6 +61,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
         plt.show()
 
 def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+    nx,ny=flux.shape
     if fwcs:
         scale=2
         xlab=r'\alpha\ '
@@ -89,7 +90,6 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
         labs='[arcsec]'
     dx=dx/fac
     dy=dy/fac
-    nx,ny=flux.shape
     if cont:
         max_f=vmax-(vmax-vmin)*0.05
         min_f=vmin+(vmax-vmin)*0.05
