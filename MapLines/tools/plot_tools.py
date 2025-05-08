@@ -46,7 +46,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
         wcs = WCS(hdr).celestial
         plt.subplot(projection=wcs)
         try:
-            objsys=hdr['OBJSYS']
+            objsys=hdr['RADESYS']
         except:
             objsys='J2000'
     else:
