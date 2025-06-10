@@ -63,7 +63,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
 
     cm = ListedColormap(colores)
     norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
-    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,ticks=ticks,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
@@ -124,7 +124,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,labels=None,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,labels=None,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if fwcs:
         pix=3600.
@@ -172,7 +172,10 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,labels=None,cmt=None,norm=No
     ict=plt.imshow(flux,cmap=cm,norm=norm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
         plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],zorder=1)
-    cbar=plt.colorbar(ict,orientation=orientation,location=location)
+    if ticks is not None:
+        cbar=plt.colorbar(ict,orientation=orientation,location=location,ticks = ticks,pad=0.01)
+    else:
+        cbar=plt.colorbar(ict,orientation=orientation,location=location)
     plt.xlim(-ny*pix/2/fac+dx,ny*pix/2/fac+dx)
     plt.ylim(-nx*pix/2/fac+dy,nx*pix/2/fac+dy)  
     if location == 'top':
