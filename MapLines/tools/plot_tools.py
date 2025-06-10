@@ -63,7 +63,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
 
     cm = ListedColormap(colores)
     norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
-    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
@@ -124,7 +124,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,labels=None,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if fwcs:
         pix=3600.
@@ -178,7 +178,9 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,cmt=None,norm=None,fwcs=Fals
     if location == 'top':
         cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=18)
     else:
-        cbar.set_label(r"$"+lab+"$",fontsize=18)      
+        cbar.set_label(r"$"+lab+"$",fontsize=18)  
+    if labels is not None:
+        cbar.set_ticklabels(labels)       
 
 def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=None,cbtr=True,bpte=False,maxmin=[],ewp=False):
     nx,ny=flux.shape
