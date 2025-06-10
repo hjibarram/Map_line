@@ -39,8 +39,9 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,max_typ=5,location=N
 
     ratio1=np.log10(fluxOIII/fluxHb)
     ratio2=np.log10(fluxNII/fluxHa)
+    print(ratio2)
     bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
-    map_bpt=tools.bpt(ewHa,ratio2,ratio1,ret=1,agn=5,sf=3,inte=2,comp=4)
+    map_bpt=tools.bpt(ewHa,ratio2,ratio1,ret=ret,agn=agn,sf=sf,inte=inte,comp=comp)
 
     type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
     type_n=r'log($[OIII]/H\beta$) vs log($[NII]/H\alpha$)'
