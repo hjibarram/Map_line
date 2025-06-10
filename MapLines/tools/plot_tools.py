@@ -13,7 +13,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 import MapLines.tools.tools as tools
 
-def plot_bpt_map(file,valmax,valmin,name='',alpha=1,orientation=None,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=76,ret=1,agn=5,sf=3,inte=2,comp=4):
+def plot_bpt_map(file,name='',alpha=1,orientation=None,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=76,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME',
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
