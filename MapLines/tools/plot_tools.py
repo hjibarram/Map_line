@@ -19,21 +19,17 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
         dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
-        print('A')
     except:
         try:
             dx=hdr['CD1_1']*3600.0
             dy=hdr['CD2_2']*3600.0
-            print('B')
         except:
             try:
                 dx=hdr['PC1_1']*3600.
                 dy=hdr['PC2_2']*3600.
-                print('C')
             except:
                 dx=hdr['CDELT1']*3600.
                 dy=hdr['CDELT2']*3600.
-                print('D')
     pix=(np.abs(dx)+np.abs(dy))/2.0 
     map_val=data[indx,:,:]*scalef
     if indx2 != None:
