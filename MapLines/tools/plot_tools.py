@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle
+from matplotlib.colors import ListedColormap
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy import units as u
@@ -11,6 +12,65 @@ from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
 from astropy.io import fits
 import MapLines.tools.tools as tools
+
+def plot_bpt_map(file,valmax,valmin,name='',alpha=1,orientation=None,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=76,ret=1,agn=5,sf=3,inte=2,comp=4):
+    basefigname='BPT_map_NAME',
+    [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            try:
+                dx=hdr['PC1_1']*3600.
+                dy=hdr['PC2_2']*3600.
+            except:
+                dx=hdr['CDELT1']*3600.
+                dy=hdr['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    fluxOIII=data[indOIII,:,:]
+    fluxNII=data[indNII,:,:]
+    fluxHa=data[indHa,:,:]
+    fluxHb=data[indHb,:,:]
+    ewHa=data[indEwHa,:,:]
+
+    ratio1=np.log10(fluxOIII/fluxHb)
+    ratio2=np.log10(fluxNII/fluxHa)
+    bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
+    map_bpt=tools.bpt(ewHa,ratio2,ratio1,ret=1,agn=5,sf=3,inte=2,comp=4)
+
+    type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
+    type_n=r'log($[OIII]/H\beta$) vs log($[NII]/H\alpha$)'
+    vmax=None
+    vmin=None
+    ticks = [1,2,3,4,5]
+    labels = ['Ret','Int','SF','Comp','sAGN']
+    colores = ['orange','dodgerblue','mediumspringgreen','#A788CF','darkslateblue']
+
+    plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
+    if fwcs:
+        wcs = WCS(hdr).celestial
+        plt.subplot(projection=wcs)
+        try:
+            objsys=hdr['RADESYS']
+        except:
+            objsys='J2000'
+    else:
+        objsys='J2000'
+
+    cm = ListedColormap(colores)
+    norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
+    get_plot_map(plt,map_bpt,valmax,valmin,cmt=cm,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    if fwcs:
+        plt.grid(color='black', ls='solid')
+    if savef:
+        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
+        plt.tight_layout()
+    else:
+        plt.show()
 
 
 def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
@@ -64,7 +124,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if fwcs:
         pix=3600.
@@ -101,12 +161,15 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,fwcs=False,objsys='J2000',ti
         n_b=15
         flux_range=(np.arange(0,n_b)/float(n_b-1))*(max_f-min_f)+min_f    
         lev=flux_range
-    cm=plt.get_cmap('jet')
+    if cmt is not None:
+        cm=cmt
+    else: 
+        cm=plt.get_cmap('jet')
     if location != 'top':
         plt.title(r'$'+tit+'$',fontsize=18)
     plt.xlabel(r'$'+xlab+labs+'$',fontsize=18)
     plt.ylabel(r'$'+ylab+labs+'$',fontsize=18)
-    ict=plt.imshow(flux,cmap=cm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
+    ict=plt.imshow(flux,cmap=cm,norm=norm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
         plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],zorder=1)
     cbar=plt.colorbar(ict,orientation=orientation,location=location)
