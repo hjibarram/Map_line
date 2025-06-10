@@ -63,7 +63,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,max_typ=5,location=N
 
     cm = ListedColormap(colores)
     norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
-    get_plot_map(plt,map_bpt,valmax,valmin,cmt=cm,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
