@@ -13,7 +13,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 import MapLines.tools.tools as tools
 
-def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=76,ret=1,agn=5,sf=3,inte=2,comp=4):
+def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=76,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
@@ -35,15 +35,13 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,max_typ=5,location=N
     fluxNII=data[indNII,:,:]
     fluxHa=data[indHa,:,:]
     fluxHb=data[indHb,:,:]
-    ewHa=data[indEwHa,:,:]
+    ewHa=ewsing*data[indEwHa,:,:]
 
     ratio1=np.log10(fluxOIII/fluxHb)
     ratio2=np.log10(fluxNII/fluxHa)
-    print(ewHa)
     bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
     map_bpt=tools.bpt(ewHa,ratio2,ratio1,ret=ret,agn=agn,sf=sf,inte=inte,comp=comp)
-    print(map_bpt)
-
+    
     type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
     type_n=r'log($[OIII]/H\beta$) vs log($[NII]/H\alpha$)'
     vmax=None
