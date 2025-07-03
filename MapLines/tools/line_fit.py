@@ -13,7 +13,7 @@ from tqdm import tqdm
 import corner 
 import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
         try:
@@ -124,7 +124,8 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',config_lines='
         print('Options are: TableFits, IrafFits, CSV, ASCII')
         return
  
-    
+    if smoth:
+        pdl_data=conv(pdl_data,ke=ker)
     nz=len(pdl_data)
     pdl_data=pdl_data*flux_f     
     wave_f=wave/(1+z)
