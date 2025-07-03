@@ -226,7 +226,7 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
     name_out2=name_out+waveR+skl+soutf
     config_lines=line_config_path+line_config
     line_fit_single(file1,file_out,file_out2,name_out2,input_format=input_format,z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,
-         lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf)
+         lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf,dir_out=dir_out)
 
 
 

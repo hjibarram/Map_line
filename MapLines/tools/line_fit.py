@@ -13,7 +13,7 @@ from tqdm import tqdm
 import corner 
 import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
         try:
@@ -394,7 +394,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
             ax1.legend(fontsize=fontsize)
             plt.tight_layout()
-            fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
+            fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
             plt.show()
 
             if skew:
@@ -406,7 +406,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                     labels2 = valsL
             fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
             fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-            fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
+            fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
                                    
             med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
                        
@@ -421,7 +421,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
             ax1.legend(fontsize=14)
             plt.tight_layout()
-            plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
+            plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
                 
             if verbose:    
                 #print Best fit parameters
@@ -495,7 +495,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -809,7 +809,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,colors=['blue','red'
                     if labplot:
                         ax1.legend(fontsize=fontsize)
                     plt.tight_layout()
-                    fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
+                    fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
 
 
@@ -823,7 +823,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,colors=['blue','red'
                                
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-                    fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
+                    fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
                     med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
@@ -838,7 +838,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,colors=['blue','red'
                     ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
                     ax1.legend(fontsize=14)
                     plt.tight_layout()
-                    plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
+                    plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
                 
                 if pgr_bar == False:  
                     linet=''
