@@ -16,7 +16,10 @@ import matplotlib.pyplot as plt
 def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
-        hdu_list = fits.open(file1)
+        try:
+            hdu_list = fits.open(file1)
+        except:
+            hdu_list = fits.open(file1+'.gz')
         table_hdu = hdu_list[1]
         table_data = table_hdu.data
         try:
