@@ -125,7 +125,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
         return
  
     if smoth:
-        pdl_data=conv(pdl_data,ke=ker)
+        pdl_data=tol.conv(pdl_data,ke=ker)
     nz=len(pdl_data)
     pdl_data=pdl_data*flux_f     
     wave_f=wave/(1+z)
