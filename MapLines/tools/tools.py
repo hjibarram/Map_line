@@ -111,7 +111,6 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val
     vel=pdl_cube0[ind3,:,:]
     nt=np.where(np.round(vel,decimals=3) == val0)
     vel=vel+zt*ct
-    
     try:
         cont=pdl_cube0[ind4,:,:]
         conti=True

@@ -111,9 +111,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
  
     
     nz=len(pdl_data)
-    pdl_data=pdl_data*flux_f
-    
-    
+    pdl_data=pdl_data*flux_f     
     wave_f=wave/(1+z)
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
     wave_i=wave_f[nw]
@@ -122,8 +120,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     model_InpE=np.zeros(len(nw))
     if outflow:
         model_Outflow=np.zeros(len(nw))
-    
-    
+       
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
         n_lines=len(data_lines['lines'])
