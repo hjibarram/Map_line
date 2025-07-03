@@ -19,10 +19,22 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
         table_data = table_hdu.data
-        pdl_data=table_data.field('FLUX')
-        wave=table_data.field('LAMBDA')
+        try:
+            pdl_data=table_data.field('FLUX')
+        except:
+            pdl_data=table_data.field('flux')
+        try:
+            wave=table_data.field('LAMBDA')
+        except:
+            try:
+                wave=table_data.field('lambda')
+            except:
+                wave=table_data.field('wave')
         if error_c:
-            pdl_dataE=table_data.field('ERROR')
+            try:
+                pdl_dataE=table_data.field('ERROR')
+            except:
+                pdl_dataE=table_data.field('fluxE')
             if erft != 0:
                 pdl_dataE=pdl_dataE*flux_f*erft
             else:
