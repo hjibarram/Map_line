@@ -486,7 +486,6 @@ def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5,save=False,path='',nam
             h1=fits.PrimaryHDU(image,header=hdr)
         else:
             h1=fits.PrimaryHDU(image)
-        h1=fits.PrimaryHDU(image)
         hlist=fits.HDUList([h1])
         hlist.update_extend()
         hlist.writeto(filename, overwrite=True)
