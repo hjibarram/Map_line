@@ -466,7 +466,7 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
     return value
 
 
-def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5):
+def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5,save=False,path='',name='BPT_map'):
     nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
     nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & ((oiiihb-0.61/(niiha-0.05)-1.3) > 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#COMP
     nt3=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.05)-1.3) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
@@ -480,9 +480,16 @@ def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5):
     image[nt3]=sf
     image[nt4]=inte
     image[nt5]=ret
+    if save:
+        filename=path+name+'.fits'
+        h1=fits.PrimaryHDU(image)
+        hlist=fits.HDUList([h1])
+        hlist.update_extend()
+        hlist.writeto(filename, overwrite=True)
+        sycall('gzip -f '+filename)
     return image
 
-def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
+def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1,save=False,path='',name='WHAN_map'):
     nt1=np.where((wha >  6) & (niiha >= -0.4))#sAGN
     nt2=np.where((wha >= 3) & (niiha < -0.4))#SFR
     nt3=np.where((wha >= 3) & (wha <= 6) & (niiha >= -0.4))#wAGN
@@ -493,10 +500,17 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     image[nt2]=sf
     image[nt3]=wagn
     image[nt4]=ret
+    if save:
+        filename=path+name+'.fits'
+        h1=fits.PrimaryHDU(image)
+        hlist=fits.HDUList([h1])
+        hlist.update_extend()
+        hlist.writeto(filename, overwrite=True)
+        sycall('gzip -f '+filename)
     return image    
 
 
-def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1):
+def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHAD_map'):
     nt1=np.where((logew>=np.log10(10)) & (logsig>=np.log10(57))) #AGN
     nt2=np.where((logew>=np.log10(6)) & (logsig<np.log10(57))) #SF
     nt3=np.where((logew>=np.log10(3)) & (logew<np.log10(10)) & (logsig>=np.log10(57))) #WAGN
@@ -509,6 +523,13 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1):
     image[nt3]=wagn
     image[nt4]=ret
     image[nt5]=unk
+    if save:
+        filename=path+name+'.fits'
+        h1=fits.PrimaryHDU(image)
+        hlist=fits.HDUList([h1])
+        hlist.update_extend()
+        hlist.writeto(filename, overwrite=True)
+        sycall('gzip -f '+filename)
     return image
 
 
