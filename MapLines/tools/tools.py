@@ -535,7 +535,6 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
             h1=fits.PrimaryHDU(image,header=hdr)
         else:
             h1=fits.PrimaryHDU(image)
-        h1=fits.PrimaryHDU(image)
         hlist=fits.HDUList([h1])
         hlist.update_extend()
         hlist.writeto(filename, overwrite=True)
