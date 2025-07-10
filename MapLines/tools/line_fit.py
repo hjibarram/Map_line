@@ -500,10 +500,16 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
-        [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
+        try:
+            [pdl_cube, hdr]=fits.getdata(file1, 'SCI', header=True)
+        except:
+            [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
         try:
-            pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
+            try:
+                pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
+            except:
+                pdl_cubeE =fits.getdata(file1, 'ERR', header=False)
         except:
             try:
                 pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
