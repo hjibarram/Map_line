@@ -13,6 +13,9 @@ from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy import units as u
 from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
+import numpy as np
+import matplotlib.tri as mtri
+from stl import mesh
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
@@ -541,6 +544,25 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
         sycall('gzip -f '+filename)
     return image
 
+def map_to_stl(map, file_out, path_out=''):
+    nx, ny = map.shape
+    x = np.arange(nx)
+    y = np.arange(ny) 
+    X, Y = np.meshgrid(x, y)
+    # 1. Flatten X, Y, Z for triangulation
+    Z = map.flatten()
+    X = X.flatten()
+    Y = Y.flatten()
+    # 2. Triangulate the data
+    triang = mtri.Triangulation(X, Y)
+    # 3. Create numpy-stl mesh
+    data = np.zeros(len(triang.triangles), dtype=mesh.Mesh.dtype)
+    surface_mesh = mesh.Mesh(data, remove_empty_areas=False)
+    surface_mesh.x[:] = X[triang.triangles]
+    surface_mesh.y[:] = Y[triang.triangles]
+    surface_mesh.z[:] = Z[triang.triangles]
+    # 4. Save to STL
+    surface_mesh.save(path_out+file_out+'.stl')
 
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     erg2jy=1.0e-23
