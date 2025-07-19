@@ -24,7 +24,7 @@ requirements = [
     'emcee',
     'tqdm',
     'corner',
-    'stl',
+    'numpy-stl',
 ]
 
 DATA_DIRNAME = 'data'#'examples/example_data'
