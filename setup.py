@@ -24,6 +24,7 @@ requirements = [
     'emcee',
     'tqdm',
     'corner',
+    'stl',
 ]
 
 DATA_DIRNAME = 'data'#'examples/example_data'
