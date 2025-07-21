@@ -565,6 +565,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
                 idx = int(key.replace('VAL_', ''))
                 cont=mapdata[idx,:,:]
                 indx = np.where(cont == 0)
+                indxt= np.where(cont != 0)
     for key in keys:
         if 'VAL_' in key:
             head_val= hdr[key]
@@ -573,12 +574,14 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
             map[indx] = np.nan
             if 'Amplitude' in head_val:
                 map=np.log10(map)
+            maxval=np.nanmax(map[indxt])
+            minval=np.nanmin(map[indxt])    
+            map[np.where(np.isfinite(map) == False)]=0    
             if smoth:
                 map=filtNd(map, sigma=sig)
-            maxval=np.nanmax(map)
-            minval=np.nanmin(map)#[np.where(map > 1.8)])
             map=(map-minval)/(maxval-minval)*27+0
             map[np.where(np.isfinite(map) == False)]=0
+            map[indx]=0
             map[np.where(map < 0)]=0
             # Convert the map to STL format
             map_to_stl(map, head_val+nameid, path_out)
