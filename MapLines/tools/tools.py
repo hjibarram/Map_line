@@ -576,7 +576,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
                 map=np.log10(map)
             maxval=np.nanmax(map)
             minval=np.nanmin(map)#[np.where(map > 1.8)])
-            #print(minval)
+            print(head_val)
             map=(map-minval)/(maxval-minval)*27+0
             map[np.where(np.isfinite(map) == False)]=0
             map[np.where(map < 0)]=0
