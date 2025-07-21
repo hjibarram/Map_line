@@ -581,12 +581,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
                 map=filtNd(map, sigma=sig)
             maxval=np.nanmax(map[indxt])
             minval=np.nanmin(map[indxt])
-            print('Max:',maxval,'Min:',minval)
             map=(map-minval)/(maxval-minval)*pval+mval
-            maxval=np.nanmax(map[indxt])
-            minval=np.nanmin(map[indxt])
-            print('Max:',maxval,'Min:',minval)
-            print('----')
             map[np.where(np.isfinite(map) == False)]=0
             map[indx]=0
             map[np.where(map < 0)]=0
