@@ -563,9 +563,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
             if 'Continum' in head_val:
                 idx = int(key.replace('VAL_', ''))
                 cont=mapdata[idx,:,:]
-                indx = np.where(cont == 0)[0]
-                print(idx)
-                print(indx)
+                indx = np.where(cont == 0)
     for key in keys:
         if 'VAL_' in key:
             head_val= hdr[key]
@@ -573,8 +571,6 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
             map=mapdata[idx,:,:]
             map[indx] = np.nan
             if 'Amplitude' in head_val:
-                map[np.where(np.isfinite(map) == False)]=1
-                map[np.where(map == 0)]=1
                 map=np.log10(map)
             maxval=np.nanmax(map)
             minval=np.nanmin(map)#[np.where(map > 1.8)])
