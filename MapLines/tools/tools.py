@@ -544,7 +544,7 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
         sycall('gzip -f '+filename)
     return image
 
-def get_maps_to_stl(file_in, file_out, path_in='', path_out=''):
+def get_maps_to_stl(file_in, path_in='', path_out=''):
     """
     Convert a 2D map from a FITS file to an STL file.
     
