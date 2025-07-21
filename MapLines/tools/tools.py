@@ -574,11 +574,13 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
             map[indx] = np.nan
             if 'Amplitude' in head_val:
                 map=np.log10(map)
-            maxval=np.nanmax(map[indxt])
-            minval=np.nanmin(map[indxt])    
-            map[np.where(np.isfinite(map) == False)]=0    
+            #maxval=np.nanmax(map[indxt])
+            #minval=np.nanmin(map[indxt])        
             if smoth:
+                map[np.where(np.isfinite(map) == False)]=0
                 map=filtNd(map, sigma=sig)
+            maxval=np.nanmax(map[indxt])
+            minval=np.nanmin(map[indxt])
             map=(map-minval)/(maxval-minval)*27+0
             map[np.where(np.isfinite(map) == False)]=0
             map[indx]=0
