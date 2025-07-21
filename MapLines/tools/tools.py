@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from scipy.ndimage import gaussian_filter1d as filt1d
+from scipy.ndimage import gaussian_filter as filtNd
 import os
 import os.path as ptt
 from scipy.special import erf as errf
@@ -544,7 +545,7 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
         sycall('gzip -f '+filename)
     return image
 
-def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
+def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=False):
     """
     Convert a 2D map from a FITS file to an STL file.
     
@@ -572,6 +573,8 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
             map[indx] = np.nan
             if 'Amplitude' in head_val:
                 map=np.log10(map)
+            if smoth:
+                map=filtNd(map, sigma=sig)
             maxval=np.nanmax(map)
             minval=np.nanmin(map)#[np.where(map > 1.8)])
             map=(map-minval)/(maxval-minval)*27+0
