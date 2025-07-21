@@ -544,6 +544,34 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
         sycall('gzip -f '+filename)
     return image
 
+def get_maps_to_stl(file_in, file_out, path_in='', path_out=''):
+    """
+    Convert a 2D map from a FITS file to an STL file.
+    
+    Parameters:
+    - file_in: Input FITS file containing the map.
+    - file_out: Output STL file name.
+    - path_in: Path to the input FITS file.
+    - path_out: Path to save the output STL file.
+    """
+    # Read the FITS file
+    mapdata, hdr = fits.getdata(path_in + file_in, header=True)
+    keys = hdr.keys()
+    for key in keys:
+        if 'VAL_' in key:
+            head_val= hdr[key]
+            if 'Continum' in head_val:
+                cont=mapdata[idx,:,:]
+                indx = np.where(cont == 0)
+    for key in keys:
+        if 'VAL_' in key:
+            head_val= hdr[key]
+            idx = int(key.replace('VAL_', ''))
+            map=mapdata[idx,:,:]
+            map[indx] = np.nan
+    # Convert the map to STL format
+    map_to_stl(map, file_out, path_out)
+
 def map_to_stl(map, file_out, path_out=''):
     nx, ny = map.shape
     x = np.arange(nx)
