@@ -17,6 +17,8 @@ from astropy.wcs import WCS
 import numpy as np
 import matplotlib.tri as mtri
 from stl import mesh
+import warnings
+warnings.filterwarnings("ignore")
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
