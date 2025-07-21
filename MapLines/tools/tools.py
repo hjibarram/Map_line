@@ -564,7 +564,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
             if 'Continum' in head_val:
                 idx = int(key.replace('VAL_', ''))
                 cont=mapdata[idx,:,:]
-                indx = np.where(cont == 0)
+                indx = np.where(cont == 0)[0]
     for key in keys:
         if 'VAL_' in key:
             head_val= hdr[key]
