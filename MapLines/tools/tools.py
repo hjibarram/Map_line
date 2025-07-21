@@ -569,8 +569,18 @@ def get_maps_to_stl(file_in, file_out, path_in='', path_out=''):
             idx = int(key.replace('VAL_', ''))
             map=mapdata[idx,:,:]
             map[indx] = np.nan
-    # Convert the map to STL format
-    map_to_stl(map, file_out, path_out)
+            if 'Amplitude' in head_val:
+                map[np.where(np.isfinite(map) == False)]=1
+                map[np.where(map == 0)]=1
+                map=np.log10(map)
+            maxval=np.nanmax(map)
+            minval=np.nanmin(map)#[np.where(map > 1.8)])
+            #print(minval)
+            map=(map-minval)/(maxval-minval)*27+0
+            map[np.where(np.isfinite(map) == False)]=0
+            map[np.where(map < 0)]=0
+            # Convert the map to STL format
+            map_to_stl(map, file_out, path_out)
 
 def map_to_stl(map, file_out, path_out=''):
     nx, ny = map.shape
