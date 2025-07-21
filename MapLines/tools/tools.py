@@ -572,7 +572,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
             idx = int(key.replace('VAL_', ''))
             map=mapdata[idx,:,:]
             map[indx] = np.nan
-            if 'Amplitude' in head_val:
+            if 'Amplitude' in head_val or 'Continum' in head_val:
                 map=np.log10(map)
             #maxval=np.nanmax(map[indxt])
             #minval=np.nanmin(map[indxt])        
