@@ -557,7 +557,6 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
     # Read the FITS file
     mapdata, hdr = fits.getdata(path_in + file_in, header=True)
     keys = list(hdr.keys())
-    print(keys)
     for key in keys:
         if 'VAL_' in key:
             head_val= hdr[key]
@@ -565,6 +564,8 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
                 idx = int(key.replace('VAL_', ''))
                 cont=mapdata[idx,:,:]
                 indx = np.where(cont == 0)[0]
+                print(idx)
+                print(indx)
     for key in keys:
         if 'VAL_' in key:
             head_val= hdr[key]
@@ -577,7 +578,6 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
                 map=np.log10(map)
             maxval=np.nanmax(map)
             minval=np.nanmin(map)#[np.where(map > 1.8)])
-            print(head_val)
             map=(map-minval)/(maxval-minval)*27+0
             map[np.where(np.isfinite(map) == False)]=0
             map[np.where(map < 0)]=0
