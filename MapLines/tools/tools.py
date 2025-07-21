@@ -545,7 +545,7 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
         sycall('gzip -f '+filename)
     return image
 
-def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=False):
+def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=False, pval=27, mval=0):
     """
     Convert a 2D map from a FITS file to an STL file.
     
@@ -582,7 +582,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
             maxval=np.nanmax(map[indxt])
             minval=np.nanmin(map[indxt])
             print('Max:',maxval,'Min:',minval)
-            map=(map-minval)/(maxval-minval)*27+0
+            map=(map-minval)/(maxval-minval)*pval+mval
             maxval=np.nanmax(map[indxt])
             minval=np.nanmin(map[indxt])
             print('Max:',maxval,'Min:',minval)
