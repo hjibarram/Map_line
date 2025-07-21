@@ -557,6 +557,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out=''):
     # Read the FITS file
     mapdata, hdr = fits.getdata(path_in + file_in, header=True)
     keys = hdr.keys()
+    print(keys)
     for key in keys:
         if 'VAL_' in key:
             head_val= hdr[key]
