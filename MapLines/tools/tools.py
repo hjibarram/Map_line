@@ -580,7 +580,7 @@ def get_maps_to_stl(file_in, file_out, path_in='', path_out=''):
             map[np.where(np.isfinite(map) == False)]=0
             map[np.where(map < 0)]=0
             # Convert the map to STL format
-            map_to_stl(map, file_out, path_out)
+            map_to_stl(map, head_val, path_out)
 
 def map_to_stl(map, file_out, path_out=''):
     nx, ny = map.shape
