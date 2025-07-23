@@ -875,34 +875,49 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     h_k=hli[0].header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
-        h_k[keys[i]]=hdr[keys[i]]
-        h_k.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            h_k[keys[i]]=hdr[keys[i]]
+            h_k.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     h_k['EXTNAME'] ='Model'    
     h_k.update()
     for myt in range(0,n_lines):
         h_t=hli[1+myt].header
         for i in range(0, len(keys)):
-            h_t[keys[i]]=hdr[keys[i]]
-            h_t.comments[keys[i]]=hdr.comments[keys[i]]
+            try:
+                h_t[keys[i]]=hdr[keys[i]]
+                h_t.comments[keys[i]]=hdr.comments[keys[i]]
+            except:
+                continue
         h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
     h_y=hli[1+n_lines].header
     for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            h_y[keys[i]]=hdr[keys[i]]
+            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
     h_y=hli[2+n_lines].header
     for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            h_y[keys[i]]=hdr[keys[i]]
+            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     h_y['EXTNAME'] ='InputE_Component'
     h_y.update()  
     if outflow:
         h_y=hli[3+n_lines].header
         for i in range(0, len(keys)):
-            h_y[keys[i]]=hdr[keys[i]]
-            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+            try:
+                h_y[keys[i]]=hdr[keys[i]]
+                h_y.comments[keys[i]]=hdr.comments[keys[i]]
+            except:
+                continue
         h_y['EXTNAME'] ='Outflow_Component'
         h_y.update()  
     hlist=fits.HDUList(hli)
@@ -914,9 +929,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     h=h1.header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
-        if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
-            h[keys[i]]=hdr[keys[i]]
-            h.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
+                h[keys[i]]=hdr[keys[i]]
+                h.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     for i in range(0, len(valsH)):
         h['Val_'+str(i)]=valsH[i] 
     h['Val_'+str(n_lines*3)] ='Noise_Median'
