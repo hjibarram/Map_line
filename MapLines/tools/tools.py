@@ -595,7 +595,7 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
             map_to_stl(map, head_val+nameid, path_out)
 
 def map_to_stl(map, file_out, path_out=''):
-    nx, ny = map.shape
+    ny, nx = map.shape
     x = np.arange(nx)
     y = np.arange(ny) 
     X, Y = np.meshgrid(x, y)
