@@ -589,6 +589,8 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
                 nx,ny=map.shape
                 map[0:1,0:ny]=0
                 map[nx-1:nx,0:ny]=0
+                map[0:nx,0:1]=0
+                map[0:nx,ny-1:ny]=0
             # Convert the map to STL format
             map_to_stl(map, head_val+nameid, path_out)
 
