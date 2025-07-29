@@ -562,7 +562,7 @@ def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=
     if logP:
         map=np.log10(map)      
     if smoth:
-        map[np.where(map < ofsval)]=ofsval
+        #map[np.where(map < ofsval)]=ofsval
         map[np.where(np.isfinite(map) == False)]=ofsval
         map=filtNd(map, sigma=sig)
     if maxval is None:
