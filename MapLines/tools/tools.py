@@ -547,7 +547,7 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
         sycall('gzip -f '+filename)
     return image
 
-def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=0, border=False,logP=False):
+def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=0, border=False,logP=False,ofsval=-1):
     """
     Convert a 2D map to an STL file.
     
@@ -562,7 +562,7 @@ def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=
     if logP:
         map=np.log10(map)      
     if smoth:
-        map[np.where(np.isfinite(map) == False)]=-2
+        map[np.where(np.isfinite(map) == False)]=ofsval
         map=filtNd(map, sigma=sig)
     maxval=np.nanmax(map[indxt])
     minval=np.nanmin(map[indxt])
