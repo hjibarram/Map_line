@@ -575,10 +575,10 @@ def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=
     map[np.where(map < 0)]=0
     if border:
         nx,ny=map.shape
-        map[0:1,0:ny]=0
-        map[nx-1:nx,0:ny]=0
-        map[0:nx,0:1]=0
-        map[0:nx,ny-1:ny]=0
+        map[0:3,0:ny]=0#1
+        map[nx-3:nx,0:ny]=0
+        map[0:nx,0:3]=0
+        map[0:nx,ny-3:ny]=0
     # Convert the map to STL format
     map_to_stl(map, nameid, path_out)
 
