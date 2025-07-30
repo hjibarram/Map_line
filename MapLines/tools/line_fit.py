@@ -13,16 +13,31 @@ from tqdm import tqdm
 import corner 
 import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.yml',input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
-        hdu_list = fits.open(file1)
+        try:
+            hdu_list = fits.open(file1)
+        except:
+            hdu_list = fits.open(file1+'.gz')
         table_hdu = hdu_list[1]
         table_data = table_hdu.data
-        pdl_data=table_data.field('FLUX')
-        wave=table_data.field('LAMBDA')
+        try:
+            pdl_data=table_data.field('FLUX')
+        except:
+            pdl_data=table_data.field('flux')
+        try:
+            wave=table_data.field('LAMBDA')
+        except:
+            try:
+                wave=table_data.field('lambda')
+            except:
+                wave=table_data.field('wave')
         if error_c:
-            pdl_dataE=table_data.field('ERROR')
+            try:
+                pdl_dataE=table_data.field('ERROR')
+            except:
+                pdl_dataE=table_data.field('fluxE')
             if erft != 0:
                 pdl_dataE=pdl_dataE*flux_f*erft
             else:
@@ -109,11 +124,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
         print('Options are: TableFits, IrafFits, CSV, ASCII')
         return
  
-    
+    if smoth:
+        pdl_data=tol.conv(pdl_data,ke=ker)
     nz=len(pdl_data)
-    pdl_data=pdl_data*flux_f
-    
-    
+    pdl_data=pdl_data*flux_f     
     wave_f=wave/(1+z)
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
     wave_i=wave_f[nw]
@@ -122,8 +136,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     model_InpE=np.zeros(len(nw))
     if outflow:
         model_Outflow=np.zeros(len(nw))
-    
-    
+       
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
         n_lines=len(data_lines['lines'])
@@ -382,7 +395,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
             ax1.legend(fontsize=fontsize)
             plt.tight_layout()
-            fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
+            fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
             plt.show()
 
             if skew:
@@ -394,7 +407,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
                     labels2 = valsL
             fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
             fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-            fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
+            fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
                                    
             med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
                        
@@ -409,7 +422,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
             ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
             ax1.legend(fontsize=14)
             plt.tight_layout()
-            plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
+            plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
                 
             if verbose:    
                 #print Best fit parameters
@@ -483,14 +496,20 @@ def line_fit_single(file1,file_out,file_out2,name_out2,config_lines='line_prop.y
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=0,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
-        [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
+        try:
+            [pdl_cube, hdr]=fits.getdata(file1, 'SCI', header=True)
+        except:
+            [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
     if error_c:
         try:
-            pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
+            try:
+                pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
+            except:
+                pdl_cubeE =fits.getdata(file1, 'ERR', header=False)
         except:
             try:
                 pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
@@ -770,7 +789,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                 
 
                 if plot_f:
-                    colors=['blue','red','purple','brown','pink']
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
@@ -795,9 +813,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
                     ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
-                    ax1.legend(fontsize=fontsize)
+                    if labplot:
+                        ax1.legend(fontsize=fontsize)
                     plt.tight_layout()
-                    fig.savefig('spectraFit_NAME.pdf'.replace('NAME',name_out2))
+                    fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
                     plt.show()
 
 
@@ -811,7 +830,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                                
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-                    fig.savefig('corners_NAME.pdf'.replace('NAME',name_out2))
+                    fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
                     med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
@@ -826,7 +845,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
                     ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
                     ax1.legend(fontsize=14)
                     plt.tight_layout()
-                    plt.savefig('spectra_mod_NAME.pdf'.replace('NAME',name_out2))
+                    plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
                 
                 if pgr_bar == False:  
                     linet=''
@@ -856,34 +875,49 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     h_k=hli[0].header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
-        h_k[keys[i]]=hdr[keys[i]]
-        h_k.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            h_k[keys[i]]=hdr[keys[i]]
+            h_k.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     h_k['EXTNAME'] ='Model'    
     h_k.update()
     for myt in range(0,n_lines):
         h_t=hli[1+myt].header
         for i in range(0, len(keys)):
-            h_t[keys[i]]=hdr[keys[i]]
-            h_t.comments[keys[i]]=hdr.comments[keys[i]]
+            try:
+                h_t[keys[i]]=hdr[keys[i]]
+                h_t.comments[keys[i]]=hdr.comments[keys[i]]
+            except:
+                continue
         h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
         h_t.update()  
     h_y=hli[1+n_lines].header
     for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            h_y[keys[i]]=hdr[keys[i]]
+            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     h_y['EXTNAME'] ='Input_Component'
     h_y.update()   
     h_y=hli[2+n_lines].header
     for i in range(0, len(keys)):
-        h_y[keys[i]]=hdr[keys[i]]
-        h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            h_y[keys[i]]=hdr[keys[i]]
+            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     h_y['EXTNAME'] ='InputE_Component'
     h_y.update()  
     if outflow:
         h_y=hli[3+n_lines].header
         for i in range(0, len(keys)):
-            h_y[keys[i]]=hdr[keys[i]]
-            h_y.comments[keys[i]]=hdr.comments[keys[i]]
+            try:
+                h_y[keys[i]]=hdr[keys[i]]
+                h_y.comments[keys[i]]=hdr.comments[keys[i]]
+            except:
+                continue
         h_y['EXTNAME'] ='Outflow_Component'
         h_y.update()  
     hlist=fits.HDUList(hli)
@@ -895,9 +929,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=0.05536,j_t=0,i_t=
     h=h1.header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
-        if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
-            h[keys[i]]=hdr[keys[i]]
-            h.comments[keys[i]]=hdr.comments[keys[i]]
+        try:
+            if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
+                h[keys[i]]=hdr[keys[i]]
+                h.comments[keys[i]]=hdr.comments[keys[i]]
+        except:
+            continue
     for i in range(0, len(valsH)):
         h['Val_'+str(i)]=valsH[i] 
     h['Val_'+str(n_lines*3)] ='Noise_Median'

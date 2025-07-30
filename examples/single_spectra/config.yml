@@ -24,6 +24,8 @@ files:
     error: False #flag to run autocalculate the error vector
     line_config: line_prop_Ha.yml #configuration file of the emision lines
     line_config_path: '' #path to the configuration file of the emision lines
+    smoth: False #flag to activate a smothing of the spectra
+    ker: 2 # value in pixels of the smothin kernel
     #rvel: 500.0 #narrow velocity shift range
 
     # Object Info

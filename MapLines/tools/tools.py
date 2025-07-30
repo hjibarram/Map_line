@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from scipy.ndimage import gaussian_filter1d as filt1d
+from scipy.ndimage import gaussian_filter as filtNd
 import os
 import os.path as ptt
 from scipy.special import erf as errf
@@ -13,6 +14,11 @@ from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy import units as u
 from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
+import numpy as np
+import matplotlib.tri as mtri
+from stl import mesh
+import warnings
+warnings.filterwarnings("ignore")
 
 def wfits_ext(name,hlist):
     sycall("rm "+name+'.gz')
@@ -111,7 +117,6 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val
     vel=pdl_cube0[ind3,:,:]
     nt=np.where(np.round(vel,decimals=3) == val0)
     vel=vel+zt*ct
-    
     try:
         cont=pdl_cube0[ind4,:,:]
         conti=True
@@ -467,12 +472,12 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
     return value
 
 
-def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5):
+def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5,save=False,path='',name='BPT_map',hdr=None):
     nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
     nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & ((oiiihb-0.61/(niiha-0.05)-1.3) > 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#COMP
     nt3=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.05)-1.3) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
     nt4=np.where((wha > 3) & (wha <6))#INT
-    nt5=np.where((wha <=3))#RET
+    nt5=np.where((wha <=3) & (wha > 0))#RET
     image=np.copy(niiha)
     image=image*0
     image[:,:]=np.nan
@@ -481,9 +486,19 @@ def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5):
     image[nt3]=sf
     image[nt4]=inte
     image[nt5]=ret
+    if save:
+        filename=path+name+'.fits'
+        if hdr:
+            h1=fits.PrimaryHDU(image,header=hdr)
+        else:
+            h1=fits.PrimaryHDU(image)
+        hlist=fits.HDUList([h1])
+        hlist.update_extend()
+        hlist.writeto(filename, overwrite=True)
+        sycall('gzip -f '+filename)
     return image
 
-def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
+def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1,save=False,path='',name='WHAN_map',hdr=None):
     nt1=np.where((wha >  6) & (niiha >= -0.4))#sAGN
     nt2=np.where((wha >= 3) & (niiha < -0.4))#SFR
     nt3=np.where((wha >= 3) & (wha <= 6) & (niiha >= -0.4))#wAGN
@@ -494,10 +509,20 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1):
     image[nt2]=sf
     image[nt3]=wagn
     image[nt4]=ret
+    if save:
+        filename=path+name+'.fits'
+        if hdr:
+            h1=fits.PrimaryHDU(image,header=hdr)
+        else:
+            h1=fits.PrimaryHDU(image)
+        hlist=fits.HDUList([h1])
+        hlist.update_extend()
+        hlist.writeto(filename, overwrite=True)
+        sycall('gzip -f '+filename)
     return image    
 
 
-def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1):
+def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHAD_map',hdr=None):
     nt1=np.where((logew>=np.log10(10)) & (logsig>=np.log10(57))) #AGN
     nt2=np.where((logew>=np.log10(6)) & (logsig<np.log10(57))) #SF
     nt3=np.where((logew>=np.log10(3)) & (logew<np.log10(10)) & (logsig>=np.log10(57))) #WAGN
@@ -510,8 +535,119 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1):
     image[nt3]=wagn
     image[nt4]=ret
     image[nt5]=unk
+    if save:
+        filename=path+name+'.fits'
+        if hdr:
+            h1=fits.PrimaryHDU(image,header=hdr)
+        else:
+            h1=fits.PrimaryHDU(image)
+        hlist=fits.HDUList([h1])
+        hlist.update_extend()
+        hlist.writeto(filename, overwrite=True)
+        sycall('gzip -f '+filename)
     return image
 
+def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=0, border=False,logP=False,ofsval=-1,maxval=None,minval=None):
+    """
+    Convert a 2D map to an STL file.
+    
+    Parameters:
+    - file_out: Output STL file name.
+    - path_out: Path to save the output STL file.
+    """
+    
+    indx = np.where(map == 0)
+    indxt= np.where(map != 0)
+    map[indx] = np.nan
+    if logP:
+        map=np.log10(map)      
+    if smoth:
+        map[np.where(map < ofsval)]=ofsval
+        map[np.where(np.isfinite(map) == False)]=ofsval
+        map=filtNd(map, sigma=sig)
+    if maxval is None:
+        maxval=np.nanmax(map[indxt])
+    if minval is None:
+        minval=np.nanmin(map[indxt])
+    map=(map-minval)/(maxval-minval)*pval+mval
+    map[np.where(np.isfinite(map) == False)]=0
+    map[indx]=0
+    map[np.where(map < 0)]=0
+    if border:
+        nx,ny=map.shape
+        map[0:3,0:ny]=0#1
+        map[nx-3:nx,0:ny]=0
+        map[0:nx,0:3]=0
+        map[0:nx,ny-3:ny]=0
+    # Convert the map to STL format
+    map_to_stl(map, nameid, path_out)
+
+def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=False, pval=27, mval=0, border=False):
+    """
+    Convert a 2D map from a FITS file to an STL file.
+    
+    Parameters:
+    - file_in: Input FITS file containing the map.
+    - file_out: Output STL file name.
+    - path_in: Path to the input FITS file.
+    - path_out: Path to save the output STL file.
+    """
+    # Read the FITS file
+    mapdata, hdr = fits.getdata(path_in + file_in, header=True)
+    keys = list(hdr.keys())
+    for key in keys:
+        if 'VAL_' in key:
+            head_val= hdr[key]
+            if 'Continum' in head_val:
+                idx = int(key.replace('VAL_', ''))
+                cont=mapdata[idx,:,:]
+                indx = np.where(cont == 0)
+                indxt= np.where(cont != 0)
+    for key in keys:
+        if 'VAL_' in key:
+            head_val= hdr[key]
+            idx = int(key.replace('VAL_', ''))
+            map=mapdata[idx,:,:]
+            map[indx] = np.nan
+            if 'Amplitude' in head_val or 'Continum' in head_val:
+                map=np.log10(map)      
+            if smoth:
+                map[np.where(np.isfinite(map) == False)]=-2
+                map=filtNd(map, sigma=sig)
+            maxval=np.nanmax(map[indxt])
+            minval=np.nanmin(map[indxt])
+            map=(map-minval)/(maxval-minval)*pval+mval
+            map[np.where(np.isfinite(map) == False)]=0
+            map[indx]=0
+            map[np.where(map < 0)]=0
+            if border:
+                nx,ny=map.shape
+                map[0:1,0:ny]=0
+                map[nx-1:nx,0:ny]=0
+                map[0:nx,0:1]=0
+                map[0:nx,ny-1:ny]=0
+            # Convert the map to STL format
+            map_to_stl(map, head_val+nameid, path_out)
+
+def map_to_stl(map, file_out, path_out=''):
+    ny, nx = map.shape
+    x = np.arange(nx)
+    y = np.arange(ny) 
+    X, Y = np.meshgrid(x, y)
+    # 1. Flatten X, Y, Z for triangulation
+    Z = map.flatten()
+    X = X.flatten()
+    Y = Y.flatten()
+    # 2. Triangulate the data
+    triang = mtri.Triangulation(X, Y)
+    # 3. Create numpy-stl mesh
+    data = np.zeros(len(triang.triangles), dtype=mesh.Mesh.dtype)
+    surface_mesh = mesh.Mesh(data, remove_empty_areas=False)
+    surface_mesh.x[:] = X[triang.triangles]
+    surface_mesh.y[:] = Y[triang.triangles]
+    surface_mesh.z[:] = Z[triang.triangles]
+    # 4. Save to STL
+    surface_mesh.save(path_out+file_out+'.stl')
 
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     erg2jy=1.0e-23
