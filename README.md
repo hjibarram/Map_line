@@ -1,4 +1,4 @@
-# MapLine 2.0.0.dev
+# MapLine 2.0.0
 
 ## Description
 
