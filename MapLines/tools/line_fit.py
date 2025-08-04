@@ -685,11 +685,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     fluxtE=pdl_cubeE[nw,i,j]
                 else:
                 	fluxtE=tol.step_vect(fluxt,sp=50)
-                if cont and (powlaw == False):
+                if cont:
                     #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
-                    fluxpt=np.nanmean(fluxt[nwt])  
-                    fluxt=fluxt-fluxpt
+                    fluxpt=np.nanmean(fluxt[nwt]) 
+                    if powlaw == False:
+                        fluxt=fluxt-fluxpt
                 fluxe_t=np.nanmean(fluxtE)
                 #Defining the input data for the fitting model
                 data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw)
