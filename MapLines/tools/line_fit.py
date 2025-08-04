@@ -847,7 +847,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
+                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow, powlaw=powlaw)
                     
                     fig = plt.figure(figsize=(6*1.5,3*1.5))
                     ax1 = fig.add_subplot(1,1,1)
