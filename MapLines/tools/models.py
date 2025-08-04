@@ -2,6 +2,12 @@
 import MapLines.tools.tools as tol
 import numpy as np
 
+def spow_law(x, A=1.0, alpha=0.0, xo=5100.0):
+    '''Power law model'''
+    ct=299792.458
+    #x=x/ct*xo
+    return A*(x/xo)**(-alpha)
+
 def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0], gam=[0.0], skew=False, lorentz=False, voigt=False):
     ct=299792.458
     model_out=[]
@@ -33,7 +39,7 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
     return model_out
         
 
-def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, ret_com=False, skew=False, lorentz=False, outflow=False, voigt=False):
+def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, powlaw=True, ret_com=False, skew=False, lorentz=False, outflow=False, voigt=False):
     '''Model for the line complex'''
 
     alph=[]
@@ -126,7 +132,11 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
     if outflow:
         ModAo=emission_line_model(x, xo=waves0, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
         
-    
+    if powlaw:
+        cont=spow_law(x, A=P0, alpha=alphO, xo=5100.0)
+    else:
+        cont=0.0
+
     lin=0
     for i in range(len(ModA)):
         if outflow:
