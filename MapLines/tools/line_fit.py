@@ -824,7 +824,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                                 ct1a=ct1a+1
                     if powlaw:
                         ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')        
-                    fontsize=14
+                    fontsize=12
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
                     ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
