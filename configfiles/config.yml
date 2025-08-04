@@ -22,6 +22,7 @@ files:
     kskew: False #flag to run skew line profile mode
     outflow: False #flag to run outflow line profile mode
     lorentz: False #activate the lorenztiant broad profile
+    powlaw: False #activate the power law continum
     error: False #flag to run autocalculate the error vector  
     line_config: line_prop.yml #configuration file of the emision lines
     line_config_path: '' #path to the configuration file of the emision lines
