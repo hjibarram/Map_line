@@ -874,10 +874,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         if outflow:
                             print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                         else:
-                            print(linet)
-                    if powlaw:
-                        print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
-                    
+                            if powlaw:
+                                print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
+                            else:
+                                print(linet)
                 if test:
                     return        
             if pgr_bar:
