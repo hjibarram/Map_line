@@ -50,6 +50,12 @@ def voigt(x,sigma=1.0,xo=0.0,A1=1.0,gam1=0.0):
     y=At*vprf(x1,sigma,gam1)
     return y
 
+def spow_law(x, A=1.0, alpha=0.0, xo=5100.0):
+    '''Power law model'''
+    #ct=299792.458
+    #x=x/ct*xo
+    y=A*(x/xo)**(-alpha)
+    return y
 
 def lorentz(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*(0.5*sigma)**2.0/((x-xo)**2.0+(0.5*sigma)**2.0) 

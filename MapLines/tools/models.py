@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 import MapLines.tools.tools as tol
-import numpy as np
-
-def spow_law(x, A=1.0, alpha=0.0, xo=5100.0):
-    '''Power law model'''
-    ct=299792.458
-    #x=x/ct*xo
-    return A*(x/xo)**(-alpha)
+import numpy as np 
 
 def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0], gam=[0.0], skew=False, lorentz=False, voigt=False):
     ct=299792.458
@@ -59,6 +53,8 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
                 *f_parm,gam1=theta
             else:
                 f_parm=theta
+    if powlaw:
+        *f_parm,P0,Pa0=theta
 
     A1=[]
     dv=[]
@@ -133,9 +129,9 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
         ModAo=emission_line_model(x, xo=waves0, A=A1o, dv=dvO ,fwhm=fwhmO, alph=alphO, skew=True)
         
     if powlaw:
-        cont=spow_law(x, A=P0, alpha=alphO, xo=5100.0)
+        cont=tol.spow_law(x, A=P0, alpha=Pa0, xo=5100.0)
     else:
-        cont=0.0
+        cont=x*0.0
 
     lin=0
     for i in range(len(ModA)):
@@ -143,6 +139,7 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
             lin=ModA[i]+ModAo[i]+lin
         else:
             lin=ModA[i]+lin
+    lin=lin+cont
     outvect=[]
     outvect.extend([lin])
     for i in range(len(ModA)):
@@ -150,7 +147,8 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
     if outflow:
         for i in range(len(ModAo)):
             outvect.extend([ModAo[i]])       
-    
+    if powlaw:
+        outvect.extend([cont])
     if ret_com:
         return outvect
     else:

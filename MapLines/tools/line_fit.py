@@ -496,7 +496,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powerlaw=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -545,6 +545,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     model_InpE=np.zeros([len(nw),nx,ny])
     if outflow:
         model_Outflow=np.zeros([len(nw),nx,ny])
+    if powerlaw:
+        model_Powerlaw=np.zeros([len(nw),nx,ny])
 
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
@@ -656,6 +658,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
             model_param=np.zeros([n_lines*3+4+oft,nx,ny])
         else:
             model_param=np.zeros([n_lines*3+oft,nx,ny])
+    if powerlaw:
+        model_param=np.zeros([n_lines*3+2+oft,nx,ny])
     model_param[:,:,:]=np.nan    
 
     hdr["CRVAL3"]=wave_i[0]
@@ -681,14 +685,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     fluxtE=pdl_cubeE[nw,i,j]
                 else:
                 	fluxtE=tol.step_vect(fluxt,sp=50)
-                if cont:
+                if cont and (powerlaw == False):
                     #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
                     fluxpt=np.nanmean(fluxt[nwt])  
                     fluxt=fluxt-fluxpt
                 fluxe_t=np.nanmean(fluxtE)
                 #Defining the input data for the fitting model
-                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powerlaw)
                 nwalkers=240
                 niter=1024
                 #Defining the initian conditions
@@ -699,6 +703,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         initial = np.array([*Inpvalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                     else:
                         initial = np.array([*Inpvalues])
+                if powerlaw:
+                    initial = np.array([*Inpvalues, valsp['P1o'],valsp['P2o']])
                 
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
@@ -719,6 +725,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     else:
                         f_parm=theta_max
                     model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)
+                if powerlaw:
+                    *f_parm,P1o,P2o=theta_max
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powerlaw=powerlaw)    
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -786,6 +795,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     model_param[ind+2,i,j]=dvO_f
                     model_param[ind+3,i,j]=fwhmO_f
                     model_param[ind+4,i,j]=alphaO_f
+                if powerlaw:
+                    model_param[ind+1,i,j]=P1o
+                    model_param[ind+2,i,j]=P2o
                 
 
                 if plot_f:
@@ -809,6 +821,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                                 else:
                                     ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
                                 ct1a=ct1a+1
+                    if powerlaw:
+                        ax1.plot(wave_i,modsI[1+n_lines],linewidth=1,color='orange',label=r'PowerLaw')        
                     fontsize=14
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
@@ -871,7 +885,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     hli.extend([fits.ImageHDU(model_Inp)])    
     hli.extend([fits.ImageHDU(model_InpE)])    
     if outflow:
-        hli.extend([fits.ImageHDU(model_Outflow)])    
+        hli.extend([fits.ImageHDU(model_Outflow)])
+    if powerlaw:
+        hli.extend([fits.ImageHDU(model_Powerlaw)])        
     h_k=hli[0].header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
@@ -920,6 +936,16 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 continue
         h_y['EXTNAME'] ='Outflow_Component'
         h_y.update()  
+    if powerlaw:
+        h_y=hli[3+n_lines].header
+        for i in range(0, len(keys)):
+            try:
+                h_y[keys[i]]=hdr[keys[i]]
+                h_y.comments[keys[i]]=hdr.comments[keys[i]]
+            except:
+                continue
+        h_y['EXTNAME'] ='PowerLaw_Component'
+        h_y.update()      
     hlist=fits.HDUList(hli)
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
@@ -950,7 +976,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         h['Val_'+str(ind+1)]='Amp_Factor_outflow'
         h['Val_'+str(ind+2)]='Vel_outflow' 
         h['Val_'+str(ind+3)]='FWHM_outflow'
-        h['Val_'+str(ind+4)]='Alpha_outflow'     
+        h['Val_'+str(ind+4)]='Alpha_outflow'  
+    if powerlaw:
+        h['Val_'+str(ind+1)]='Amp_powerlow'
+        h['Val_'+str(ind+2)]='Alpha_powerlow'          
     try:    
         del h['CRVAL3']
         del h['CRPIX3']
