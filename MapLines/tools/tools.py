@@ -6,6 +6,7 @@ import os
 import os.path as ptt
 from scipy.special import erf as errf
 from scipy.special import voigt_profile as vprf
+from scipy.interpolate import interp1d
 import yaml
 import sys
 from astropy.io import fits
@@ -16,6 +17,7 @@ from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
 import numpy as np
 import matplotlib.tri as mtri
+import MapLines
 from stl import mesh
 import warnings
 warnings.filterwarnings("ignore")
@@ -79,20 +81,23 @@ def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
 def opticFeII(x, sigma=1.0, xo=0.0, A1=1.0):
     '''Optical FeII model from Kovacevic+10'''
     #data=np.loadtxt('data/FeII_optical_Kovacevic10.txt')
-    data=np.loadtxt(ptt.join(ptt.dirname(ptt.abspath(__file__)),'../data/FeII.dat'))
+    dir=os.path.join(MapLines.__path__[0], 'data')+'/'
+    data=np.loadtxt(dir+'FeII.dat'))
     wave=data[:,0]
     flux=data[:,1]
-    flux=flux/np.nanmax(flux)*A1
     wave=wave+xo
-    flux_t=np.zeros(len(x))
-    for i in range(0, len(x)):
-        wt=x[i]
-        nt=np.where((wave >= wt-3*sigma) & (wave <= wt+3*sigma))[0]
-        if len(nt) > 0:
-            flux_t[i]=np.nansum(flux[nt]*np.exp(-0.5*(wt-wave[nt])**2.0/sigma**2.0))
-        else:
-            flux_t[i]=0
-    return flux_t
+    spec1=interp1d(wave, flux,kind='linear',bounds_error=False,fill_value=0.)(x)
+    spec=conv(spec1,ke=sigma)
+    spec=spec/np.nanmax(spec)*A1
+    #flux_t=np.zeros(len(x))
+    #for i in range(0, len(x)):
+    #    wt=x[i]
+    #    nt=np.where((wave >= wt-3*sigma) & (wave <= wt+3*sigma))[0]
+    #    if len(nt) > 0:
+    #        flux_t[i]=np.nansum(flux[nt]*np.exp(-0.5*(wt-wave[nt])**2.0/sigma**2.0))
+    #    else:
+    #        flux_t[i]=0
+    return spec
 
 
 def step_vect(fluxi,sp=20,pst=True,sigma=10):
