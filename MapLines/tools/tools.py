@@ -17,7 +17,6 @@ from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
 import numpy as np
 import matplotlib.tri as mtri
-import MapLines
 from stl import mesh
 import warnings
 warnings.filterwarnings("ignore")

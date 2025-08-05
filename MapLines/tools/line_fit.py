@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+import MapLines
 import MapLines.tools.models as mod
 import MapLines.tools.mcmc as mcm
 import MapLines.tools.tools as tol
