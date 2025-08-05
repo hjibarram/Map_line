@@ -7,6 +7,7 @@ import MapLines.tools.priors as pri
 from astropy.io import fits
 #from progressbar import ProgressBar
 from astropy.io import fits
+import os
 import os.path as ptt
 import sys
 from tqdm import tqdm
@@ -658,11 +659,15 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
             model_param=np.zeros([n_lines*3+4+oft,nx,ny])
         else:
             model_param=np.zeros([n_lines*3+oft,nx,ny])
+    dataFe=None        
     if powlaw:
         if feii:
             model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+            dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
+            dataFe=np.loadtxt(dirFe+'FeII.dat')
         else:
             model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+            dataFe=None
     model_param[:,:,:]=np.nan    
 
     hdr["CRVAL3"]=wave_i[0]
@@ -696,7 +701,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         fluxt=fluxt-fluxpt
                 fluxe_t=np.nanmean(fluxtE)
                 #Defining the input data for the fitting model
-                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii, dataFe)
                 nwalkers=240
                 niter=1024
                 #Defining the initian conditions
@@ -740,7 +745,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         *f_parm,P1o,P2o,Fso,Fdo,Fao=theta_max
                     else:
                         *f_parm,P1o,P2o=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii)    
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -871,7 +876,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
                 
                     
-                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow, powlaw=powlaw)
+                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow, powlaw=powlaw, feii=feii, data=dataFe)
                     
                     fig = plt.figure(figsize=(6*1.5,3*1.5))
                     ax1 = fig.add_subplot(1,1,1)

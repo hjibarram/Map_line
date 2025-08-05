@@ -78,11 +78,11 @@ def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*np.exp(-0.5*(x-xo)**2.0/sigma**2.0)
     return y
 
-def opticFeII(x, sigma=1.0, xo=0.0, A1=1.0):
+def opticFeII(x, data, sigma=1.0, xo=0.0, A1=1.0):
     '''Optical FeII model from Kovacevic+10'''
     #data=np.loadtxt('data/FeII_optical_Kovacevic10.txt')
-    dir=os.path.join(MapLines.__path__[0], 'data')+'/'
-    data=np.loadtxt(dir+'FeII.dat')
+    #dir=os.path.join(MapLines.__path__[0], 'data')+'/'
+    #data=np.loadtxt(dir+'FeII.dat')
     wave=data[:,0]
     flux=data[:,1]
     wave=wave+xo
