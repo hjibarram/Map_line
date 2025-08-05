@@ -79,7 +79,7 @@ def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
 def opticFeII(x, sigma=1.0, xo=0.0, A1=1.0):
     '''Optical FeII model from Kovacevic+10'''
     #data=np.loadtxt('data/FeII_optical_Kovacevic10.txt')
-    data=np.loadtxt(ptt.join(ptt.dirname(ptt.abspath(__file__)),'../data/FeII.txt'))
+    data=np.loadtxt(ptt.join(ptt.dirname(ptt.abspath(__file__)),'../data/FeII.dat'))
     wave=data[:,0]
     flux=data[:,1]
     flux=flux/np.nanmax(flux)*A1
