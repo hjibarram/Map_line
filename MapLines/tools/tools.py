@@ -82,7 +82,7 @@ def opticFeII(x, sigma=1.0, xo=0.0, A1=1.0):
     '''Optical FeII model from Kovacevic+10'''
     #data=np.loadtxt('data/FeII_optical_Kovacevic10.txt')
     dir=os.path.join(MapLines.__path__[0], 'data')+'/'
-    data=np.loadtxt(dir+'FeII.dat'))
+    data=np.loadtxt(dir+'FeII.dat')
     wave=data[:,0]
     flux=data[:,1]
     wave=wave+xo
