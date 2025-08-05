@@ -33,7 +33,7 @@ def emission_line_model(x, xo=[5100], A=[1.0], dv=[0.0], fwhm=[200.0], alph=[0.0
     return model_out
         
 
-def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, powlaw=False, ret_com=False, skew=False, lorentz=False, outflow=False, voigt=False):
+def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=0, powlaw=False, feii=False, ret_com=False, skew=False, lorentz=False, outflow=False, voigt=False):
     '''Model for the line complex'''
 
     alph=[]
@@ -54,7 +54,14 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
             else:
                 f_parm=theta
     if powlaw:
-        *f_parm,P0,Pa0=theta
+        if feii:
+            *f_parm,P0,Pa0,Fes,Fde,FA=theta
+        else:
+            *f_parm,P0,Pa0=theta
+    #else:
+    #    if feii:
+    #        *f_parm,Fes,Fde,FA=theta
+
 
     A1=[]
     dv=[]
@@ -132,6 +139,10 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
         cont=tol.spow_law(x, A=P0, alpha=Pa0, xo=5100.0)
     else:
         cont=x*0.0
+    if feii:
+        feiis=tol.opticFeII(x, sigma=Fes, xo=Fde, A1=FA)
+    else:
+        feiis=x*0.0
 
     lin=0
     for i in range(len(ModA)):
@@ -139,7 +150,7 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
             lin=ModA[i]+ModAo[i]+lin
         else:
             lin=ModA[i]+lin
-    lin=lin+cont
+    lin=lin+cont+feiis
     outvect=[]
     outvect.extend([lin])
     for i in range(len(ModA)):
@@ -149,6 +160,8 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
             outvect.extend([ModAo[i]])       
     if powlaw:
         outvect.extend([cont])
+    if feii:
+        outvect.extend([feiis])    
     if ret_com:
         return outvect
     else:

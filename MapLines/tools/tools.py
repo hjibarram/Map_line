@@ -76,6 +76,25 @@ def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
     y=A1*np.exp(-0.5*(x-xo)**2.0/sigma**2.0)
     return y
 
+def opticFeII(x, sigma=1.0, xo=0.0, A1=1.0):
+    '''Optical FeII model from Kovacevic+10'''
+    #data=np.loadtxt('data/FeII_optical_Kovacevic10.txt')
+    data=np.loadtxt(ptt.join(ptt.dirname(ptt.abspath(__file__)),'../data/FeII.txt'))
+    wave=data[:,0]
+    flux=data[:,1]
+    flux=flux/np.nanmax(flux)*A1
+    wave=wave+xo
+    flux_t=np.zeros(len(x))
+    for i in range(0, len(x)):
+        wt=x[i]
+        nt=np.where((wave >= wt-3*sigma) & (wave <= wt+3*sigma))[0]
+        if len(nt) > 0:
+            flux_t[i]=np.nansum(flux[nt]*np.exp(-0.5*(wt-wave[nt])**2.0/sigma**2.0))
+        else:
+            flux_t[i]=0
+    return flux_t
+
+
 def step_vect(fluxi,sp=20,pst=True,sigma=10):
     flux_sm=conv(fluxi,ke=sigma)
     flux=fluxi-flux_sm

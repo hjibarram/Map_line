@@ -496,7 +496,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -659,7 +659,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         else:
             model_param=np.zeros([n_lines*3+oft,nx,ny])
     if powlaw:
-        model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+        if feii:
+            model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+        else:
+            model_param=np.zeros([n_lines*3+2+oft,nx,ny])
     model_param[:,:,:]=np.nan    
 
     hdr["CRVAL3"]=wave_i[0]
@@ -693,7 +696,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         fluxt=fluxt-fluxpt
                 fluxe_t=np.nanmean(fluxtE)
                 #Defining the input data for the fitting model
-                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii)
                 nwalkers=240
                 niter=1024
                 #Defining the initian conditions
@@ -705,7 +708,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     else:
                         initial = np.array([*Inpvalues])
                 if powlaw:
-                    initial = np.array([*Inpvalues, valsp['P1o'],valsp['P2o']])
+                    if feii:
+                        initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o'], valsp['Fso'], valsp['Fdo'], valsp['Fao']])
+                    else:
+                        initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o']])
+                #else:
+                #    if feii:
+                #        initial = np.array([*Inpvalues, valsp['Fso'], valsp['Fdo'], valsp['Fao']])
                 
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
@@ -727,8 +736,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         f_parm=theta_max
                     model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)
                 if powlaw:
-                    *f_parm,P1o,P2o=theta_max
-                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw)    
+                    if feii:
+                        *f_parm,P1o,P2o,Fso,Fdo,Fao=theta_max
+                    else:
+                        *f_parm,P1o,P2o=theta_max
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii)    
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -799,6 +811,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 if powlaw:
                     model_param[ind+1,i,j]=P1o
                     model_param[ind+2,i,j]=P2o
+                if feii:
+                    model_param[ind+3,i,j]=Fso
+                    model_param[ind+4,i,j]=Fdo
+                    model_param[ind+5,i,j]=Fao
                 
 
                 if plot_f:
@@ -823,7 +839,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                                     ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
                                 ct1a=ct1a+1
                     if powlaw:
-                        ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')        
+                        ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')
+                    if feii:
+                        ax1.plot(wave_i,modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
                     fontsize=12
                     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
                     ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
@@ -843,7 +861,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         else:
                             labels2 = valsL
                     if powlaw:
-                        labels2 = [*valsL,r'$P_1$',r'$P_2$']
+                        if feii:
+                            labels2 = [*valsL,r'$P_1$',r'$P_2$',r'$\sigma_{FeII}$',r'$\Delta\lambda_{FeII}$',r'$A_{FeII}$']
+                        else:
+                            labels2 = [*valsL,r'$P_1$',r'$P_2$']
                                
                     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
                     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
@@ -875,7 +896,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                             print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                         else:
                             if powlaw:
-                                print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
+                                if feii:
+                                    print(linet+'P1o='+str(P1o)+' P2o='+str(P2o)+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
+                                else:
+                                    print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
                             else:
                                 print(linet)
                 if test:
@@ -984,7 +1008,11 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         h['Val_'+str(ind+4)]='Alpha_outflow'  
     if powlaw:
         h['Val_'+str(ind+1)]='Amp_powerlow'
-        h['Val_'+str(ind+2)]='Alpha_powerlow'          
+        h['Val_'+str(ind+2)]='Alpha_powerlow'    
+    if feii:
+        h['Val_'+str(ind+3)]='Sigma_FeII'
+        h['Val_'+str(ind+4)]='Delta_FeII'
+        h['Val_'+str(ind+5)]='Amp_FeII'
     try:    
         del h['CRVAL3']
         del h['CRPIX3']

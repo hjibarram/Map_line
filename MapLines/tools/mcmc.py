@@ -48,12 +48,12 @@ def mcmc(p0,nwalkers,niter,ndim,lnprob,data,verbose=False,multi=True,tim=False,n
     return sampler, pos, prob, state
 
 
-def sample_walkers(nsamples,flattened_chain,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,n_lines,vals,x=0,skew=False,lorentz=False,outflow=False, powlaw=False):
+def sample_walkers(nsamples,flattened_chain,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,n_lines,vals,x=0,skew=False,lorentz=False,outflow=False,powlaw=False,feii=False):
     models = []
     draw = np.floor(np.random.uniform(0,len(flattened_chain),size=nsamples)).astype(int)
     thetas = flattened_chain[draw]
     for i in thetas:
-        modt = mod.line_model(i, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=x, skew=skew, lorentz=lorentz, outflow=outflow, powlaw=powlaw)
+        modt = mod.line_model(i, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=x, skew=skew, lorentz=lorentz, outflow=outflow, powlaw=powlaw, feii=feii)
         models.append(modt)
     spread = np.std(models,axis=0)
     med_model = np.median(models,axis=0)

@@ -23,6 +23,7 @@ files:
     outflow: False #flag to run outflow line profile mode
     lorentz: False #activate the lorenztiant broad profile
     powlaw: False #activate the power law continum
+    feii: False #activate the FeII template fitting
     error: False #flag to run autocalculate the error vector  
     line_config: line_prop.yml #configuration file of the emision lines
     line_config_path: '' #path to the configuration file of the emision lines
