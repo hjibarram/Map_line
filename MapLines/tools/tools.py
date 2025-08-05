@@ -86,9 +86,9 @@ def opticFeII(x, sigma=1.0, xo=0.0, A1=1.0):
     wave=data[:,0]
     flux=data[:,1]
     wave=wave+xo
+    flux=flux/np.nanmax(flux)*A1
     spec1=interp1d(wave, flux,kind='linear',bounds_error=False,fill_value=0.)(x)
     spec=conv(spec1,ke=sigma)
-    spec=spec/np.nanmax(spec)*A1
     #flux_t=np.zeros(len(x))
     #for i in range(0, len(x)):
     #    wt=x[i]
