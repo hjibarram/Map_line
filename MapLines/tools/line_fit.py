@@ -605,7 +605,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     hli.extend([fits.ImageHDU(model_InpE)])    
     if outflow:
         hli.extend([fits.ImageHDU(model_Outflow)])
-    if powerlaw:
+    if powlaw:
         hli.extend([fits.ImageHDU(model_Powerlaw)])        
     h_k=hli[0].header
     keys=list(hdr.keys())
