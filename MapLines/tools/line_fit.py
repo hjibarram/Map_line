@@ -13,116 +13,7 @@ import sys
 from tqdm import tqdm
 
 def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
-    
-    if input_format == 'TableFits':
-        try:
-            hdu_list = fits.open(file1)
-        except:
-            hdu_list = fits.open(file1+'.gz')
-        table_hdu = hdu_list[1]
-        table_data = table_hdu.data
-        try:
-            pdl_data=table_data.field('FLUX')
-        except:
-            pdl_data=table_data.field('flux')
-        try:
-            wave=table_data.field('LAMBDA')
-        except:
-            try:
-                wave=table_data.field('lambda')
-            except:
-                wave=table_data.field('wave')
-        if error_c:
-            try:
-                pdl_dataE=table_data.field('ERROR')
-            except:
-                pdl_dataE=table_data.field('fluxE')
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    elif input_format == 'SDSS':
-        hdu_list = fits.open(file1)
-        table_hdu = hdu_list[1]
-        table_data = table_hdu.data
-        pdl_data=table_data.field('FLUX')
-        wave=table_data.field('LOGLAM')
-        wave=10**wave
-        if error_c:
-            pdl_dataE=table_data.field('IVAR')
-            pdl_dataE=1/np.sqrt(pdl_dataE)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    elif input_format == 'IrafFits':
-        [pdl_data, hdr]=fits.getdata(file1, 0, header=True)
-        if error_c:
-            pdl_dataE =fits.getdata(file1, 1, header=False)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-        crpix=hdr["CRPIX3"]
-        try:
-            cdelt=hdr["CD3_3"]
-        except:
-            cdelt=hdr["CDELT3"]
-        crval=hdr["CRVAL3"]
-        wave=crval+cdelt*(np.arange(nz)+1-crpix)  
-    elif input_format == 'CSV':
-        ft=open(file1,'r')
-        wave=[]
-        pdl_data=[]
-        if error_c:
-            pdl_dataE=[]
-        for line in ft:
-            if not 'Wave' in line:
-                data=line.replace('\n','')
-                data=data.split(',')
-                data=list(filter(None,data))
-                if len(data) > 1:
-                    wave.extend([float(data[0])])
-                    pdl_data.extend([float(data[1])])
-                    if error_c:
-                        pdl_dataE.extend([float(data[2])])
-        wave=np.array(wave)
-        pdl_data=np.array(pdl_data)
-        if error_c:
-            pdl_dataE=np.array(pdl_dataE)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    elif input_format == 'ASCII':
-        ft=open(file1,'r')
-        wave=[]
-        pdl_data=[]
-        if error_c:
-            pdl_dataE=[]
-        for line in ft:
-            if not 'Wave' in line:
-                data=line.replace('\n','')
-                data=data.split(' ')
-                data=list(filter(None,data))
-                if len(data) > 1:
-                    wave.extend([float(data[0])])
-                    pdl_data.extend([float(data[1])])
-                    if error_c:
-                        pdl_dataE.extend([float(data[2])])
-        wave=np.array(wave)
-        pdl_data=np.array(pdl_data)
-        if error_c:
-            pdl_dataE=np.array(pdl_dataE)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    else:
-        print('Error: input_format not recognized')
-        print('Options are: TableFits, IrafFits, CSV, ASCII')
-        return
- 
+    pdl_data,pdl_dataE,wave=tol.get_oneDspectra(file1,flux_f=flux_f,erft=erft,input_format=input_format,error_c=error_c)
     if smoth:
         pdl_data=tol.conv(pdl_data,ke=ker)
     nz=len(pdl_data)
@@ -349,6 +240,8 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
 
 
 def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True):
+    pdl_cube,pdl_cubeE,mask,wave,hdr=tol.get_cubespectra(file1,file3,flux_f=flux_f,erft=erft)
+    '''
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -370,7 +263,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 pdl_cubeE =fits.getdata(file1, 1, header=False)    
         if erft != 0:
             pdl_cubeE=pdl_cubeE*flux_f*erft
-
     nz,nx,ny=pdl_cube.shape
     pdl_cube=pdl_cube*flux_f
     if ptt.exists(file3):
@@ -389,6 +281,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         cdelt=hdr["CDELT3"]
     crval=hdr["CRVAL3"]
     wave=crval+cdelt*(np.arange(nz)+1-crpix)
+    '''
+
+    nz,nx,ny=pdl_cube.shape
+    hdr["CRVAL3"]=wave_i[0]
+    try:
+        hdr["CD3_3"]=hdr["CD3_3"]/(1+z)
+    except:
+        hdr["CDELT3"]=hdr["CDELT3"]/(1+z)
     wave_f=wave/(1+z)
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
     wave_i=wave_f[nw]
@@ -423,11 +323,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
             dataFe=None
     model_param[:,:,:]=np.nan    
 
-    hdr["CRVAL3"]=wave_i[0]
-    try:
-        hdr["CD3_3"]=cdelt/(1+z)
-    except:
-        hdr["CDELT3"]=cdelt/(1+z)
+    
     if pgr_bar:
         pbar=tqdm(total=nx*ny)
     for i in range(0, nx):

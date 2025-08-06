@@ -235,7 +235,174 @@ def get_priorsvalues(filename):
         return  valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH#,region
     else:
         print('No configuration line model file')
-        sys.exit()        
+        sys.exit()    
+
+def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
+    if input_format == 'TableFits':
+        try:
+            hdu_list = fits.open(file1)
+        except:
+            hdu_list = fits.open(file1+'.gz')
+        table_hdu = hdu_list[1]
+        table_data = table_hdu.data
+        try:
+            pdl_data=table_data.field('FLUX')
+        except:
+            pdl_data=table_data.field('flux')
+        try:
+            wave=table_data.field('LAMBDA')
+        except:
+            try:
+                wave=table_data.field('lambda')
+            except:
+                wave=table_data.field('wave')
+        if error_c:
+            try:
+                pdl_dataE=table_data.field('ERROR')
+            except:
+                pdl_dataE=table_data.field('fluxE')
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
+    elif input_format == 'SDSS':
+        hdu_list = fits.open(file1)
+        table_hdu = hdu_list[1]
+        table_data = table_hdu.data
+        pdl_data=table_data.field('FLUX')
+        wave=table_data.field('LOGLAM')
+        wave=10**wave
+        if error_c:
+            pdl_dataE=table_data.field('IVAR')
+            pdl_dataE=1/np.sqrt(pdl_dataE)
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
+    elif input_format == 'IrafFits':
+        [pdl_data, hdr]=fits.getdata(file1, 0, header=True)
+        if error_c:
+            pdl_dataE =fits.getdata(file1, 1, header=False)
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
+        crpix=hdr["CRPIX3"]
+        try:
+            cdelt=hdr["CD3_3"]
+        except:
+            cdelt=hdr["CDELT3"]
+        crval=hdr["CRVAL3"]
+        wave=crval+cdelt*(np.arange(len(pdl_data))+1-crpix)  
+    elif input_format == 'CSV':
+        ft=open(file1,'r')
+        wave=[]
+        pdl_data=[]
+        if error_c:
+            pdl_dataE=[]
+        for line in ft:
+            if not 'Wave' in line:
+                data=line.replace('\n','')
+                data=data.split(',')
+                data=list(filter(None,data))
+                if len(data) > 1:
+                    wave.extend([float(data[0])])
+                    pdl_data.extend([float(data[1])])
+                    if error_c:
+                        pdl_dataE.extend([float(data[2])])
+        wave=np.array(wave)
+        pdl_data=np.array(pdl_data)
+        if error_c:
+            pdl_dataE=np.array(pdl_dataE)
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
+    elif input_format == 'ASCII':
+        ft=open(file1,'r')
+        wave=[]
+        pdl_data=[]
+        if error_c:
+            pdl_dataE=[]
+        for line in ft:
+            if not 'Wave' in line:
+                data=line.replace('\n','')
+                data=data.split(' ')
+                data=list(filter(None,data))
+                if len(data) > 1:
+                    wave.extend([float(data[0])])
+                    pdl_data.extend([float(data[1])])
+                    if error_c:
+                        pdl_dataE.extend([float(data[2])])
+        wave=np.array(wave)
+        pdl_data=np.array(pdl_data)
+        if error_c:
+            pdl_dataE=np.array(pdl_dataE)
+            if erft != 0:
+                pdl_dataE=pdl_dataE*flux_f*erft
+            else:
+                pdl_dataE=pdl_dataE*flux_f
+        return pdl_data,pdl_dataE,wave        
+    else:
+        print('Error: input_format not recognized')
+        print('Options are: TableFits, IrafFits, CSV, ASCII')
+        sys.exit()   
+
+def get_cubespectra(file1,file3,flux_f=1,erft=0):
+    try:
+        [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
+    except:
+        try:
+            [pdl_cube, hdr]=fits.getdata(file1, 'SCI', header=True)
+        except:
+            try:
+                [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
+            except:
+                print('Error: file '+file1+' with flux extention 0 is not found or not recognized')
+                sys.exit()
+    if error_c:
+        try:
+            try:
+                pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
+            except:
+                pdl_cubeE =fits.getdata(file1, 'ERR', header=False)
+        except:
+            try:
+                pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
+                pdl_cubeE=1.0/np.sqrt(pdl_cubeE)
+            except:
+                try:
+                    pdl_cubeE =fits.getdata(file1, 1, header=False)
+                except:
+                    print('Warnings: file '+file1+' with error extention 1 is not found or not recognized, reescale flux as error')
+                    if erft != 0:
+                        pdl_cubeE=pdl_cube*flux_f*erft
+                    else:
+                        print('Warnings: reescale flux by 10 percent as error')
+                        pdl_cubeE=pdl_cube*flux_f*0.1
+        if erft != 0:
+            pdl_cubeE=pdl_cubeE*flux_f*erft
+    nz,nx,ny=pdl_cube.shape
+    pdl_cube=pdl_cube*flux_f
+    if ptt.exists(file3):
+        mask =fits.getdata(file3, 0, header=False)
+        nxt,nyt=mask.shape
+        if nxt != nx and nyt != ny:
+            mask=np.zeros([nx,ny])
+            mask[:,:]=1
+    else:
+        mask=np.zeros([nx,ny])
+        mask[:,:]=1
+    crpix=hdr["CRPIX3"]
+    try:
+        cdelt=hdr["CD3_3"]
+    except:
+        cdelt=hdr["CDELT3"]
+    crval=hdr["CRVAL3"]
+    wave=crval+cdelt*(np.arange(nz)+1-crpix)
+    return pdl_cube,pdl_cubeE,mask,wave,hdr
+
+
 
 def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val0=0):
     ct=299792.458
