@@ -317,8 +317,6 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     yfi=yf*ny*facy
     fig = plt.figure(figsize=(xfi,yfi))
     ax1 = fig.add_axes([dx1, dy1+0.2*dy, dx, dy*0.8])
-    #fig = plt.figure(figsize=(7,5))
-    #ax1 = fig.add_subplot(1,1,1)
     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
@@ -362,7 +360,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     ax1.plot(wave_i,-fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     #plt.plot(wave_qsrt_mock,np.abs(spec_qsrt_mock-spec_mod)/spec_in*100,linestyle='-',color='blue' ,label='SDSS spec',lw=1.5,zorder=1)
-    ax1.plot([0,100000],[0,0],linestyle='--',color='black',lw=1)
+    ax1.plot(wave_i,wave_i*0,linestyle='--',color='black',lw=1)
     #ax.set_xlim(3700/(1+zt),10300/(1+zt))
     #ax.set_ylim(0,35)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
