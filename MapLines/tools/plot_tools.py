@@ -292,13 +292,37 @@ def plot_circle(ax,xpos,ypos,nx,ny,dpix,rad=2,color='black',name='1',dtex=0,dtey
     else:
         plt.text(yposf+dpix*0.5+dtey,xposf+dtex,name, fontsize=25,color=color,weight='bold')    
 
-def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
-    fig = plt.figure(figsize=(7,5))
-    ax1 = fig.add_subplot(1,1,1)
+def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,fontsize=14,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
+    
+
+    facy=1
+    facx=1
+    xf=7
+    yf=5
+    nx=1
+    ny=1
+    dx1=0.06/facx
+    dx2=0.02/facx
+    dy1=0.13/facy
+    dy2=0.03/facy
+    dx=(1.0-(dx1+dx2))/1.0
+    dy=(1.0-(dy1+dy2))/1.0
+    dx1=dx1/(1.0+(nx-1)*dx)
+    dx2=dx2/(1.0+(nx-1)*dx)
+    dy1=dy1/(1.0+(ny-1)*dy)
+    dy2=dy2/(1.0+(ny-1)*dy)
+    dx=(1.0-(dx1+dx2))/nx
+    dy=(1.0-(dy1+dy2))/ny
+    xfi=xf*nx*facx
+    yfi=yf*ny*facy
+    fig = plt.figure(figsize=(xfi,yfi))
+    ax1 = fig.add_axes([dx1, dy1+0.2*dy, dx, dy*0.8])
+    #fig = plt.figure(figsize=(7,5))
+    #ax1 = fig.add_subplot(1,1,1)
     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-    ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
+    #ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
     for namel in names0:
         if namel != 'None':
             indl=names0.index(namel)
@@ -317,13 +341,35 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')
     if feii:
         ax1.plot(wave_i,modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
-    fontsize=12
+    if len(names0) < 5:
+        fontsizeL=14
+    elif len(names0) < 10:
+        fontsizeL=12
+    else:
+        fontsizeL=10
     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
-    ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
-    ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
+    ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
+    ax1.set_ylabel(r'Flux [10$^{-16}$erg s$^{-1}$ cm$^{-2}$ $\rm{\AA}^{-1}$]',fontsize=fontsize)
+    ax1.tick_params(axis='both', which='major', labelsize=fontsize)
+    plt.setp( ax1.get_xticklabels(), visible=False)
+
     if labplot:
-        ax1.legend(fontsize=fontsize)
-    plt.tight_layout()
+        ax1.legend(fontsize=fontsizeL)
+    #plt.tight_layout()
+    
+    ax1 = fig.add_axes([dx1, dy1, dx, dy*0.2])
+    ax1.plot(wave_i,fluxt-model,linewidth=1,color='olive',label=r'Residual')
+    ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
+    ax1.plot(wave_i,-fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
+    #plt.plot(wave_qsrt_mock,np.abs(spec_qsrt_mock-spec_mod)/spec_in*100,linestyle='-',color='blue' ,label='SDSS spec',lw=1.5,zorder=1)
+    ax1.plot([0,100000],[0,0],linestyle='--',color='black',lw=1)
+    #ax.set_xlim(3700/(1+zt),10300/(1+zt))
+    #ax.set_ylim(0,35)
+    ax1.tick_params(axis='both', which='major', labelsize=fontsize)
+    ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
+    ax1.set_ylabel(r'$\Delta\ Flux\ [\%]$',fontsize=fontsize)
+
+
     fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out))
     plt.show()
 
