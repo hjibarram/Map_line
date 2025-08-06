@@ -304,7 +304,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     dx1=0.12/facx
     dx2=0.02/facx
     dy1=0.13/facy
-    dy2=0.13/facy
+    dy2=0.09/facy
     dx=(1.0-(dx1+dx2))/1.0
     dy=(1.0-(dy1+dy2))/1.0
     dx1=dx1/(1.0+(nx-1)*dx)
@@ -360,10 +360,10 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     #plt.plot(wave_qsrt_mock,np.abs(spec_qsrt_mock-spec_mod)/spec_in*100,linestyle='-',color='blue' ,label='SDSS spec',lw=1.5,zorder=1)
     ax1.plot(wave_i,wave_i*0,linestyle='--',color='black',lw=1)
     #ax.set_xlim(3700/(1+zt),10300/(1+zt))
-    ax1.set_ylim(-35,35)
+    ax1.set_ylim(-5,5)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
-    ax1.set_ylabel(r'$Res Flux [$\%$]',fontsize=fontsize)
+    ax1.set_ylabel(r'Res Flux [$\%$]',fontsize=10)
     fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out))
     plt.show()
 
