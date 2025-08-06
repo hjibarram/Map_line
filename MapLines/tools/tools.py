@@ -134,8 +134,108 @@ def read_config_file(file):
                 print(exc)
         return data
     except:
-        print('Config File not found')
+        print('Config File '+file+' not found')
         return None
+
+def get_priorsvalues(filename):
+    data_lines=read_config_file(filename)
+    if data_lines:
+        n_lines=len(data_lines['lines'])
+        pac=['AoN','dvoN','fwhmoN']
+        pacL=[r'$A_{N}$',r'$\Delta v_{N}$',r'$FWHM_{N}$']
+        pacH=['N_Amplitude','N_Velocity','N_FWHM']
+        waves0=[]
+        names0=[]
+        vals0=[]
+        vals=[]
+        valsL=[]
+        valsH=[]
+        fac0=[]
+        facN0=[]
+        velfac0=[]
+        velfacN0=[]
+        fwhfac0=[]
+        fwhfacN0=[]
+        for i in range(0, n_lines):
+            parameters=data_lines['lines'][i]
+            npar=len(parameters)
+            waves0.extend([parameters['wave']])
+            names0.extend([parameters['name']])
+            try:
+                facN0.extend([parameters['fac_Name']])
+                fac0.extend([parameters['fac']])
+                facp=True
+            except:
+                facN0.extend(['NoNe'])
+                fac0.extend([None])
+                facp=False
+            try:
+                velfacN0.extend([parameters['vel_Name']])
+                velfac0.extend([parameters['velF']])
+                velfacp=True
+            except:
+                velfacN0.extend(['NoNe'])
+                velfac0.extend([None])
+                velfacp=False    
+            try:
+                fwhfacN0.extend([parameters['fwh_Name']])
+                fwhfac0.extend([parameters['fwhF']])
+                fwhfacp=True
+            except:
+                fwhfacN0.extend(['NoNe'])
+                fwhfac0.extend([None])
+                fwhfacp=False    
+            inr=0    
+            for a in pac:
+                val_t=a.replace('N',str(i))
+                val_tL=pacL[inr].replace('N',names0[i])
+                val_tH=pacH[inr].replace('N',names0[i])
+                if 'AoN' in a:
+                    if facp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])
+                elif 'dvoN' in a:
+                    if velfacp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])        
+                elif 'fwhmoN' in a:
+                    if fwhfacp == False:
+                        vals.extend([val_t])
+                        valsL.extend([val_tL])
+                else:    
+                    vals.extend([val_t])
+                    valsL.extend([val_tL])
+                valsH.extend([val_tH])
+                vals0.extend([val_t])    
+                inr=inr+1
+        region=data_lines['continum'][0]['region']
+        wavec1=data_lines['continum'][0]['wave1']
+        wavec2=data_lines['continum'][0]['wave2']
+        valsp=data_lines['priors']
+
+        Inpvalues=[]
+        Infvalues=[]
+        Supvalues=[]
+        for valt in vals:
+            try:
+                Inpvalues.extend([valsp[valt]])
+            except:
+                print('The keyword '+valt+' is missing in the line config file')
+                sys.exit()
+            try:
+                Infvalues.extend([valsp[valt.replace('o','i')]])
+            except:
+                print('The keyword '+valt.replace('o','i')+' is missing in the line config file')
+                sys.exit()
+            try:
+                Supvalues.extend([valsp[valt.replace('o','s')]])
+            except:
+                print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
+                sys.exit()
+        return        
+    else:
+        print('No configuration line model file')
+        sys.exit()        
 
 def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val0=0):
     ct=299792.458

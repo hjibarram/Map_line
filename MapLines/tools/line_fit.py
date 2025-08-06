@@ -549,7 +549,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         model_Outflow=np.zeros([len(nw),nx,ny])
     if powlaw:
         model_Powerlaw=np.zeros([len(nw),nx,ny])
-
+    get_priorsvalues(config_lines)    
+    '''
     data_lines=tol.read_config_file(config_lines)
     if data_lines:
         n_lines=len(data_lines['lines'])
@@ -624,7 +625,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         wavec1=data_lines['continum'][0]['wave1']
         wavec2=data_lines['continum'][0]['wave2']
         valsp=data_lines['priors']
-
         Inpvalues=[]
         Infvalues=[]
         Supvalues=[]
@@ -647,6 +647,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     else:
         print('No configuration line model file')
         return
+    '''    
     model_Ind=np.zeros([len(nw),nx,ny,n_lines])    
 
     if cont:
