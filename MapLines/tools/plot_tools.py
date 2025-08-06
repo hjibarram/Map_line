@@ -304,7 +304,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     dx1=0.12/facx
     dx2=0.02/facx
     dy1=0.13/facy
-    dy2=0.08/facy
+    dy2=0.07/facy
     dx=(1.0-(dx1+dx2))/1.0
     dy=(1.0-(dy1+dy2))/1.0
     dx1=dx1/(1.0+(nx-1)*dx)
