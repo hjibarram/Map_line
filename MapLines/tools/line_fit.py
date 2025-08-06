@@ -561,7 +561,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         del h['CDELT3']    
     except:
         print('No vals')
-
     h.update()        
     hlist=fits.HDUList([h1])
     hlist.update_extend()

@@ -292,7 +292,7 @@ def plot_circle(ax,xpos,ypos,nx,ny,dpix,rad=2,color='black',name='1',dtex=0,dtey
     else:
         plt.text(yposf+dpix*0.5+dtey,xposf+dtex,name, fontsize=25,color=color,weight='bold')    
 
-def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,fontsize=14,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',res_norm=True,labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
+def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,errp=True,fontsize=14,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',res_norm=True,labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
     facy=1
     facx=1
     xf=7
@@ -354,8 +354,14 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1 = fig.add_axes([dx1, dy1, dx, dy*0.2])
     if res_norm:
         ax1.plot(wave_i,(fluxt-model)/fluxt*100,linewidth=1,color='olive',label=r'Residual')
+        if errp:
+            ax1.plot(wave_i,fluxtE/fluxt*100,linewidth=1,color='grey',label=r'$1\sigma$ Error')
+            ax1.plot(wave_i,-fluxtE/fluxt*100,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     else:
         ax1.plot(wave_i,(fluxt-model),linewidth=1,color='olive',label=r'Residual')
+        if errp:
+            ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
+            ax1.plot(wave_i,-fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     ax1.plot(wave_i,wave_i*0,linestyle='--',color='black',lw=1)
     if res_norm:
         ax1.set_ylim(-12,12)
