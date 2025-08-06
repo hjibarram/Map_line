@@ -7,16 +7,14 @@ import MapLines.tools.tools as tol
 import MapLines.tools.plot_tools as ptol
 import MapLines.tools.priors as pri
 from astropy.io import fits
-#from progressbar import ProgressBar
-from astropy.io import fits
 import os
 import os.path as ptt
 import sys
 from tqdm import tqdm
 #import corner 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,feii=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
         try:
@@ -152,6 +150,15 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
             model_param=np.zeros(n_lines*3+4+oft)
         else:
             model_param=np.zeros(n_lines*3+oft)
+    dataFe=None        
+    if powlaw:
+        if feii:
+            model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+            dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
+            dataFe=np.loadtxt(dirFe+'FeII.dat')
+        else:
+            model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+            dataFe=None        
     model_param[:]=np.nan    
 
     for i in range(0, 1):
@@ -272,67 +279,9 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
                 model_param[ind+2]=dvO_f
                 model_param[ind+3]=fwhmO_f
                 model_param[ind+4]=alphaO_f
-
-                    
             # Make plots
-            colors=['blue','red','purple','brown','pink']
-            fig = plt.figure(figsize=(7,5))
-            ax1 = fig.add_subplot(1,1,1)
-            ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
-            ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-            ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-            ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')    
-            for namel in names0:
-                if namel != 'None':
-                    indl=names0.index(namel)
-                    ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
-            if outflow:
-                ct1a=0
-                for namel in names0:
-                    if namel != 'None':
-                        indl=names0.index(namel)
-                        if ct1a == 0:
-                            ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
-                        else:
-                            ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
-                        ct1a=ct1a+1
-            fontsize=14
-            ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
-            ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
-            ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
-            ax1.legend(fontsize=fontsize)
-            plt.tight_layout()
-            fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
-            plt.show()
-
-            if skew:
-                labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
-            else:
-                if outflow:
-                    labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
-                else:
-                    labels2 = valsL
-            fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
-            fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-            fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
-                                   
-            med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
-                       
-            
-            fig = plt.figure(figsize=(6*1.5,3*1.5))
-            ax1 = fig.add_subplot(1,1,1)
-            #ax1.set_xlim(lA1,lA2)
-            ax1.plot(wave_i,fluxt,label='Input spectrum')
-            ax1.plot(wave_i,model,label='Highest Likelihood Model')
-            plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
-            plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
-            ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
-            ax1.legend(fontsize=14)
-            plt.tight_layout()
-            plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                
+            ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
             if verbose:    
-                #print Best fit parameters
                 print('Best fit parameters:')
                 linet=''
                 for itar in range(0, len(vals)):
@@ -344,8 +293,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
                         print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                     else:
                         print(linet)  
-                    
-               
     hli=[]
     hli.extend([fits.PrimaryHDU(model_all)])
     for myt in range(0,n_lines):
@@ -628,78 +575,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     model_param[ind+3,i,j]=Fso
                     model_param[ind+4,i,j]=Fdo
                     model_param[ind+5,i,j]=Fao
-                
-
                 if plot_f:
-                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
-                '''    
-                    fig = plt.figure(figsize=(7,5))
-                    ax1 = fig.add_subplot(1,1,1)
-                    ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
-                    ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-                    ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-                    ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
-                    for namel in names0:
-                        if namel != 'None':
-                            indl=names0.index(namel)
-                            ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
-                    if outflow:
-                        ct1a=0
-                        for namel in names0:
-                            if namel != 'None':
-                                indl=names0.index(namel)
-                                if ct1a == 0:
-                                    ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
-                                else:
-                                    ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
-                                ct1a=ct1a+1
-                    if powlaw:
-                        ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')
-                    if feii:
-                        ax1.plot(wave_i,modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
-                    fontsize=12
-                    ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
-                    ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
-                    ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
-                    if labplot:
-                        ax1.legend(fontsize=fontsize)
-                    plt.tight_layout()
-                    fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
-                    plt.show()
-
-
-                    if skew:
-                        labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
-                    else:
-                        if outflow:
-                            labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
-                        else:
-                            labels2 = valsL
-                    if powlaw:
-                        if feii:
-                            labels2 = [*valsL,r'$P_1$',r'$P_2$',r'$\sigma_{FeII}$',r'$\Delta\lambda_{FeII}$',r'$A_{FeII}$']
-                        else:
-                            labels2 = [*valsL,r'$P_1$',r'$P_2$']
-                               
-                    fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
-                    fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-                    fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
-                
-                    
-                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow, powlaw=powlaw, feii=feii, data=dataFe)
-                    
-                    fig = plt.figure(figsize=(6*1.5,3*1.5))
-                    ax1 = fig.add_subplot(1,1,1)
-                    #ax1.set_xlim(lA1,lA2)
-                    ax1.plot(wave_i,fluxt,label='Input spectrum')
-                    ax1.plot(wave_i,model,label='Highest Likelihood Model')
-                    plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
-                    plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
-                    ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
-                    ax1.legend(fontsize=14)
-                    plt.tight_layout()
-                    plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                '''
+                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)    
                 if pgr_bar == False:  
                     linet=''
                     for itar in range(0, len(vals)):

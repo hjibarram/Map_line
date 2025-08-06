@@ -11,9 +11,9 @@ from astropy import units as u
 from astropy.wcs.utils import skycoord_to_pixel
 from astropy.wcs import WCS
 from astropy.io import fits
-import corner 
 import MapLines.tools.tools as tools
 import MapLines.tools.mcmc as mcm
+import corner
 
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
