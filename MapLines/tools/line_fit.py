@@ -4,6 +4,7 @@ import MapLines
 import MapLines.tools.models as mod
 import MapLines.tools.mcmc as mcm
 import MapLines.tools.tools as tol
+import MapLines.tools.plot_tools as ptol
 import MapLines.tools.priors as pri
 from astropy.io import fits
 #from progressbar import ProgressBar
@@ -12,7 +13,7 @@ import os
 import os.path as ptt
 import sys
 from tqdm import tqdm
-import corner 
+#import corner 
 import matplotlib.pyplot as plt
 
 def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
@@ -630,6 +631,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 
 
                 if plot_f:
+                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
+                '''    
                     fig = plt.figure(figsize=(7,5))
                     ax1 = fig.add_subplot(1,1,1)
                     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
@@ -696,7 +699,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     ax1.legend(fontsize=14)
                     plt.tight_layout()
                     plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                
+                '''
                 if pgr_bar == False:  
                     linet=''
                     for itar in range(0, len(vals)):
