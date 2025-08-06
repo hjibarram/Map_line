@@ -241,48 +241,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
 
 def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True):
     pdl_cube,pdl_cubeE,mask,wave,hdr=tol.get_cubespectra(file1,file3,flux_f=flux_f,erft=erft,error_c=error_c)
-    '''
-    try:
-        [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
-    except:
-        try:
-            [pdl_cube, hdr]=fits.getdata(file1, 'SCI', header=True)
-        except:
-            [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
-    if error_c:
-        try:
-            try:
-                pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
-            except:
-                pdl_cubeE =fits.getdata(file1, 'ERR', header=False)
-        except:
-            try:
-                pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
-                pdl_cubeE=1.0/np.sqrt(pdl_cubeE)
-            except:
-                pdl_cubeE =fits.getdata(file1, 1, header=False)    
-        if erft != 0:
-            pdl_cubeE=pdl_cubeE*flux_f*erft
-    nz,nx,ny=pdl_cube.shape
-    pdl_cube=pdl_cube*flux_f
-    if ptt.exists(file3):
-        mask =fits.getdata(file3, 0, header=False)
-        nxt,nyt=mask.shape
-        if nxt != nx and nyt != ny:
-            mask=np.zeros([nx,ny])
-            mask[:,:]=1
-    else:
-        mask=np.zeros([nx,ny])
-        mask[:,:]=1
-    crpix=hdr["CRPIX3"]
-    try:
-        cdelt=hdr["CD3_3"]
-    except:
-        cdelt=hdr["CDELT3"]
-    crval=hdr["CRVAL3"]
-    wave=crval+cdelt*(np.arange(nz)+1-crpix)
-    '''
-
     nz,nx,ny=pdl_cube.shape
     wave_f=wave/(1+z)
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
@@ -322,8 +280,6 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
             model_param=np.zeros([n_lines*3+2+oft,nx,ny])
             dataFe=None
     model_param[:,:,:]=np.nan    
-
-    
     if pgr_bar:
         pbar=tqdm(total=nx*ny)
     for i in range(0, nx):
