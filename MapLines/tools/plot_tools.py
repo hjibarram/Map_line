@@ -301,10 +301,10 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     yf=5
     nx=1
     ny=1
-    dx1=0.06/facx
+    dx1=0.12/facx
     dx2=0.02/facx
     dy1=0.13/facy
-    dy2=0.03/facy
+    dy2=0.13/facy
     dx=(1.0-(dx1+dx2))/1.0
     dy=(1.0-(dy1+dy2))/1.0
     dx1=dx1/(1.0+(nx-1)*dx)
@@ -350,11 +350,9 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.set_ylabel(r'Flux [10$^{-16}$erg s$^{-1}$ cm$^{-2}$ $\rm{\AA}^{-1}$]',fontsize=fontsize)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
     plt.setp( ax1.get_xticklabels(), visible=False)
-
     if labplot:
         ax1.legend(fontsize=fontsizeL)
     #plt.tight_layout()
-    
     ax1 = fig.add_axes([dx1, dy1, dx, dy*0.2])
     ax1.plot(wave_i,fluxt-model,linewidth=1,color='olive',label=r'Residual')
     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
@@ -366,8 +364,6 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
     ax1.set_ylabel(r'$\Delta\ Flux\ [\%]$',fontsize=fontsize)
-
-
     fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out))
     plt.show()
 
