@@ -292,9 +292,7 @@ def plot_circle(ax,xpos,ypos,nx,ny,dpix,rad=2,color='black',name='1',dtex=0,dtey
     else:
         plt.text(yposf+dpix*0.5+dtey,xposf+dtex,name, fontsize=25,color=color,weight='bold')    
 
-def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,fontsize=14,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
-    
-
+def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,fontsize=14,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',res_norm=True,labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
     facy=1
     facx=1
     xf=7
@@ -354,13 +352,13 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         ax1.legend(fontsize=fontsizeL)
     #plt.tight_layout()
     ax1 = fig.add_axes([dx1, dy1, dx, dy*0.2])
-    ax1.plot(wave_i,(fluxt-model)/fluxt*100,linewidth=1,color='olive',label=r'Residual')
-    #ax1.plot(wave_i,fluxtE/fluxt*100,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-    #ax1.plot(wave_i,-fluxtE/fluxt*100,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-    #plt.plot(wave_qsrt_mock,np.abs(spec_qsrt_mock-spec_mod)/spec_in*100,linestyle='-',color='blue' ,label='SDSS spec',lw=1.5,zorder=1)
+    if res_norm:
+        ax1.plot(wave_i,(fluxt-model)/fluxt*100,linewidth=1,color='olive',label=r'Residual')
+    else:
+        ax1.plot(wave_i,(fluxt-model),linewidth=1,color='olive',label=r'Residual')
     ax1.plot(wave_i,wave_i*0,linestyle='--',color='black',lw=1)
-    #ax.set_xlim(3700/(1+zt),10300/(1+zt))
-    ax1.set_ylim(-10,10)
+    if res_norm:
+        ax1.set_ylim(-12,12)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
     ax1.set_ylabel(r'Res [$\%$]',fontsize=12)

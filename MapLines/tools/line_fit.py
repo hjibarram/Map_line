@@ -11,10 +11,8 @@ import os
 import os.path as ptt
 import sys
 from tqdm import tqdm
-#import corner 
-#import matplotlib.pyplot as plt
 
-def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,feii=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     
     if input_format == 'TableFits':
         try:
@@ -280,7 +278,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
                 model_param[ind+3]=fwhmO_f
                 model_param[ind+4]=alphaO_f
             # Make plots
-            ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
+            ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,res_norm=res_norm,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
             if verbose:    
                 print('Best fit parameters:')
                 linet=''
@@ -350,7 +348,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -576,7 +574,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     model_param[ind+4,i,j]=Fdo
                     model_param[ind+5,i,j]=Fao
                 if plot_f:
-                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)    
+                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm)    
                 if pgr_bar == False:  
                     linet=''
                     for itar in range(0, len(vals)):
