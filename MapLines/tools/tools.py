@@ -232,7 +232,7 @@ def get_priorsvalues(filename):
             except:
                 print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
                 sys.exit()
-        return        
+        return  valsp,n_lines#,waves0,names0,vals0,vals,valsL,valsH,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,Inpvalues,Infvalues,Supvalues,region,wavec1,wavec2
     else:
         print('No configuration line model file')
         sys.exit()        
