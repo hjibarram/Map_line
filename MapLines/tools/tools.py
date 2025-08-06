@@ -348,7 +348,7 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
         print('Options are: TableFits, IrafFits, CSV, ASCII')
         sys.exit()   
 
-def get_cubespectra(file1,file3,flux_f=1,erft=0):
+def get_cubespectra(file1,file3,flux_f=1,erft=0,error_c=True):
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
