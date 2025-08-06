@@ -361,7 +361,10 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         ax1.set_ylim(-12,12)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
-    ax1.set_ylabel(r'Res [$\%$]',fontsize=12)
+    if res_norm:
+        ax1.set_ylabel(r'Res [$\%$]',fontsize=12)
+    else:
+        ax1.set_ylabel(r'Res',fontsize=12)
     fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out))
     plt.show()
 
