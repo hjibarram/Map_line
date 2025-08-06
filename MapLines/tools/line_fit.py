@@ -284,14 +284,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     '''
 
     nz,nx,ny=pdl_cube.shape
+    wave_f=wave/(1+z)
+    nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
+    wave_i=wave_f[nw]
     hdr["CRVAL3"]=wave_i[0]
     try:
         hdr["CD3_3"]=hdr["CD3_3"]/(1+z)
     except:
         hdr["CDELT3"]=hdr["CDELT3"]/(1+z)
-    wave_f=wave/(1+z)
-    nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
-    wave_i=wave_f[nw]
     model_all=np.zeros([len(nw),nx,ny])
     model_Inp=np.zeros([len(nw),nx,ny])
     model_InpE=np.zeros([len(nw),nx,ny])
