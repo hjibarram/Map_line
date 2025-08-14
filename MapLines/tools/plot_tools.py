@@ -350,7 +350,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     elif len(names0) < 15:
         fontsizeL=10
     else:
-        fontsizeL=8
+        fontsizeL=6
     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
     ax1.set_ylabel(r'Flux [10$^{-16}$erg s$^{-1}$ cm$^{-2}$ $\rm{\AA}^{-1}$]',fontsize=fontsize)
