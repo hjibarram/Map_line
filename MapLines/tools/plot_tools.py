@@ -318,11 +318,17 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
     ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
+    if powlaw:
+        contm=modsI[n_lines]
+    else:
+        contm=0
+    if feii:
+        contm=contm+modsI[n_lines+1]
     #ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
     for namel in names0:
         if namel != 'None':
             indl=names0.index(namel)
-            ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
+            ax1.plot(wave_i,contm+modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
     if outflow:
         ct1a=0
         for namel in names0:
