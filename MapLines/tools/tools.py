@@ -382,6 +382,8 @@ def get_cubespectra(file1,file3,flux_f=1,erft=0,error_c=True):
                         pdl_cubeE=pdl_cube*flux_f*0.1
         if erft != 0:
             pdl_cubeE=pdl_cubeE*flux_f*erft
+    else:
+        pdl_cubeE=None
     nz,nx,ny=pdl_cube.shape
     pdl_cube=pdl_cube*flux_f
     if ptt.exists(file3):
