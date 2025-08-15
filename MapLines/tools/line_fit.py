@@ -297,7 +297,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 if error_c:
                     fluxtE=pdl_cubeE[nw,i,j]
                 else:
-                	fluxtE=tol.step_vect(fluxt,sp=50)
+                	fluxtE=tol.step_vect(fluxt,sp=100)#50)
                 if cont:
                     #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
