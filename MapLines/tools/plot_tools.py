@@ -14,6 +14,7 @@ from astropy.io import fits
 import MapLines.tools.tools as tools
 import MapLines.tools.mcmc as mcm
 import corner
+import cmasher as cmr
 
 
 def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
