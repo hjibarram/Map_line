@@ -770,6 +770,262 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
     return value
 
 
+def extract_segment_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
+    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    nx,ny=flux.shape
+    wcs = WCS(hdr)
+    wcs=wcs.celestial
+    slides=[]
+    for i in range(0, len(ra)):
+        raT=ra[i]
+        decT=dec[i]
+        lT=np.zeros([len(raT)-1],dtype=int)
+        slidesT=[]
+        ltf=0
+        for j in range(0, len(raT)-1):
+            sky1=SkyCoord(raT[j]+' '+decT[j],frame=FK5, unit=(u.hourangle,u.deg))
+            sky2=SkyCoord(raT[j+1]+' '+decT[j+1],frame=FK5, unit=(u.hourangle,u.deg))
+            ypos1,xpos1=skycoord_to_pixel(sky1,wcs)
+            ypos2,xpos2=skycoord_to_pixel(sky2,wcs)
+            rt=np.sqrt((xpos2-xpos1)**2.0+(ypos2-ypos1)**2.0)
+            cosT=(ypos2-ypos1)/rt
+            sinT=(xpos2-xpos1)/rt
+            lt=int(np.round(rt))+1
+            lT[j]=lt
+            slideT=np.zeros([lt])
+            for k in range(0, lt):
+                yt=int(np.round(ypos1+k*cosT))
+                xt=int(np.round(xpos1+k*sinT))
+                flux1t=flux[xt,yt]
+                slideT[k]=flux1t
+            slidesT.extend([slideT])
+            ltf=lt+ltf 
+        slide=np.zeros([ltf])
+        ct=0
+        for j in range(0, len(raT)-1):
+            sldT=slidesT[j]
+            for k in range(0, lT[j]):
+                slide[ct]=sldT[k]     
+                ct=ct+1
+        slides.extend([slide])    
+    return slides    
+
+def extract_segment(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
+    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
+    nz,nx,ny=pdl_cube.shape
+    crpix=hdr["CRPIX3"]
+    try:
+        cdelt=hdr["CD3_3"]
+    except:
+        cdelt=hdr["CDELT3"]
+    crval=hdr["CRVAL3"]
+    
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            dx=hdr['CDELT1']*3600.
+            dy=hdr['CDELT2']*3600.
+    dpix=(np.abs(dx)+np.abs(dy))/2.0  
+    
+    wave=(crval+cdelt*(np.arange(nz)+1-crpix))#*1e4 
+    
+    spl=299792458.0
+    wave=wave/(1+z)
+    nw=np.where((wave >= lA1) & (wave <= lA2))[0]
+    wave_f=wave[nw]
+    wcs = WCS(hdr)
+    wcs=wcs.celestial
+    slides=[]
+    vals=[]
+    for i in range(0, len(ra)):
+        raT=ra[i]
+        decT=dec[i]
+        cosT=np.zeros([len(raT)-1])
+        sinT=np.zeros([len(raT)-1])
+        rtf=np.zeros([len(raT)-1])
+        xposT=np.zeros([len(raT)-1])
+        yposT=np.zeros([len(raT)-1])
+        lT=np.zeros([len(raT)-1],dtype=int)
+        slidesT=[]
+        ltf=0
+        for j in range(0, len(raT)-1):
+            sky1=SkyCoord(raT[j]+' '+decT[j],frame=FK5, unit=(u.hourangle,u.deg))
+            sky2=SkyCoord(raT[j+1]+' '+decT[j+1],frame=FK5, unit=(u.hourangle,u.deg))
+            ypos1,xpos1=skycoord_to_pixel(sky1,wcs)
+            ypos2,xpos2=skycoord_to_pixel(sky2,wcs)
+            rt=np.sqrt((xpos2-xpos1)**2.0+(ypos2-ypos1)**2.0)
+            cosT[j]=(ypos2-ypos1)/rt
+            sinT[j]=(xpos2-xpos1)/rt
+            xposT[j]=xpos1
+            yposT[j]=ypos1
+            rtf[j]=rt*dpix
+            lt=int(np.round(rt))+1
+            lT[j]=lt
+            slideT=np.zeros([lt,len(nw)])
+            for k in range(0, lt):
+                yt=int(np.round(ypos1+k*cosT[j]))
+                xt=int(np.round(xpos1+k*sinT[j]))
+                flux1t=pdl_cube[nw,xt,yt]
+                #flux1t=flux1t*spl/(wave[nw]*(1+z)*1e-10)**2.*1e-10*1e-23*2.35040007004737e-13/1e-16/1e3
+                if cosmetic:
+                    flux1t=conv(flux1t,ke=sigT)
+                slideT[k,:]=flux1t
+            slidesT.extend([slideT])
+            ltf=lt+ltf 
+        slide=np.zeros([ltf,len(nw)])
+        ct=0
+        for j in range(0, len(raT)-1):
+            sldT=slidesT[j]
+            for k in range(0, lT[j]):
+                slide[ct,:]=sldT[k,:]     
+                ct=ct+1
+        #out={'Slide':slide,'Lt':lt}
+        slides.extend([slide])
+        vals.extend([[cosT,sinT,rtf,yposT,xposT]])
+        if plot_t:
+            cm=plt.cm.get_cmap('jet')    
+            fig, ax = plt.subplots(figsize=(6.8*1.1,5.5*1.2))
+            ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wave_f[0],wave_f[len(nw)-1],0,ltf*dpix],aspect='auto')
+            plt.xlim(wave_f[0],wave_f[len(nw)-1])
+            plt.ylim(0,ltf*dpix) 
+            plt.show()
+    return slides,wave_f,dpix,vals,hdr,colr,namet
+
+
+def extract_line_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
+    ra1,dec1,ra2,dec2,colr,namet=get_line(reg_dir=reg_dir,reg_name=reg_name)
+    nx,ny=flux.shape
+    wcs = WCS(hdr)
+    wcs=wcs.celestial
+    slides=[]
+    for i in range(0, len(ra1)):
+        sky1=SkyCoord(ra1[i]+' '+dec1[i],frame=FK5, unit=(u.hourangle,u.deg))
+        sky2=SkyCoord(ra2[i]+' '+dec2[i],frame=FK5, unit=(u.hourangle,u.deg))
+        ra_deg=sky1.ra.deg
+        dec_deg=sky1.dec.deg
+        ypos1,xpos1=skycoord_to_pixel(sky1,wcs)
+        ypos2,xpos2=skycoord_to_pixel(sky2,wcs)
+        rt=np.sqrt((xpos2-xpos1)**2.0+(ypos2-ypos1)**2.0)
+        cosT=(ypos2-ypos1)/rt
+        sinT=(xpos2-xpos1)/rt
+        rtf=rt*dpix
+        lt=int(np.round(rt))+1
+        slide=np.zeros([lt])
+        for j in range(0, lt):
+            yt=int(np.round(ypos1+j*cosT))
+            xt=int(np.round(xpos1+j*sinT))
+            flux1t=flux[xt,yt]
+            slide[j]=flux1t
+        slides.extend([slide])
+    return slides
+
+def extract_line(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
+    ra1,dec1,ra2,dec2,colr,namet=get_line(reg_dir=reg_dir,reg_name=reg_name)
+    #print(ra1[0])
+    [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
+    nz,nx,ny=pdl_cube.shape
+    crpix=hdr["CRPIX3"]
+    try:
+        cdelt=hdr["CD3_3"]
+    except:
+        cdelt=hdr["CDELT3"]
+    crval=hdr["CRVAL3"]
+    
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            dx=hdr['CDELT1']*3600.
+            dy=hdr['CDELT2']*3600.
+    dpix=(np.abs(dx)+np.abs(dy))/2.0  
+    
+    wave=crval+cdelt*(np.arange(nz)+1-crpix) 
+    wave=wave/(1+z)
+    nw=np.where((wave >= lA1) & (wave <= lA2))[0]
+    wave_f=wave[nw]
+    wcs = WCS(hdr)
+    wcs=wcs.celestial
+    slides=[]
+    vals=[]
+    for i in range(0, len(ra1)):
+        sky1=SkyCoord(ra1[i]+' '+dec1[i],frame=FK5, unit=(u.hourangle,u.deg))
+        sky2=SkyCoord(ra2[i]+' '+dec2[i],frame=FK5, unit=(u.hourangle,u.deg))
+        ra_deg=sky1.ra.deg
+        dec_deg=sky1.dec.deg
+        #sky00=SkyCoord(ra1,dec1,frame=FK5, unit=(u.deg,u.deg))
+        ypos1,xpos1=skycoord_to_pixel(sky1,wcs)
+        ypos2,xpos2=skycoord_to_pixel(sky2,wcs)
+        rt=np.sqrt((xpos2-xpos1)**2.0+(ypos2-ypos1)**2.0)
+        cosT=(ypos2-ypos1)/rt
+        sinT=(xpos2-xpos1)/rt
+        rtf=rt*dpix
+        lt=int(np.round(rt))+1
+        slide=np.zeros([lt,len(nw)])
+        for j in range(0, lt):
+            yt=int(np.round(ypos1+j*cosT))
+            xt=int(np.round(xpos1+j*sinT))
+            flux1t=pdl_cube[nw,xt,yt]
+            if cosmetic:
+                flux1t=conv(flux1t,ke=sigT)
+            slide[j,:]=flux1t
+        #out={'Slide':slide,'Lt':lt}
+        slides.extend([slide])
+        vals.extend([[cosT,sinT,rtf,ypos1,xpos1]])
+        if plot_t:
+            cm=plt.cm.get_cmap('jet')    
+            fig, ax = plt.subplots(figsize=(6.8*1.1,5.5*1.2))
+            ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wave_f[0],wave_f[len(nw)-1],0,lt*dpix],aspect='auto')
+            plt.xlim(wave_f[0],wave_f[len(nw)-1])
+            plt.ylim(0,lt*dpix) 
+            plt.show()
+    return slides,wave_f,dpix,vals,hdr
+
+
+def get_line(reg_dir='./',reg_name='test.reg'):
+    ra1=[]
+    dec1=[]
+    ra2=[]
+    dec2=[]
+    colr=[]
+    namet=[]
+    f=open(reg_dir+reg_name,'r')
+    ct=1
+    for line in f:
+        if not 'Region' in line and not 'fk5' in line and not 'global' in line:
+            if 'line' in line:
+                data=line.replace('\n','').replace('line(','').replace(') # line=0 0 color=',' , ').replace(' width=',' , ').replace(' text={',' , ').replace('}',' ')
+                data=data.split(',')
+                data=list(filter(None,data))
+                #print(data)
+                ra1.extend([data[0]])
+                dec1.extend([data[1]])
+                ra2.extend([data[2]])
+                dec2.extend([data[3]])
+                colr.extend([data[4].replace(' ','')])
+                try:
+                    namet.extend([data[5].replace(' ','')])
+                except:
+                    namet.extend([str(int(ct))])
+            ct=ct+1
+    ra1=np.array(ra1)
+    dec1=np.array(dec1)
+    ra2=np.array(ra2)
+    dec2=np.array(dec2)
+    colr=np.array(colr)
+    namet=np.array(namet)
+    return ra1,dec1,ra2,dec2,colr,namet
+
+
 def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5,save=False,path='',name='BPT_map',hdr=None):
     nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
     nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & ((oiiihb-0.61/(niiha-0.05)-1.3) > 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#COMP

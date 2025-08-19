@@ -15,6 +15,177 @@ import MapLines.tools.tools as tools
 import MapLines.tools.mcmc as mcm
 import corner
 
+
+def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+#def plot_final(titf,vals_map,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+    
+    #file0='../data/J102700+174900_Gas.fits.gz' 
+    #slides,wavet,dpix,vals,hdr=extract_line(file0,reg_dir='../reg/',reg_name='paths_J1027.reg',z=0.06662,lA1=lA1,lA2=lA2,sigT=2,cosmetic=True)
+    #pix=dpix
+    slides,wavet,dpix,vals,hdr,colr,namet=tools.extract_segment(file0,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True)
+    pix=dpix
+    
+    if facy == -1:
+        facy=facx
+    dx1=av[0]/facx
+    dx2=av[1]/facx
+    dy1=av[2]/facy
+    dy2=av[3]/facy
+    dx=(1.0-(dx1+dx2))/float(1.0)
+    dy=(1.0-(dy1+dy2))/float(1.0)
+    dx1=dx1/(1.0+(nx-1)*dx)
+    dx2=dx2/(1.0+(nx-1)*dx)
+    dy1=dy1/(1.0+(ny-1)*dy)
+    dy2=dy2/(1.0+(ny-1)*dy)
+    dx=(1.0-(dx1+dx2))/float(nx)
+    dy=(1.0-(dy1+dy2))/float(ny)
+    xfi=6*nx*facx*facs#6
+    yfi=6*ny*facy#5.5
+    fig = plt.figure(figsize=(xfi,yfi))
+    dyt=0.85
+    ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(2.0-dyt)])  
+    
+    flux,vmax,vmin=vals_map
+    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit='Velocity shift',lab='[km\ s^{-1}]')
+    nxt,nyt=flux.shape
+    slides_v=tools.extract_segment_val(flux,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
+    plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
+    
+    #for i in range(0, len(vals)):
+    #    cosT,sinT,rtf,ytf,xtf=vals[i]
+    #    tp=np.arange(0,100)/99.*rtf/pix
+    #    yt=(ytf+cosT*tp-nyt/2.+1)*pix
+    #    xt=(xtf+sinT*tp-nxt/2.+1)*pix
+    #    plt.plot(yt,xt,lw=10,color="green")
+    lwt=5
+    for i in range(0, len(vals)):
+        cosT,sinT,rtf,ytf,xtf=vals[i]
+        for j in range(0, len(cosT)):
+            tp=np.arange(0,100)/99.*rtf[j]/pix
+            yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
+            xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
+            plt.plot(yt,xt,lw=lwt,color=colr[i])
+        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=lwt,head_width=0.25,zorder=2)    
+        
+    
+    Lnii2=6585.278
+    LnrHa=6564.632
+    Lnii1=6549.859
+    lev=np.sqrt(np.arange(0.0,10.0,1.5)+0.008)/np.sqrt(10.008)
+    
+    ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*2./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
+    slide=slides[0]
+    lt,nw=slide.shape
+    slide=slide/np.nanmax(slide)
+    cm='cmr.amber'#plt.cm.get_cmap('jet')   
+    ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
+    plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
+    plt.plot([0,10000],[0,0],lw=5,color='white')
+    plt.plot([Lnii2,Lnii2],[0,lt*pix],lw=5,ls='--',color='blue')
+    plt.plot([Lnii1,Lnii1],[0,lt*pix],lw=5,ls='--',color='blue')
+    plt.plot([LnrHa,LnrHa],[0,lt*pix],lw=5,ls='--',color='blue')
+    plt.xlim(wavet[0],wavet[nw-1])
+    plt.ylim(0,lt*pix)
+    plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
+    ax.set_xlabel('').set_visible(False)
+    plt.setp( ax.get_xticklabels(), visible=False)
+    plt.text(0.05,0.35,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
+    
+    
+    ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*1./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
+    slide=slides[1]
+    lt,nw=slide.shape
+    slide=slide/np.nanmax(slide)
+    cm='cmr.amber'#plt.cm.get_cmap('jet')    
+    ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
+    plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
+    plt.plot([0,10000],[0,0],lw=5,color='white')
+    plt.plot([0,10000],[lt*pix,lt*pix],lw=5,color='white')
+    plt.plot([Lnii2,Lnii2],[0,lt*pix],lw=5,ls='--',color='blue')
+    plt.plot([Lnii1,Lnii1],[0,lt*pix],lw=5,ls='--',color='blue')
+    plt.plot([LnrHa,LnrHa],[0,lt*pix],lw=5,ls='--',color='blue')
+    plt.xlim(wavet[0],wavet[nw-1])
+    plt.ylim(0.01,lt*pix)
+    plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
+    ax.set_xlabel('').set_visible(False)
+    plt.setp( ax.get_xticklabels(), visible=False)
+    plt.text(0.05,0.8,namet[1],fontsize=20,transform=ax.transAxes,color=colr[1],weight='bold')
+    dtp=-5
+    x_la_t1=Lnii1+dtp
+    y_la_t1=lt*pix*0.8
+    plt.text(x_la_t1, y_la_t1, r'$[NII]$' , fontsize=18, va='center',color='white',weight='bold')#6549$
+    x_la_t1=Lnii2+dtp
+    y_la_t1=lt*pix*0.8
+    plt.text(x_la_t1, y_la_t1, r'$[NII]$' , fontsize=18, va='center',color='white',weight='bold')#6585$
+    x_la_t1=LnrHa+dtp-2
+    y_la_t1=lt*pix*0.8
+    plt.text(x_la_t1, y_la_t1, r'$H_{\alpha}$' , fontsize=18, va='center',color='white',weight='bold')
+    
+    dxf=0.0#1.6
+    ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*0./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
+    slide=slides[2]
+    lt,nw=slide.shape
+    slide=slide/np.nanmax(slide)
+    cm='cmr.amber'#plt.cm.get_cmap('jet')    
+    ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],-dxf,lt*pix-dxf],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
+    plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],-dxf,lt*pix-dxf],interpolation='bicubic')
+    plt.plot([0,10000],[lt*pix-dxf,lt*pix-dxf],lw=5,color='white')
+    plt.plot([Lnii2,Lnii2],[-10,lt*pix],lw=5,ls='--',color='blue')
+    plt.plot([Lnii1,Lnii1],[-10,lt*pix],lw=5,ls='--',color='blue')
+    plt.plot([LnrHa,LnrHa],[-10,lt*pix],lw=5,ls='--',color='blue')
+    plt.xlim(wavet[0],wavet[nw-1])
+    plt.ylim(-dxf,lt*pix-dxf)
+    plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
+    plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=18)
+    plt.text(0.05,0.8,namet[2],fontsize=20,transform=ax.transAxes,color=colr[2],weight='bold')
+    
+    ax = fig.add_axes([dx1+pro1[2]*dx*2.0*0.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
+    
+    vel_vec=slides_v[0]
+    xtp=np.arange(0, len(vel_vec))*pix
+    plt.plot(xtp,vel_vec,lw=4,color=colr[0])
+    plt.scatter(xtp,vel_vec,s=63,color=colr[0])
+    plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
+    plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
+    plt.xlim(0.0,(len(vel_vec)-1)*pix)
+    plt.text(0.8,0.8,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold') 
+    
+    ax = fig.add_axes([dx1+pro1[1]*dx*2.0*1.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
+    
+    vel_vec=slides_v[1]
+    xtp=np.arange(0, len(vel_vec))*pix
+    plt.plot(xtp,vel_vec,lw=4,color=colr[1])
+    plt.scatter(xtp,vel_vec,s=63,color=colr[1])
+    plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
+    plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
+    #plt.ylim(-150,0.0)
+    plt.xlim(0.0,(len(vel_vec)-1)*pix)
+    plt.text(0.8,0.8,namet[1],fontsize=20,transform=ax.transAxes,color=colr[1],weight='bold')  
+    
+    ax = fig.add_axes([dx1+pro1[1]*dx*2.0*2.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
+    
+    vel_vec=slides_v[2]
+    xtp=np.arange(0, len(vel_vec))*pix-dxf
+    plt.plot(xtp,vel_vec,lw=4,color=colr[2])
+    plt.scatter(xtp,vel_vec,s=63,color=colr[2])
+    plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
+    plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
+    plt.xlim(-dxf,(len(vel_vec)-1)*pix-dxf)
+    plt.text(0.2,0.8,namet[2],fontsize=20,transform=ax.transAxes,color=colr[2],weight='bold')
+    #vo,ro,vc,k=-45,5.2,100,1
+    #popt, pcov = curve_fit(vmax_func, xtp, vel_vec, p0=[vo, ro, vc, k])
+    #perr = np.sqrt(np.diag(pcov))
+    #print('vo=',popt[0],'+-',perr[0],'ro=',popt[1],'+-',perr[1],'vc=',popt[2],'+-',perr[2],'k=',popt[3],'+-',perr[3],'gm=1') 
+    #print('V_max=',vmax_func(1000+popt[0],popt[0],popt[1],popt[2],popt[3]))
+    #yfit=vmax_func(xtp,popt[0],popt[1],popt[2],popt[3]) 
+    #plt.plot(xtp,yfit,color='black',lw=3)
+    if savef:        
+        plt.savefig(dir+'/'+titf+'.pdf')
+    else:
+        plt.show()
+    #plt.close()
+
+
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
