@@ -62,12 +62,13 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     #lwt=5
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
+        hwith=widt[i]/5.0*0.25
         for j in range(0, len(cosT)):
             tp=np.arange(0,100)/99.*rtf[j]/pix
             yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
             xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
             plt.plot(yt,xt,lw=widt[i],color=colr[i])
-        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=0.25,zorder=2)    
+        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=hwith,zorder=2)    
         
     
     Lnii2=6585.278
