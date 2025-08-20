@@ -68,8 +68,10 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     LnrHa=6564.632
     Lnii1=6549.859
     lev=np.sqrt(np.arange(0.0,10.0,1.5)+0.008)/np.sqrt(10.008)
-    print(len(slides))
-    ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*2./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
+    nsl=len(slides)
+    for i in range(0, nls):
+        ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(2.0-dyt), dx, dy/(nls)*(2.0-dyt)])
+        #ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*2./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
     slide=slides[0]
     lt,nw=slide.shape
     slide=slide/np.nanmax(slide)
@@ -87,7 +89,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     plt.setp( ax.get_xticklabels(), visible=False)
     plt.text(0.05,0.35,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
     
-    
+    '''
     ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*1./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
     slide=slides[1]
     lt,nw=slide.shape
@@ -134,6 +136,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
     plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=18)
     plt.text(0.05,0.8,namet[2],fontsize=20,transform=ax.transAxes,color=colr[2],weight='bold')
+    '''
     
     ax = fig.add_axes([dx1+pro1[2]*dx*2.0*0.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
     
