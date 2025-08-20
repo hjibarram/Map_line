@@ -78,11 +78,9 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
         for j in range(0, len(lamds)):
             plt.plot([lamds[j],lamds[j]],[0,lt*pix],lw=5,ls='--',color='blue')
         plt.xlim(wavet[0],wavet[nw-1])
-        plt.ylim(0,lt*pix)
+        plt.ylim(0.0001,lt*pix)
         plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-        #ax.set_xlabel('').set_visible(False)
-        #plt.setp( ax.get_xticklabels(), visible=False)
-        plt.text(0.05,0.35,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
+        plt.text(0.05,0.35,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold')
         if i < nls-1:
             ax.set_xlabel('').set_visible(False)
             plt.setp( ax.get_xticklabels(), visible=False)           
@@ -93,74 +91,24 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
             for j in range(0, len(lamds)):
                 x_la_t1=lamds[j]+dtp
                 y_la_t1=lt*pix*1.05
-                plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')
-            #x_la_t1=Lnii2+dtp
-            #y_la_t1=ymax*1.1
-            #plt.text(x_la_t1, y_la_t1, r'$[NII]$' , fontsize=18, va='center',color='black',weight='bold')#6585$
-            #x_la_t1=LnrHa+dtp
-            #y_la_t1=ymax*1.1
-            #plt.text(x_la_t1, y_la_t1, r'$H_{\alpha}$' , fontsize=18, va='center',color='black',weight='bold')      
+                plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')     
     
+    for i in range(0, nls):
+        #ax = fig.add_axes([dx1+pro1[2]*dx*2.0*0.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
+        #ax = fig.add_axes([dx1+pro1[1]*dx*2.0*1.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
+        #ax = fig.add_axes([dx1+pro1[1]*dx*2.0*2.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
+        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*1.05,   dy1+pro2[2]*dy, dx*2.0*0.86/nls, dy*dyt*0.8])
+        #ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(2.0-dyt), dx, dy/(nls)*(2.0-dyt)])
+    
+        vel_vec=slides_v[i]
+        xtp=np.arange(0, len(vel_vec))*pix
+        plt.plot(xtp,vel_vec,lw=4,color=colr[i])
+        plt.scatter(xtp,vel_vec,s=63,color=colr[i])
+        plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
+        plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
+        plt.xlim(0.0,(len(vel_vec)-1)*pix)
+        plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold') 
     '''
-    ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*1./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
-    slide=slides[1]
-    lt,nw=slide.shape
-    slide=slide/np.nanmax(slide)
-    cm='cmr.amber'   
-    ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
-    plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
-    plt.plot([0,10000],[0,0],lw=5,color='white')
-    plt.plot([0,10000],[lt*pix,lt*pix],lw=5,color='white')
-    plt.plot([Lnii2,Lnii2],[0,lt*pix],lw=5,ls='--',color='blue')
-    plt.plot([Lnii1,Lnii1],[0,lt*pix],lw=5,ls='--',color='blue')
-    plt.plot([LnrHa,LnrHa],[0,lt*pix],lw=5,ls='--',color='blue')
-    plt.xlim(wavet[0],wavet[nw-1])
-    plt.ylim(0.01,lt*pix)
-    plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-    ax.set_xlabel('').set_visible(False)
-    plt.setp( ax.get_xticklabels(), visible=False)
-    plt.text(0.05,0.8,namet[1],fontsize=20,transform=ax.transAxes,color=colr[1],weight='bold')
-    dtp=-5
-    x_la_t1=Lnii1+dtp
-    y_la_t1=lt*pix*0.8
-    plt.text(x_la_t1, y_la_t1, r'$[NII]$' , fontsize=18, va='center',color='white',weight='bold')#6549$
-    x_la_t1=Lnii2+dtp
-    y_la_t1=lt*pix*0.8
-    plt.text(x_la_t1, y_la_t1, r'$[NII]$' , fontsize=18, va='center',color='white',weight='bold')#6585$
-    x_la_t1=LnrHa+dtp-2
-    y_la_t1=lt*pix*0.8
-    plt.text(x_la_t1, y_la_t1, r'$H_{\alpha}$' , fontsize=18, va='center',color='white',weight='bold')
-    
-    dxf=0.0#1.6
-    ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*0./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
-    slide=slides[2]
-    lt,nw=slide.shape
-    slide=slide/np.nanmax(slide)
-    cm='cmr.amber'
-    ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],-dxf,lt*pix-dxf],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
-    plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],-dxf,lt*pix-dxf],interpolation='bicubic')
-    plt.plot([0,10000],[lt*pix-dxf,lt*pix-dxf],lw=5,color='white')
-    plt.plot([Lnii2,Lnii2],[-10,lt*pix],lw=5,ls='--',color='blue')
-    plt.plot([Lnii1,Lnii1],[-10,lt*pix],lw=5,ls='--',color='blue')
-    plt.plot([LnrHa,LnrHa],[-10,lt*pix],lw=5,ls='--',color='blue')
-    plt.xlim(wavet[0],wavet[nw-1])
-    plt.ylim(-dxf,lt*pix-dxf)
-    plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-    plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=18)
-    plt.text(0.05,0.8,namet[2],fontsize=20,transform=ax.transAxes,color=colr[2],weight='bold')
-    '''
-    
-    ax = fig.add_axes([dx1+pro1[2]*dx*2.0*0.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
-    
-    vel_vec=slides_v[0]
-    xtp=np.arange(0, len(vel_vec))*pix
-    plt.plot(xtp,vel_vec,lw=4,color=colr[0])
-    plt.scatter(xtp,vel_vec,s=63,color=colr[0])
-    plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
-    plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
-    plt.xlim(0.0,(len(vel_vec)-1)*pix)
-    plt.text(0.8,0.8,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold') 
-    
     ax = fig.add_axes([dx1+pro1[1]*dx*2.0*1.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
     
     vel_vec=slides_v[1]
@@ -183,6 +131,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
     plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
     plt.xlim(-dxf,(len(vel_vec)-1)*pix-dxf)
     plt.text(0.2,0.8,namet[2],fontsize=20,transform=ax.transAxes,color=colr[2],weight='bold')
+    '''
     #vo,ro,vc,k=-45,5.2,100,1
     #popt, pcov = curve_fit(vmax_func, xtp, vel_vec, p0=[vo, ro, vc, k])
     #perr = np.sqrt(np.diag(pcov))
