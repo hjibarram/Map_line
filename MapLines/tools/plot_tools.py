@@ -23,7 +23,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     #file0='../data/J102700+174900_Gas.fits.gz' 
     #slides,wavet,dpix,vals,hdr=extract_line(file0,reg_dir='../reg/',reg_name='paths_J1027.reg',z=0.06662,lA1=lA1,lA2=lA2,sigT=2,cosmetic=True)
     #pix=dpix
-    slides,wavet,dpix,vals,hdr,colr,namet=tools.extract_segment(file0,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
+    slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
     if facy == -1:
@@ -59,15 +59,15 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     #    yt=(ytf+cosT*tp-nyt/2.+1)*pix
     #    xt=(xtf+sinT*tp-nxt/2.+1)*pix
     #    plt.plot(yt,xt,lw=10,color="green")
-    lwt=5
+    #lwt=5
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
         for j in range(0, len(cosT)):
             tp=np.arange(0,100)/99.*rtf[j]/pix
             yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
             xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
-            plt.plot(yt,xt,lw=lwt,color=colr[i])
-        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=lwt,head_width=0.25,zorder=2)    
+            plt.plot(yt,xt,lw=widt[i],color=colr[i])
+        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=0.25,zorder=2)    
         
     
     Lnii2=6585.278

@@ -565,6 +565,7 @@ def get_segment(reg_dir='./',reg_name='test.reg'):
     raL=[]
     decL=[]
     colr=[]
+    widt=[]
     namet=[]
     f=open(reg_dir+reg_name,'r')
     ct=1
@@ -589,16 +590,20 @@ def get_segment(reg_dir='./',reg_name='test.reg'):
                 data2=list(filter(None,data2))
                 colr.extend([data2[0].replace(' ','')])
                 try:
+                    widt.extend([np.float(data2[1].replace(' ',''))])
+                except:
+                    widt.extend([5])
+                try:
                     namet.extend([data2[2].replace(' ','')])
                 except:
                     namet.extend([str(int(ct))])
             ct=ct+1
     colr=np.array(colr)
     namet=np.array(namet)
-    return raL,decL,colr,namet    
+    return raL,decL,colr,widt,namet    
 
 def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
-    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
     nz,nx,ny=pdl_cube.shape
     crpix=hdr["CRPIX3"]
@@ -627,7 +632,6 @@ def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5
     nw=np.where((wave >= lA1) & (wave <= lA2))[0]
     wave_f=wave[nw]
     if wcs == None:
-        #print('TEST')
         wcs = WCS(hdr)
         wcs=wcs.celestial
     slides=[]
@@ -659,7 +663,6 @@ def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5
             rtf[j]=rt*dpix
             lt=int(np.round(rt))+1
             lT[j]=lt
-            
             slideT=np.zeros(len(nw))
             radis=np.zeros([nx,ny])
             for ii in range(0, nx):
@@ -717,7 +720,7 @@ def extract_segment1d(file,wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5
             plt.xlim(wave_f[0],wave_f[len(nw)-1])
             plt.ylim(0,ltf*dpix) 
             plt.show()
-    return slides,wave_f,dpix,vals,hdr,colr,namet,namesS
+    return slides,wave_f,dpix,vals,hdr,colr,widt,namet,namesS
 
 
 def extract_regs(map,hdr,reg_file='file.reg',avgra=False):
@@ -771,7 +774,7 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
 
 
 def extract_segment_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
-    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     nx,ny=flux.shape
     wcs = WCS(hdr)
     wcs=wcs.celestial
@@ -811,7 +814,7 @@ def extract_segment_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
     return slides    
 
 def extract_segment(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0):
-    ra,dec,colr,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
+    ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     [pdl_cube, hdr]=fits.getdata(file, hdu, header=True)
     nz,nx,ny=pdl_cube.shape
     crpix=hdr["CRPIX3"]
@@ -895,7 +898,7 @@ def extract_segment(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=685
             plt.xlim(wave_f[0],wave_f[len(nw)-1])
             plt.ylim(0,ltf*dpix) 
             plt.show()
-    return slides,wave_f,dpix,vals,hdr,colr,namet
+    return slides,wave_f,dpix,vals,hdr,colr,widt,namet
 
 
 def extract_line_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
