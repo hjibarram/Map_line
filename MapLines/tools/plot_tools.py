@@ -80,8 +80,8 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
         plt.xlim(wavet[0],wavet[nw-1])
         plt.ylim(0,lt*pix)
         plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-        ax.set_xlabel('').set_visible(False)
-        plt.setp( ax.get_xticklabels(), visible=False)
+        #ax.set_xlabel('').set_visible(False)
+        #plt.setp( ax.get_xticklabels(), visible=False)
         plt.text(0.05,0.35,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
         if i < nls-1:
             ax.set_xlabel('').set_visible(False)
@@ -92,7 +92,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
             dtp=-5
             for j in range(0, len(lamds)):
                 x_la_t1=lamds[j]+dtp
-                y_la_t1=lt*pix*1.1
+                y_la_t1=lt*pix*1.05
                 plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')
             #x_la_t1=Lnii2+dtp
             #y_la_t1=ymax*1.1
