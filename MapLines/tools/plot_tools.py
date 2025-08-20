@@ -105,30 +105,6 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
         plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
         plt.xlim(0.0,(len(vel_vec)-1)*pix)
         plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold') 
-    '''
-    ax = fig.add_axes([dx1+pro1[1]*dx*2.0*1.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
-    
-    vel_vec=slides_v[1]
-    xtp=np.arange(0, len(vel_vec))*pix
-    plt.plot(xtp,vel_vec,lw=4,color=colr[1])
-    plt.scatter(xtp,vel_vec,s=63,color=colr[1])
-    plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
-    plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
-    #plt.ylim(-150,0.0)
-    plt.xlim(0.0,(len(vel_vec)-1)*pix)
-    plt.text(0.8,0.8,namet[1],fontsize=20,transform=ax.transAxes,color=colr[1],weight='bold')  
-    
-    ax = fig.add_axes([dx1+pro1[1]*dx*2.0*2.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
-    
-    vel_vec=slides_v[2]
-    xtp=np.arange(0, len(vel_vec))*pix-dxf
-    plt.plot(xtp,vel_vec,lw=4,color=colr[2])
-    plt.scatter(xtp,vel_vec,s=63,color=colr[2])
-    plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
-    plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
-    plt.xlim(-dxf,(len(vel_vec)-1)*pix-dxf)
-    plt.text(0.2,0.8,namet[2],fontsize=20,transform=ax.transAxes,color=colr[2],weight='bold')
-    '''
     #vo,ro,vc,k=-45,5.2,100,1
     #popt, pcov = curve_fit(vmax_func, xtp, vel_vec, p0=[vo, ro, vc, k])
     #perr = np.sqrt(np.diag(pcov))
@@ -140,7 +116,6 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
         plt.savefig(dir+'/'+titf+'.pdf')
     else:
         plt.show()
-    #plt.close()
 
 
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
