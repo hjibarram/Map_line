@@ -47,10 +47,11 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(2.0-dyt)])  
     
     flux,vmax,vmin=vals_map
-    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit='Velocity shift',lab='[km\ s^{-1}]')
+    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]')
     nxt,nyt=flux.shape
     slides_v=tools.extract_segment_val(flux,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
-    plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
+    if reg_aper is not None:
+        plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
     
     #for i in range(0, len(vals)):
     #    cosT,sinT,rtf,ytf,xtf=vals[i]
