@@ -18,11 +18,6 @@ import cmasher as cmr
 
 
 def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
-#def plot_final(titf,vals_map,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
-    
-    #file0='../data/J102700+174900_Gas.fits.gz' 
-    #slides,wavet,dpix,vals,hdr=extract_line(file0,reg_dir='../reg/',reg_name='paths_J1027.reg',z=0.06662,lA1=lA1,lA2=lA2,sigT=2,cosmetic=True)
-    #pix=dpix
     slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
@@ -45,21 +40,18 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     fig = plt.figure(figsize=(xfi,yfi))
     dyt=0.85
     ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(2.0-dyt)])  
-    
     flux,vmax,vmin=vals_map
     get_plot_map(plt,flux,vmax,vmin,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]')
     nxt,nyt=flux.shape
     slides_v=tools.extract_segment_val(flux,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
         plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
-    
     #for i in range(0, len(vals)):
     #    cosT,sinT,rtf,ytf,xtf=vals[i]
     #    tp=np.arange(0,100)/99.*rtf/pix
     #    yt=(ytf+cosT*tp-nyt/2.+1)*pix
     #    xt=(xtf+sinT*tp-nxt/2.+1)*pix
     #    plt.plot(yt,xt,lw=10,color="green")
-    #lwt=5
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
         hwith=widt[i]/5.0*0.25
@@ -76,12 +68,12 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     LnrHa=6564.632
     Lnii1=6549.859
     lev=np.sqrt(np.arange(0.0,10.0,1.5)+0.008)/np.sqrt(10.008)
-    
+    print(slides.shape)
     ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*2./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
     slide=slides[0]
     lt,nw=slide.shape
     slide=slide/np.nanmax(slide)
-    cm='cmr.amber'#plt.cm.get_cmap('jet')   
+    cm='cmr.amber'  
     ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
     plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
     plt.plot([0,10000],[0,0],lw=5,color='white')
@@ -100,7 +92,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     slide=slides[1]
     lt,nw=slide.shape
     slide=slide/np.nanmax(slide)
-    cm='cmr.amber'#plt.cm.get_cmap('jet')    
+    cm='cmr.amber'   
     ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
     plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
     plt.plot([0,10000],[0,0],lw=5,color='white')
@@ -130,7 +122,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     slide=slides[2]
     lt,nw=slide.shape
     slide=slide/np.nanmax(slide)
-    cm='cmr.amber'#plt.cm.get_cmap('jet')    
+    cm='cmr.amber'
     ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],-dxf,lt*pix-dxf],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
     plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],-dxf,lt*pix-dxf],interpolation='bicubic')
     plt.plot([0,10000],[lt*pix-dxf,lt*pix-dxf],lw=5,color='white')
