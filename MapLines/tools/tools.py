@@ -589,10 +589,10 @@ def get_segment(reg_dir='./',reg_name='test.reg'):
                 data2=data2.split(',')
                 data2=list(filter(None,data2))
                 colr.extend([data2[0].replace(' ','')])
-                try:
-                    widt.extend([np.float(data2[1].replace(' ',''))])
-                except:
-                    widt.extend([5])
+                #try:
+                widt.extend([np.float(data2[1].replace(' ',''))])
+                #except:
+                #    widt.extend([5])
                 try:
                     namet.extend([data2[2].replace(' ','')])
                 except:
