@@ -68,7 +68,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     LnrHa=6564.632
     Lnii1=6549.859
     lev=np.sqrt(np.arange(0.0,10.0,1.5)+0.008)/np.sqrt(10.008)
-    nsl=len(slides)
+    nls=len(slides)
     for i in range(0, nls):
         ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(2.0-dyt), dx, dy/(nls)*(2.0-dyt)])
         #ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*2./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
