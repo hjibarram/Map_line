@@ -63,6 +63,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
         hwith=widt[i]/5.0*0.25
+        print(hwith,widt[i])
         for j in range(0, len(cosT)):
             tp=np.arange(0,100)/99.*rtf[j]/pix
             yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
