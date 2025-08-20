@@ -55,7 +55,6 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
         hwith=widt[i]/5.0*0.25
-        print(hwith,widt[i])
         for j in range(0, len(cosT)):
             tp=np.arange(0,100)/99.*rtf[j]/pix
             yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
@@ -96,11 +95,7 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',nlins=[
     fl=0.06 # factor to give the label spaces between the plots
     fx=1-fl*(nls-1)
     for i in range(0, nls):
-        #ax = fig.add_axes([dx1+pro1[2]*dx*2.0*0.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
-        #ax = fig.add_axes([dx1+pro1[1]*dx*2.0*1.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
-        #ax = fig.add_axes([dx1+pro1[1]*dx*2.0*2.0/3.0*1.05, dy1+pro2[2]*dy, dx*2/3.*0.86, dy*dyt*0.8])
-        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2*fl*i, dy1+pro2[2]*dy, dx*2.0*fx/nls, dy*dyt*0.8])
-        #ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(2.0-dyt), dx, dy/(nls)*(2.0-dyt)])
+        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i, dy1+pro2[2]*dy, dx*2.0*fx/nls, dy*dyt*0.8])
     
         vel_vec=slides_v[i]
         xtp=np.arange(0, len(vel_vec))*pix
