@@ -18,7 +18,7 @@ import cmasher as cmr
 
 
 def plot_velana(titf,vals_map,path='',file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
-    slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
+    slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
     if facy == -1:

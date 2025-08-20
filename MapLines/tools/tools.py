@@ -813,9 +813,9 @@ def extract_segment_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
         slides.extend([slide])    
     return slides    
 
-def extract_segment(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0):
+def extract_segment(file,path='',reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0):
     ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
-    [pdl_cube, hdr]=fits.getdata(file, hdu, header=True)
+    [pdl_cube, hdr]=fits.getdata(path+file, hdu, header=True)
     nz,nx,ny=pdl_cube.shape
     crpix=hdr["CRPIX3"]
     try:
