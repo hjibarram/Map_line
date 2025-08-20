@@ -17,7 +17,7 @@ import corner
 import cmasher as cmr
 
 
-def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
@@ -64,30 +64,31 @@ def plot_velana(titf,vals_map,file0='../data/J102700+174900_Gas.fits.gz',hdu=0,r
         plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=hwith,zorder=2)    
         
     
-    Lnii2=6585.278
-    LnrHa=6564.632
-    Lnii1=6549.859
+    #Lnii2=
+    #LnrHa=
+    #Lnii1=
     lev=np.sqrt(np.arange(0.0,10.0,1.5)+0.008)/np.sqrt(10.008)
     nls=len(slides)
+    cm='cmr.amber'
     for i in range(0, nls):
         ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(2.0-dyt), dx, dy/(nls)*(2.0-dyt)])
         #ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*2./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
-    slide=slides[0]
-    lt,nw=slide.shape
-    slide=slide/np.nanmax(slide)
-    cm='cmr.amber'  
-    ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
-    plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
-    plt.plot([0,10000],[0,0],lw=5,color='white')
-    plt.plot([Lnii2,Lnii2],[0,lt*pix],lw=5,ls='--',color='blue')
-    plt.plot([Lnii1,Lnii1],[0,lt*pix],lw=5,ls='--',color='blue')
-    plt.plot([LnrHa,LnrHa],[0,lt*pix],lw=5,ls='--',color='blue')
-    plt.xlim(wavet[0],wavet[nw-1])
-    plt.ylim(0,lt*pix)
-    plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-    ax.set_xlabel('').set_visible(False)
-    plt.setp( ax.get_xticklabels(), visible=False)
-    plt.text(0.05,0.35,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
+        slide=slides[i]
+        lt,nw=slide.shape
+        slide=slide/np.nanmax(slide)  
+        ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
+        plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
+        plt.plot([0,10000],[0,0],lw=5,color='white')
+        for j in range(0, len(lamds)):
+            plt.plot([lamds[j],lamds[j]],[0,lt*pix],lw=5,ls='--',color='blue')
+        #plt.plot([Lnii1,Lnii1],[0,lt*pix],lw=5,ls='--',color='blue')
+        #plt.plot([LnrHa,LnrHa],[0,lt*pix],lw=5,ls='--',color='blue')
+        plt.xlim(wavet[0],wavet[nw-1])
+        plt.ylim(0,lt*pix)
+        plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
+        ax.set_xlabel('').set_visible(False)
+        plt.setp( ax.get_xticklabels(), visible=False)
+        plt.text(0.05,0.35,namet[0],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
     
     '''
     ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*1./3.*(2.0-dyt), dx, dy/3.*(2.0-dyt)])
