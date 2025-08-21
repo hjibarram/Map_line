@@ -52,7 +52,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
             xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
             plt.plot(yt,xt,lw=widt[i],color=colr[i],ls=':')
             plot_circle(ax,xtf[j],ytf[j],nxt,nyt,pix,rad=rad,color=colr[i],name=namesT[j],dtex=dtex,dtey=dtey)
-        #plot_circle(ax,xt[99]/pix+nxt/2.-1,yt[99]/pix+nyt/2.-1,nxt,nyt,pix,rad=rad,color=colr[i],name=namesT[j+1],dtex=dtex,dtey=dtey)    
+        plot_circle(ax,xt[99]/pix+nxt/2.-1,yt[99]/pix+nyt/2.-1,nxt,nyt,pix,rad=rad,color=colr[i],name=namesT[j+1],dtex=dtex,dtey=dtey)    
         #plt.arrow(yt[98], xt[98], yt[99]-yt[98],  xt[99]-xt[98], color=colr[i],lw=widt[i],head_width=hwith,zorder=2)    
     slideA=slides[0]
     namesT=namesS[0]
