@@ -78,7 +78,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
             dtp=-5
             for j in range(0, len(lamds)):
                 x_la_t1=lamds[j]+dtp
-                y_la_t1=lt*pix*1.1
+                y_la_t1=ymax*1.1
                 plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')
     if savef:        
         plt.savefig(dir+'/'+titf+'.pdf')
