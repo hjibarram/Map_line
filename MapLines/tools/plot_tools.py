@@ -17,7 +17,7 @@ import corner
 import cmasher as cmr
 
 
-def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],cont=False,alpha=0.5,lamds=[6549.859,6564.632,6585.278],path='',nzeros=False,hdu=0,wcs=None,file0='J102700+174900_Gas.fits.gz',reg_dir='',reg_aper='apertu.reg',dtex=0,dtey=0,rad=1.5,cosmetic=False,reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],titp='Velocity~ shift',lab=r'[km\ s^{-1}]',cont=False,alpha=0.5,lamds=[6549.859,6564.632,6585.278],path='',nzeros=False,hdu=0,wcs=None,file0='J102700+174900_Gas.fits.gz',reg_dir='',reg_aper='apertu.reg',dtex=0,dtey=0,rad=1.5,cosmetic=False,reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides,wavet,dpix,vals,hdr,colr,widt,namet,namesS=tools.extract_segment1d(file0,path=path,wcs=wcs,reg_dir=reg_dir,reg_name=reg_name,nzeros=nzeros,rad=rad,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=cosmetic,hdu=hdu)
     pix=dpix
     if facy == -1:
@@ -40,7 +40,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     dyt=0.0#0.85
     ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(1.0-dyt)])  
     flux,vmax,vmin=vals_map
-    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit='Velocity~ shift',lab=r'[km\ s^{-1}]',cont=cont,alpha=alpha)
+    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit=titp,cont=cont,alpha=alpha)
     nxt,nyt=flux.shape
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
