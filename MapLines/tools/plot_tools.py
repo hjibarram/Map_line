@@ -17,6 +17,74 @@ import corner
 import cmasher as cmr
 
 
+def plot_apert(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],path='',hdu=0,wcs=None,file0='J102700+174900_Gas.fits.gz',reg_dir='',reg_aper='apertu.reg',dtex=0,dtey=0,rad=1.5,reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+    slides,wavet,dpix,vals,hdr,colr,widt,namet,namesS=tools.extract_segment1d(file0,path=path,wcs=wcs,reg_dir=reg_dir,reg_name=reg_name,rad=rad,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
+    pix=dpix
+    if facy == -1:
+        facy=facx
+    dx1=av[0]/facx
+    dx2=av[1]/facx
+    dy1=av[2]/facy
+    dy2=av[3]/facy
+    dx=(1.0-(dx1+dx2))/float(1.0)
+    dy=(1.0-(dy1+dy2))/float(1.0)
+    dx1=dx1/(1.0+(nx-1)*dx)
+    dx2=dx2/(1.0+(nx-1)*dx)
+    dy1=dy1/(1.0+(ny-1)*dy)
+    dy2=dy2/(1.0+(ny-1)*dy)
+    dx=(1.0-(dx1+dx2))/float(nx)
+    dy=(1.0-(dy1+dy2))/float(ny)
+    xfi=6*nx*facx*facs#6
+    yfi=6*ny*facy#*1.2#5.5
+    fig = plt.figure(figsize=(xfi,yfi))
+    dyt=0.0#0.85
+    ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(1.0-dyt)])  
+    flux,vmax,vmin=vals_map
+    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit='Velocity~ shift',lab=r'[km\ s^{-1}]',cont=True,alpha=0.5)
+    nxt,nyt=flux.shape
+    for i in range(0, len(vals)):
+        cosT,sinT,rtf,ytf,xtf=vals[i]
+        namesT=namesS[i]
+        hwith=widt[i]/5.0*0.25
+        for j in range(0, len(cosT)):
+            tp=np.arange(0,100)/99.*rtf[j]/pix
+            yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
+            xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
+            plt.plot(yt,xt,lw=widt[i],color=colr[i],ls=':')
+            plot_circle(ax,xtf[j],ytf[j],nxt,nyt,pix,rad=rad,color=colr[i],name=namesT[j],dtex=dtex,dtey=dtey)
+        plot_circle(ax,xt[99]/pix+nxt/2.-1,yt[99]/pix+nyt/2.-1,nxt,nyt,pix,rad=rad,color=colr[i],name=namesT[j+1],dtex=dtex,dtey=dtey)    
+        #plt.arrow(yt[98], xt[98], yt[99]-yt[98],  xt[99]-xt[98], color=colr[i],lw=widt[i],head_width=hwith,zorder=2)    
+    slideA=slides[0]
+    namesT=namesS[0]
+    nls,nlt=slideA.shape
+    for i in range(0, nls):
+        ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(1.0-dyt), dx, dy/(nls)*(1.0-dyt)])
+        spectra=slideA[i,:]
+        ymax=np.nanmax(spectra)*1.2
+        nw=len(spectra)
+        plt.plot(wavet,spectra,lw=3,color='black')
+        for j in range(0, len(lamds)):
+            plt.plot([lamds[j],lamds[j]],[0,ymax],lw=5,ls='--',color='blue')
+        plt.xlim(wavet[0],wavet[nw-1])
+        plt.ylim(0,ymax)
+        plt.ylabel(r'$Flux$',fontsize=18)
+        plt.text(0.05,0.35,namesT[i],fontsize=20,transform=ax.transAxes,color=colr[0],weight='bold')
+        if i < nls-1:
+            ax.set_xlabel('').set_visible(False)
+            plt.setp( ax.get_xticklabels(), visible=False)           
+        else:
+            plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=18)
+        if i == 0:
+            dtp=-5
+            for j in range(0, len(lamds)):
+                x_la_t1=lamds[j]+dtp
+                y_la_t1=lt*pix*1.1
+                plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')
+    if savef:        
+        plt.savefig(dir+'/'+titf+'.pdf')
+    else:
+        plt.show()
+
 def plot_velana(titf,vals_map,path='',file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
