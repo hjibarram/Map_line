@@ -602,10 +602,12 @@ def get_segment(reg_dir='./',reg_name='test.reg'):
     namet=np.array(namet)
     return raL,decL,colr,widt,namet    
 
-def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0):
+def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0,nzeros=False):
     ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     [pdl_cube, hdr]=fits.getdata(path+file, hdu, header=True)
     nz,nx,ny=pdl_cube.shape
+    if nzeros:
+        pdl_cube[np.where(pdl_cube < 0)]=np.nan
     crpix=hdr["CRPIX3"]
     try:
         cdelt=hdr["CD3_3"]
