@@ -648,7 +648,7 @@ def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0
         lT=np.zeros([len(raT)-1],dtype=int)
         slidesT=[]
         ltf=0
-        flux1t=pdl_cube[nw,:,:]
+        #flux1t=pdl_cube[nw,:,:]
         namesST=[]
         for j in range(0, len(raT)-1):
             sky1=SkyCoord(raT[j]+' '+decT[j],frame=FK5, unit=(u.hourangle,u.deg))
@@ -673,7 +673,7 @@ def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0
                     radis[ii,jj]=r_n
             ntp=np.where(radis <= rad)
             for ii in range(0, len(nw)):
-                slideT[ii]=np.nansum(flux1t[ii,ntp])
+                slideT[ii]=np.nansum(pdl_cube[nw[ii],ntp])
             namesST.extend([str(int(j))])
             #for k in range(0, lt):
             #    yt=int(np.round(ypos1+k*cosT[j]))
