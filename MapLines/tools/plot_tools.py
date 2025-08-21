@@ -61,6 +61,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
         ax = fig.add_axes([dx1+pro1[1]*dx+dx*dxR, dy1+pro2[1]*dy*dyt+dy*(nls-i-1)/nls*(1.0-dyt), dx, dy/(nls)*(1.0-dyt)])
         spectra=slideA[i,:]
         ymax=np.nanmax(spectra)*1.2
+        print('ymax=',ymax)
         nw=len(spectra)
         plt.plot(wavet,spectra,lw=3,color='black')
         for j in range(0, len(lamds)):
