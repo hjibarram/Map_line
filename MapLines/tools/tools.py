@@ -698,7 +698,7 @@ def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0
                         radis[ii,jj]=r_n
                 ntp=np.where(radis <= rad)
                 for ii in range(0, len(nw)):
-                    slideT[ii]=np.nansum(flux1t[ii,ntp])
+                    slideT[ii]=np.nansum(pdl_cube[nw[ii],ntp])
                 slidesT.extend([slideT])
                 ltf=1+ltf 
                 namesST.extend([str(int(j+1))])
