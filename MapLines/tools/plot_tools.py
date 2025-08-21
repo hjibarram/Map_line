@@ -40,7 +40,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     dyt=0.0#0.85
     ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(1.0-dyt)])  
     flux,vmax,vmin=vals_map
-    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit=titp,cont=cont,alpha=alpha)
+    get_plot_map(plt,flux,vmax,vmin,pix=pix,tit=titp,lab=lab,cont=cont,alpha=alpha)
     nxt,nyt=flux.shape
     for i in range(0, len(vals)):
         cosT,sinT,rtf,ytf,xtf=vals[i]
