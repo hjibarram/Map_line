@@ -285,7 +285,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     if logs:
         map_val=np.log10(map_val)
     
-    plt.rcParams['figure.figsize'] = [6.5*facpx, 7.6*facpy]
+    plt.rcParams['figure.figsize'] = [facx*facp, facy*facp]
     if fwcs:
         wcs = WCS(hdr).celestial
         plt.subplot(projection=wcs)
