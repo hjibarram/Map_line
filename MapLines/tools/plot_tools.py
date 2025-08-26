@@ -246,7 +246,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
         plt.show()
 
 
-def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',sumc=False,path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
 
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
@@ -264,7 +264,14 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
                 dx=hdr['CDELT1']*3600.
                 dy=hdr['CDELT2']*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
-    map_val=data[indx,:,:]*scalef
+    if sumc:
+        try:
+            map_val=np.nansum(data[indx,:,:])*scalef
+        except:
+            print('It is not possible to integrate the data cube within the indexes provided, we will integrate all the cube')
+            map_val=np.nansum(data,axis=0)*scalef
+    else:
+        map_val=data[indx,:,:]*scalef
     if indx2 != None:
         val2=data[indx2,:,:]*scalef
         map_val=map_val/val2
@@ -426,7 +433,7 @@ def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=No
     plt.ylim(-nx*pix/2,nx*pix/2)
     if cbtr:    
         if not ewp:
-            cbar.set_label(r"$"+tit+"\ [10^{-16}erg/s/cm^2/arcsec^2]$",fontsize=18)
+            cbar.set_label(r"$"+tit+r"\ [10^{-16}erg/s/cm^2/arcsec^2]$",fontsize=18)
         else:
             cbar.set_label(r"$"+tit+"$",fontsize=18)
     fig.tight_layout()
