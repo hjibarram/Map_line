@@ -299,8 +299,8 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
-        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
         plt.tight_layout()
+        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
     else:
         plt.show()
 
