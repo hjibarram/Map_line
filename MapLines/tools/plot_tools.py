@@ -263,16 +263,15 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
             except:
                 dx=hdr['CDELT1']*3600.
                 dy=hdr['CDELT2']*3600.
-    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    pix=(np.abs(dx)+np.abs(dy))/2.0
     if sumc:
         try:
-            map_val=np.nansum(data[indx,:,:])*scalef
+            map_val=np.nansum(data[indx,:,:],axis=0)*scalef
         except:
             print('It is not possible to integrate the data cube within the indexes provided, we will integrate all the cube')
             map_val=np.nansum(data,axis=0)*scalef
     else:
         map_val=data[indx,:,:]*scalef
-    print(map_val.shape)    
     if indx2 != None:
         val2=data[indx2,:,:]*scalef
         map_val=map_val/val2
