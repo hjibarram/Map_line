@@ -272,6 +272,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
             map_val=np.nansum(data,axis=0)*scalef
     else:
         map_val=data[indx,:,:]*scalef
+    print(map_val.shape)    
     if indx2 != None:
         val2=data[indx2,:,:]*scalef
         map_val=map_val/val2
