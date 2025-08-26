@@ -246,7 +246,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
         plt.show()
 
 
-def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',sumc=False,path='',hd=0,indx=0,indx2=None,tit='',lab='',facpx=0.8,facpy=0.8,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
+def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',sumc=False,path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,facx=6.5,facy=7.6,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
 
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
     try:
