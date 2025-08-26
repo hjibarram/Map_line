@@ -284,6 +284,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
         map_val=map_val/pix**2
         print(map_val)
         print(np.nanmax(map_val))
+        print(pix)
     if logs:
         map_val=np.log10(map_val)
     
