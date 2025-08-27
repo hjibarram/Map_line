@@ -587,7 +587,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.plot(wave_i,model,label='Highest Likelihood Model')
     plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
     plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
-    ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
+    ax1.fill_between(wave_i,med_model-spread*10,med_model+spread*10,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
     ax1.legend(fontsize=14)
     plt.tight_layout()
     plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out))
