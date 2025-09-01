@@ -1255,3 +1255,33 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     hlist.update_extend()
     hlist.writeto(filename_out, overwrite=True)
     sycall('gzip -f '+filename_out)
+
+def A_l(Rv,l):
+    l=l/10000.; #Amstrongs to Microns
+    x=1.0/l
+    Arat=np.zeros(len(x))
+    for i in range(0, len(x)):
+        if x[i] > 1.1 and x[i] <= 3.3:
+            y=(x[i]-1.82)
+            ax=1+0.17699*y-0.50447*y**2-0.02427*y**3+0.72085*y**4+0.01979*y**5-0.77530*y**6+0.32999*y**7
+            bx=1.41338*y+2.28305*y**2+1.07233*y**3-5.38434*y**4-0.62251*y**5+5.30260*y**6-2.09002*y**7
+        if x[i] <= 1.1 and x[i] > 0.3:
+            ax=0.574*x[i]**1.61
+            bx=-0.527*x[i]**1.61
+        if x[i] > 3.3 and x[i] <= 8.0:
+            if x[i] > 5.9 and x[i] <= 8.0:
+                Fa=-0.04473*(x[i]-5.9)**2.0-0.009779*(x[i]-5.9)**3.0
+                Fb=0.2130*(x[i]-5.9)**2.0+0.1207*(x[i]-5.9)**3.0
+            else:
+                Fa=0.0
+                Fb=0.0
+            ax=1.752-0.316*x[i]-0.104/((x[i]-4.67)**2.0+0.341)+Fa
+            bx=-3.090+1.825*x[i]+1.206/((x[i]-4.62)**2.0+0.263)+Fb
+        if x[i] > 8.0:
+            ax=-1.073-0.628*(x[i]-8.0)+0.137*(x[i]-8.0)**2.0-0.070*(x[i]-8.0)**3.0
+            bx=13.670+4.257*(x[i]-8.0)-0.420*(x[i]-8.0)**2.0+0.374*(x[i]-8.0)**3.0
+        val=ax+bx/Rv
+        if val < 0:
+            val=0
+        Arat[i]=val
+    return Arat
