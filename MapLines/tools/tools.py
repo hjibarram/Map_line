@@ -1257,6 +1257,7 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     sycall('gzip -f '+filename_out)
 
 def A_l(Rv,l):
+    #Cardelli, Clayton & Mathis (1989) extintion law
     l=l/10000.; #Amstrongs to Microns
     x=1.0/l
     Arat=np.zeros(len(x))
