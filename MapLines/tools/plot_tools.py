@@ -222,8 +222,7 @@ def helic_func(r,alpha,beta,gama,theta):
     return vr
 
 def sin_func(r,alpha,beta,gama,theta):
-    gamat=0.5*np.pi
-    vr=alpha*np.sin(r/beta*np.pi+gamat)+theta
+    vr=alpha*np.sin(r/beta*np.pi+gama)+theta
     return vr    
 
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
