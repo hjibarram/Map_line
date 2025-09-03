@@ -206,7 +206,7 @@ def plot_velana(titf,vals_map,path='',DA=None,model='helic',fitmod=False,file0='
             yfit=helic_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
             plt.plot(xta*daf,yfit,color='black',lw=3)
         if model == 'sin':
-            alpha,beta,gama,theta=64,-3,-11,-60
+            alpha,beta,gama,theta=30,2,np.pi/2,-60
             popt, pcov = curve_fit(sin_func, xtp*daf, vel_vec, p0=[alpha,beta,gama,theta])
             perr = np.sqrt(np.diag(pcov))
             print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2],'theta=',popt[3],'+-',perr[3]) 
@@ -222,7 +222,7 @@ def helic_func(r,alpha,beta,gama,theta):
     return vr
 
 def sin_func(r,alpha,beta,gama,theta):
-    vr=alpha*np.sin(beta*r+gama)+theta
+    vr=alpha*np.sin(r/beta*np.pi+gama)+theta
     return vr    
 
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
