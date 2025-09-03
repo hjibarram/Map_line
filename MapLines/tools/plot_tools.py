@@ -130,7 +130,10 @@ def plot_velana(titf,vals_map,path='',DA=None,file0='J102700+174900_Gas.fits.gz'
             plt.plot(yt,xt,lw=widt[i],color=colr[i])
         plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=hwith,zorder=2)    
         
-
+    if DA is not None:
+        daf=DA 
+    else:
+        daf=1.0
     lev=np.sqrt(np.arange(0.0,10.0,1.5)+0.008)/np.sqrt(10.008)
     nls=len(slides)
     cm='cmr.amber'
@@ -139,14 +142,14 @@ def plot_velana(titf,vals_map,path='',DA=None,file0='J102700+174900_Gas.fits.gz'
         slide=slides[i]
         lt,nw=slide.shape
         slide=slide/np.nanmax(slide)  
-        ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
-        plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix],interpolation='bicubic')
+        ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix*daf],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
+        plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet[0],wavet[len(wavet)-1],0,lt*pix*daf],interpolation='bicubic')
         plt.plot([0,10000],[0,0],lw=5,color='white')
         for j in range(0, len(lamds)):
-            plt.plot([lamds[j],lamds[j]],[0,lt*pix],lw=5,ls='--',color='blue')
+            plt.plot([lamds[j],lamds[j]],[0,lt*pix*daf],lw=5,ls='--',color='blue')
         plt.xlim(wavet[0],wavet[nw-1])
         if DA is not None:
-            plt.ylim(0.0001,lt*pix*DA)
+            plt.ylim(0.0001,lt*pix*daf)
             plt.ylabel(r'$R\ [kpc]$',fontsize=18)
         else:
             plt.ylim(0.0001,lt*pix)
@@ -161,7 +164,7 @@ def plot_velana(titf,vals_map,path='',DA=None,file0='J102700+174900_Gas.fits.gz'
             dtp=-5
             for j in range(0, len(lamds)):
                 x_la_t1=lamds[j]+dtp
-                y_la_t1=lt*pix*1.05
+                y_la_t1=lt*pix*1.05*daf
                 plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')     
     
     fl=0.06 # factor to give the label spaces between the plots
@@ -171,8 +174,8 @@ def plot_velana(titf,vals_map,path='',DA=None,file0='J102700+174900_Gas.fits.gz'
     
         vel_vec=slides_v[i]
         xtp=np.arange(0, len(vel_vec))*pix
-        plt.plot(xtp,vel_vec,lw=4,color=colr[i])
-        plt.scatter(xtp,vel_vec,s=63,color=colr[i])
+        plt.plot(xtp*daf,vel_vec,lw=4,color=colr[i])
+        plt.scatter(xtp*daf,vel_vec,s=63,color=colr[i])
         if DA is not None:
             plt.xlabel(r'$R\ [kpc]$',fontsize=18)
             plt.xlim(0.0,(len(vel_vec)-1)*pix*DA)
