@@ -186,9 +186,12 @@ def plot_velana(titf,vals_map,path='',DA=None,model='elic',fitmod=False,file0='J
         plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
         plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold') 
     if fitmod:
+        nt=np.isfinite(vel_vec)
+        xtp=xtp[nt]
+        vel_vec=vel_vec[nt]
         if model == 'vmax':
             vo,ro,vc,k=-45,5.2,100,1
-            popt, pcov = curve_fit(vmax_func, xtp, vel_vec, p0=[vo, ro, vc, k])
+            popt, pcov = curve_fit(vmax_func, xtp*daf, vel_vec, p0=[vo, ro, vc, k])
             perr = np.sqrt(np.diag(pcov))
             print('vo=',popt[0],'+-',perr[0],'ro=',popt[1],'+-',perr[1],'vc=',popt[2],'+-',perr[2],'k=',popt[3],'+-',perr[3],'gm=1') 
             print('V_max=',vmax_func(1000+popt[0],popt[0],popt[1],popt[2],popt[3]))
@@ -196,7 +199,7 @@ def plot_velana(titf,vals_map,path='',DA=None,model='elic',fitmod=False,file0='J
             plt.plot(xtp*daf,yfit,color='black',lw=3)
         if model == 'elic':
             alpha,beta,gama=64,-3,-11
-            popt, pcov = curve_fit(helic_func, xtp, vel_vec, p0=[alpha,beta,gama])
+            popt, pcov = curve_fit(helic_func, xtp*daf, vel_vec, p0=[alpha,beta,gama])
             perr = np.sqrt(np.diag(pcov))
             print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2]) 
             yfit=helic_func(xtp*daf,popt[0],popt[1],popt[2]) 
