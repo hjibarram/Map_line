@@ -206,7 +206,7 @@ def plot_velana(titf,vals_map,path='',DA=None,model='helic',fitmod=False,file0='
             yfit=helic_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
             plt.plot(xta*daf,yfit,color='black',lw=3)
         if model == 'sin':
-            alpha,beta,gama,theta=30,2,np.pi/2,-60
+            alpha,beta,gama,theta=30,3.5,np.pi/2,-60
             popt, pcov = curve_fit(sin_func, xtp*daf, vel_vec, p0=[alpha,beta,gama,theta])
             perr = np.sqrt(np.diag(pcov))
             print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2],'theta=',popt[3],'+-',perr[3]) 
