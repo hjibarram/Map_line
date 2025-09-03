@@ -85,7 +85,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     else:
         plt.show()
 
-def plot_velana(titf,vals_map,path='',file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_velana(titf,vals_map,path='',DA=None,file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
@@ -145,8 +145,12 @@ def plot_velana(titf,vals_map,path='',file0='J102700+174900_Gas.fits.gz',nlins=[
         for j in range(0, len(lamds)):
             plt.plot([lamds[j],lamds[j]],[0,lt*pix],lw=5,ls='--',color='blue')
         plt.xlim(wavet[0],wavet[nw-1])
-        plt.ylim(0.0001,lt*pix)
-        plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
+        if DA is not None:
+            plt.ylim(0.0001,lt*pix*DA)
+            plt.ylabel(r'$R\ [kpc]$',fontsize=18)
+        else:
+            plt.ylim(0.0001,lt*pix)
+            plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
         plt.text(0.05,0.35,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold')
         if i < nls-1:
             ax.set_xlabel('').set_visible(False)
@@ -169,9 +173,13 @@ def plot_velana(titf,vals_map,path='',file0='J102700+174900_Gas.fits.gz',nlins=[
         xtp=np.arange(0, len(vel_vec))*pix
         plt.plot(xtp,vel_vec,lw=4,color=colr[i])
         plt.scatter(xtp,vel_vec,s=63,color=colr[i])
-        plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
+        if DA is not None:
+            plt.xlabel(r'$R\ [kpc]$',fontsize=18)
+            plt.xlim(0.0,(len(vel_vec)-1)*pix*DA)
+        else:
+            plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
+            plt.xlim(0.0,(len(vel_vec)-1)*pix)
         plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
-        plt.xlim(0.0,(len(vel_vec)-1)*pix)
         plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold') 
     #vo,ro,vc,k=-45,5.2,100,1
     #popt, pcov = curve_fit(vmax_func, xtp, vel_vec, p0=[vo, ro, vc, k])
