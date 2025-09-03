@@ -189,28 +189,29 @@ def plot_velana(titf,vals_map,path='',DA=None,model='elic',fitmod=False,file0='J
         nt=np.isfinite(vel_vec)
         xtp=xtp[nt]
         vel_vec=vel_vec[nt]
+        xta=np.arange(0,1000)*np.nanmax(xtp)/1000.
         if model == 'vmax':
             vo,ro,vc,k=-45,5.2,100,1
             popt, pcov = curve_fit(vmax_func, xtp*daf, vel_vec, p0=[vo, ro, vc, k])
             perr = np.sqrt(np.diag(pcov))
             print('vo=',popt[0],'+-',perr[0],'ro=',popt[1],'+-',perr[1],'vc=',popt[2],'+-',perr[2],'k=',popt[3],'+-',perr[3],'gm=1') 
             print('V_max=',vmax_func(1000+popt[0],popt[0],popt[1],popt[2],popt[3]))
-            yfit=vmax_func(xtp*daf,popt[0],popt[1],popt[2],popt[3]) 
-            plt.plot(xtp*daf,yfit,color='black',lw=3)
+            yfit=vmax_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
+            plt.plot(xta*daf,yfit,color='black',lw=3)
         if model == 'elic':
-            alpha,beta,gama=64,-3,-11
-            popt, pcov = curve_fit(helic_func, xtp*daf, vel_vec, p0=[alpha,beta,gama])
+            alpha,beta,gama,theta=64,-3,-11,-60
+            popt, pcov = curve_fit(helic_func, xtp*daf, vel_vec, p0=[alpha,beta,gama,theta])
             perr = np.sqrt(np.diag(pcov))
-            print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2]) 
-            yfit=helic_func(xtp*daf,popt[0],popt[1],popt[2]) 
-            plt.plot(xtp*daf,yfit,color='black',lw=3)
+            print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2],'theta=',popt[3],'+-',perr[3]) 
+            yfit=helic_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
+            plt.plot(xta*daf,yfit,color='black',lw=3)
     if savef:        
         plt.savefig(dir+'/'+titf+'.pdf')
     else:
         plt.show()
 
-def helic_func(r,alpha,beta,gama):
-    vr=alpha*r**(1/2)*np.sin(beta*r**(1/2)+gama)
+def helic_func(r,alpha,beta,gama,theta):
+    vr=alpha*r**(1/2)*np.sin(beta*r**(1/2)+gama)+theta
     return vr
 
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
