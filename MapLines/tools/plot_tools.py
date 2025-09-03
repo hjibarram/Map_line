@@ -86,7 +86,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     else:
         plt.show()
 
-def plot_velana(titf,vals_map,path='',DA=None,model='elic',fitmod=False,file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_velana(titf,vals_map,path='',DA=None,model='helic',fitmod=False,file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides,wavet,dpix,vals,hdr,colr,widt,namet=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
@@ -198,13 +198,20 @@ def plot_velana(titf,vals_map,path='',DA=None,model='elic',fitmod=False,file0='J
             print('V_max=',vmax_func(1000+popt[0],popt[0],popt[1],popt[2],popt[3]))
             yfit=vmax_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
             plt.plot(xta*daf,yfit,color='black',lw=3)
-        if model == 'elic':
+        if model == 'helic':
             alpha,beta,gama,theta=64,-3,-11,-60
             popt, pcov = curve_fit(helic_func, xtp*daf, vel_vec, p0=[alpha,beta,gama,theta])
             perr = np.sqrt(np.diag(pcov))
             print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2],'theta=',popt[3],'+-',perr[3]) 
             yfit=helic_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
             plt.plot(xta*daf,yfit,color='black',lw=3)
+        if model == 'sin':
+            alpha,beta,gama,theta=64,-3,-11,-60
+            popt, pcov = curve_fit(sin_func, xtp*daf, vel_vec, p0=[alpha,beta,gama,theta])
+            perr = np.sqrt(np.diag(pcov))
+            print('alpha=',popt[0],'+-',perr[0],'beta=',popt[1],'+-',perr[1],'gamma=',popt[2],'+-',perr[2],'theta=',popt[3],'+-',perr[3]) 
+            yfit=sin_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
+            plt.plot(xta*daf,yfit,color='black',lw=3)    
     if savef:        
         plt.savefig(dir+'/'+titf+'.pdf')
     else:
@@ -213,6 +220,10 @@ def plot_velana(titf,vals_map,path='',DA=None,model='elic',fitmod=False,file0='J
 def helic_func(r,alpha,beta,gama,theta):
     vr=alpha*r**(1/2)*np.sin(beta*r**(1/2)+gama)+theta
     return vr
+
+def sin_func(r,alpha,beta,gama,theta):
+    vr=alpha*np.sin(beta*r+gama)+theta
+    return vr    
 
 def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indEwHa=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
