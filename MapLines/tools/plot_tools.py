@@ -113,7 +113,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(2.0-dyt)])  
     get_plot_map(plt,flux1,vmax1,vmin1,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]',alpha=alpha)
     nxt,nyt=flux1.shape
-    slides_v=tools.extract_segment_val(flux1,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
+    slides_v1=tools.extract_segment_val(flux1,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
         plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
     for i in range(0, len(vals1)):
@@ -129,7 +129,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     ax = fig.add_axes([dx1+pro1[1]*dx-dx*0.1, dy1+pro2[1]*dy*dyt, dx, dy*(2.0-dyt)])  
     get_plot_map(plt,flux2,vmax2,vmin2,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]',alpha=alpha)
     nxt,nyt=flux2.shape
-    slides_v=tools.extract_segment_val(flux2,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
+    slides_v2=tools.extract_segment_val(flux2,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
         plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
     for i in range(0, len(vals2)):
@@ -219,7 +219,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     for i in range(0, nls):
         ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i+ofset, dy1+pro2[2]*dy, dx*2.0*fx/nls*0.5, dy*dyt*0.8])
     
-        vel_vec=slides_v[i]
+        vel_vec=slides_v1[i]
         xtp=np.arange(0, len(vel_vec))*pix
         plt.plot(xtp*daf,vel_vec,lw=4,color=colr[i])
         plt.scatter(xtp*daf,vel_vec,s=63,color=colr[i])
