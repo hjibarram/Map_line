@@ -213,11 +213,11 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
                 y_la_t1=lt*pix*1.05*daf
                 plt.text(x_la_t1, y_la_t1, nlinsB[j % len(nlinsB)] , fontsize=18, va='center',color='black',weight='bold')    
 
-    '''
+    ofset=dx1+pro1[0]*dx+dx*(dxR+1)
     fl=0.06 # factor to give the label spaces between the plots
     fx=1-fl*(nls-1)
     for i in range(0, nls):
-        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i, dy1+pro2[2]*dy, dx*2.0*fx/nls, dy*dyt*0.8])
+        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i+ofset, dy1+pro2[2]*dy, dx*2.0*fx/nls*0.5, dy*dyt*0.8])
     
         vel_vec=slides_v[i]
         xtp=np.arange(0, len(vel_vec))*pix
@@ -259,7 +259,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
             yfit=sin_func(xta*daf,popt[0],popt[1],popt[2],popt[3]) 
             plt.plot(xta*daf,yfit,color='black',lw=3)    
     
-    '''
+    
     if savef:        
         plt.savefig(dir+'/'+titf+'.pdf')
     else:
