@@ -86,7 +86,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     else:
         plt.show()
 
-def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',nlinsA=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsA=[6549.859,6564.632,6585.278],nlinsB=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsB=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',nlinsA=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsA=[6549.859,6564.632,6585.278],nlinsB=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsB=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610,lB1=6520.0,lB2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides1,wavet1,dpix,vals1,hdr,colr1,widt1,namet1=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     slides2,wavet2,dpix,vals2,hdr,colr2,widt2,namet2=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lB1,lA2=lB2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
@@ -157,8 +157,8 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet1[0],wavet1[len(wavet1)-1],0,lt*pix*daf],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
         plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet1[0],wavet1[len(wavet1)-1],0,lt*pix*daf],interpolation='bicubic')
         plt.plot([0,10000],[0,0],lw=5,color='white')
-        for j in range(0, len(lamds)):
-            plt.plot([lamds[j],lamds[j]],[0,lt*pix*daf],lw=5,ls='--',color='blue')
+        for j in range(0, len(lamdsA)):
+            plt.plot([lamdsA[j],lamdsA[j]],[0,lt*pix*daf],lw=5,ls='--',color='blue')
         plt.xlim(wavet1[0],wavet1[nw-1])
         if DA is not None:
             plt.ylim(0.0001,lt*pix*daf)
@@ -174,10 +174,43 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
             plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=18)
         if i == 0:
             dtp=-5
-            for j in range(0, len(lamds)):
-                x_la_t1=lamds[j]+dtp
+            for j in range(0, len(lamdsA)):
+                x_la_t1=lamdsA[j]+dtp
                 y_la_t1=lt*pix*1.05*daf
-                plt.text(x_la_t1, y_la_t1, nlins[j % len(nlins)] , fontsize=18, va='center',color='black',weight='bold')     
+                plt.text(x_la_t1, y_la_t1, nlinsA[j % len(nlinsA)] , fontsize=18, va='center',color='black',weight='bold')     
+    
+    nls=len(slides2)
+    cm='cmr.amber'
+    for i in range(0, nls):
+        ax = fig.add_axes([dx1+pro1[0]*dx+dx*dxR, dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(dyt*0.8), dx*0.5, dy/(nls)*(dyt*0.8)])
+        slide=slides2[i]
+        lt,nw=slide.shape
+        slide=slide/np.nanmax(slide)  
+        ict=plt.imshow(slide,origin='lower',cmap=cm,extent=[wavet2[0],wavet2[len(wavet2)-1],0,lt*pix*daf],aspect='auto',interpolation='bicubic',vmin=0,vmax=1)
+        plt.contour(slide,lev,colors='white',linewidths=1.5,extent=[wavet2[0],wavet2[len(wavet2)-1],0,lt*pix*daf],interpolation='bicubic')
+        plt.plot([0,10000],[0,0],lw=5,color='white')
+        for j in range(0, len(lamdsB)):
+            plt.plot([lamdsB[j],lamdsB[j]],[0,lt*pix*daf],lw=5,ls='--',color='blue')
+        plt.xlim(wavet2[0],wavet2[nw-1])
+        if DA is not None:
+            plt.ylim(0.0001,lt*pix*daf)
+            plt.ylabel(r'$R\ [kpc]$',fontsize=18)
+        else:
+            plt.ylim(0.0001,lt*pix)
+            plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
+        plt.text(0.05,0.35,namet2[i],fontsize=20,transform=ax.transAxes,color=colr2[i],weight='bold')
+        if i < nls-1:
+            ax.set_xlabel('').set_visible(False)
+            plt.setp( ax.get_xticklabels(), visible=False)           
+        else:
+            plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=18)
+        if i == 0:
+            dtp=-5
+            for j in range(0, len(lamdsB)):
+                x_la_t1=lamdsB[j]+dtp
+                y_la_t1=lt*pix*1.05*daf
+                plt.text(x_la_t1, y_la_t1, nlinsB[j % len(nlinsB)] , fontsize=18, va='center',color='black',weight='bold')    
+
     '''
     fl=0.06 # factor to give the label spaces between the plots
     fx=1-fl*(nls-1)
