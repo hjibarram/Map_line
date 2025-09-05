@@ -150,7 +150,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     nls=len(slides1)
     cm='cmr.amber'
     for i in range(0, nls):
-        ax = fig.add_axes([dx1+pro1[0]*dx+dx*dxR, dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(dyt*0.8), dx*0.5, dy/(nls)*(dyt*0.8)])
+        ax = fig.add_axes([dx1+pro1[0]*dx+dx*dxR, dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(dyt*0.8), dx*0.48, dy/(nls)*(dyt*0.8)])
         slide=slides1[i]
         lt,nw=slide.shape
         slide=slide/np.nanmax(slide)  
@@ -182,7 +182,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     nls=len(slides2)
     cm='cmr.amber'
     for i in range(0, nls):
-        ax = fig.add_axes([dx1+pro1[0]*dx+dx*(dxR+0.5), dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(dyt*0.8), dx*0.5, dy/(nls)*(dyt*0.8)])
+        ax = fig.add_axes([dx1+pro1[0]*dx+dx*(dxR+0.5), dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(dyt*0.8), dx*0.48, dy/(nls)*(dyt*0.8)])
         slide=slides2[i]
         lt,nw=slide.shape
         slide=slide/np.nanmax(slide)  
