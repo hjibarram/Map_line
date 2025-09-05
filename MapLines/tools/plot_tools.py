@@ -220,8 +220,8 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i+ofset, dy1+pro2[2]*dy, dx*2.0*fx/nls*0.5, dy*dyt*0.8])
         vel_vec1=slides_v1[i]
         vel_vec2=slides_v2[i]
-        xtp1=np.arange(0, len(vel_vec1))*pix1
-        xtp2=np.arange(0, len(vel_vec2))*pix1
+        xtp1=np.arange(0, len(vel_vec1))*pix
+        xtp2=np.arange(0, len(vel_vec2))*pix
         plt.plot(xtp1*daf,vel_vec1,lw=4,color=colr1[i])
         plt.plot(xtp2*daf,vel_vec2,lw=4,color=colr2[i],lstyle='--')
         plt.scatter(xtp1*daf,vel_vec1,s=63,color=colr1[i])
