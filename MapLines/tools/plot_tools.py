@@ -221,8 +221,8 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     
         vel_vec=slides_v1[i]
         xtp=np.arange(0, len(vel_vec))*pix
-        plt.plot(xtp*daf,vel_vec,lw=4,color=colr[i])
-        plt.scatter(xtp*daf,vel_vec,s=63,color=colr[i])
+        plt.plot(xtp*daf,vel_vec,lw=4,color=colr1[i])
+        plt.scatter(xtp*daf,vel_vec,s=63,color=colr1[i])
         if DA is not None:
             plt.xlabel(r'$R\ [kpc]$',fontsize=18)
             plt.xlim(0.0,(len(vel_vec)-1)*pix*DA)
@@ -230,7 +230,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
             plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
             plt.xlim(0.0,(len(vel_vec)-1)*pix)
         plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
-        plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold') 
+        plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr1[i],weight='bold') 
     if fitmod:
         nt=np.isfinite(vel_vec)
         xtp=xtp[nt]
