@@ -87,8 +87,8 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
         plt.show()
 
 def plot_velana2x(titf,vals_map1,vals_map2,path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamds=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
-    slides1,wavet1,dpix,vals1,hdr1,colr1,widt1,namet1=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
-    slides2,wavet2,dpix,vals2,hdr2,colr2,widt2,namet2=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
+    slides1,wavet1,dpix,vals1,hdr,colr1,widt1,namet1=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
+    slides2,wavet2,dpix,vals2,hdr,colr2,widt2,namet2=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
     if facy == -1:
@@ -117,15 +117,15 @@ def plot_velana2x(titf,vals_map1,vals_map2,path='',DA=None,model='helic',alpha=1
     slides_v=tools.extract_segment_val(flux1,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
         plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
-    for i in range(0, len(vals)):
-        cosT,sinT,rtf,ytf,xtf=vals[i]
-        hwith=widt[i]/5.0*0.25
+    for i in range(0, len(vals1)):
+        cosT,sinT,rtf,ytf,xtf=vals1[i]
+        hwith=widt1[i]/5.0*0.25
         for j in range(0, len(cosT)):
             tp=np.arange(0,100)/99.*rtf[j]/pix
             yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
             xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
-            plt.plot(yt,xt,lw=widt[i],color=colr[i])
-        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=hwith,zorder=2) 
+            plt.plot(yt,xt,lw=widt1[i],color=colr1[i])
+        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr1[i],lw=widt1[i],head_width=hwith,zorder=2) 
     
     ax = fig.add_axes([dx1+pro1[1]*dx-dx*0.1, dy1+pro2[1]*dy*dyt, dx, dy*(2.0-dyt)])  
     get_plot_map(plt,flux2,vmax2,vmin2,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]',alpha=alpha)
@@ -133,15 +133,15 @@ def plot_velana2x(titf,vals_map1,vals_map2,path='',DA=None,model='helic',alpha=1
     slides_v=tools.extract_segment_val(flux2,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
         plot_apertures(ax,hdr,plt,nxt,nyt,pix,reg_dir=reg_dir,reg_file=reg_aper)
-    for i in range(0, len(vals)):
-        cosT,sinT,rtf,ytf,xtf=vals[i]
-        hwith=widt[i]/5.0*0.25
+    for i in range(0, len(vals2)):
+        cosT,sinT,rtf,ytf,xtf=vals2[i]
+        hwith=widt2[i]/5.0*0.25
         for j in range(0, len(cosT)):
             tp=np.arange(0,100)/99.*rtf[j]/pix
             yt=(ytf[j]+cosT[j]*tp-nyt/2.+1)*pix
             xt=(xtf[j]+sinT[j]*tp-nxt/2.+1)*pix
-            plt.plot(yt,xt,lw=widt[i],color=colr[i])
-        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr[i],lw=widt[i],head_width=hwith,zorder=2)            
+            plt.plot(yt,xt,lw=widt2[i],color=colr2[i])
+        plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr2[i],lw=widt2[i],head_width=hwith,zorder=2)            
     if DA is not None:
         daf=DA 
     else:
