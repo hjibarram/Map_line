@@ -150,7 +150,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     nls=len(slides1)
     cm='cmr.amber'
     for i in range(0, nls):
-        ax = fig.add_axes([dx1+pro1[0]*dx+dx*dxR, dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(2.0-dyt), dx, dy/(nls)*(2.0-dyt)])
+        ax = fig.add_axes([dx1+pro1[0]*dx+dx*dxR, dy1+pro2[2]*dy*dyt+dy*(nls-i-1)/nls*(dyt), dx, dy/(nls)*(dyt)])
         slide=slides1[i]
         lt,nw=slide.shape
         slide=slide/np.nanmax(slide)  
@@ -166,7 +166,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         else:
             plt.ylim(0.0001,lt*pix)
             plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-        plt.text(0.05,0.35,namet1[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold')
+        plt.text(0.05,0.35,namet1[i],fontsize=20,transform=ax.transAxes,color=colr1[i],weight='bold')
         if i < nls-1:
             ax.set_xlabel('').set_visible(False)
             plt.setp( ax.get_xticklabels(), visible=False)           
