@@ -217,7 +217,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     fl=0.06 # factor to give the label spaces between the plots
     fx=1-fl*(nls-1)
     for i in range(0, nls):
-        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i+ofset, dy1+pro2[2]*dy, dx*2.0*fx/nls*0.45, dy*dyt*0.8])
+        ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i+ofset, dy1+pro2[2]*dy, dx*2.0*fx/nls*0.4, dy*dyt*0.8])
         vel_vec1=slides_v1[i]
         vel_vec2=slides_v2[i]
         xtp1=np.arange(0, len(vel_vec1))*pix
