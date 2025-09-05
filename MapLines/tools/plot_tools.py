@@ -223,7 +223,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         xtp1=np.arange(0, len(vel_vec1))*pix
         xtp2=np.arange(0, len(vel_vec2))*pix
         plt.plot(xtp1*daf,vel_vec1,lw=4,color=colr1[i])
-        plt.plot(xtp2*daf,vel_vec2,lw=4,color=colr2[i],lstyle='--')
+        plt.plot(xtp2*daf,vel_vec2,lw=4,color=colr2[i],ls='--')
         plt.scatter(xtp1*daf,vel_vec1,s=63,color=colr1[i])
         plt.scatter(xtp2*daf,vel_vec2,s=63,color=colr2[i])
         if DA is not None:
