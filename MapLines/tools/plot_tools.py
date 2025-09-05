@@ -166,7 +166,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         else:
             plt.ylim(0.0001,lt*pix)
             plt.ylabel(r'$R\ [arcsec]$',fontsize=18)
-        plt.text(0.05,0.35,namet[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold')
+        plt.text(0.05,0.35,namet1[i],fontsize=20,transform=ax.transAxes,color=colr[i],weight='bold')
         if i < nls-1:
             ax.set_xlabel('').set_visible(False)
             plt.setp( ax.get_xticklabels(), visible=False)           
