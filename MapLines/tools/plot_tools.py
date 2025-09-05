@@ -242,9 +242,9 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         xtp2=xtp2[nt2]
         vel_vec2=vel_vec2[nt2]
         xtp=xtp1
-        xtp=xtp.concatenate((xtp,xtp2),axis=0)
+        xtp=np.concatenate((xtp,xtp2),axis=0)
         vel_vec=vel_vec1
-        vel_vec=vel_vec.concatenate((vel_vec,vel_vec2),axis=0)
+        vel_vec=np.concatenate((vel_vec,vel_vec2),axis=0)
         xta=np.arange(0,1000)*np.nanmax(xtp)/1000.
         if model == 'vmax':
             vo,ro,vc,k=-45,5.2,100,1
