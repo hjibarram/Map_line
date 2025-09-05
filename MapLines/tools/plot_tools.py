@@ -218,23 +218,33 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     fx=1-fl*(nls-1)
     for i in range(0, nls):
         ax = fig.add_axes([dx1+pro1[1]*dx*2.0*i/nls*fx+dx*2.0*fl*i+ofset, dy1+pro2[2]*dy, dx*2.0*fx/nls*0.5, dy*dyt*0.8])
-    
-        vel_vec=slides_v1[i]
-        xtp=np.arange(0, len(vel_vec))*pix
-        plt.plot(xtp*daf,vel_vec,lw=4,color=colr1[i])
-        plt.scatter(xtp*daf,vel_vec,s=63,color=colr1[i])
+        vel_vec1=slides_v1[i]
+        vel_vec2=slides_v2[i]
+        xtp1=np.arange(0, len(vel_vec1))*pix1
+        xtp2=np.arange(0, len(vel_vec2))*pix1
+        plt.plot(xtp1*daf,vel_vec1,lw=4,color=colr1[i])
+        plt.plot(xtp2*daf,vel_vec2,lw=4,color=colr2[i],lstyle='--')
+        plt.scatter(xtp1*daf,vel_vec1,s=63,color=colr1[i])
+        plt.scatter(xtp2*daf,vel_vec2,s=63,color=colr2[i])
         if DA is not None:
             plt.xlabel(r'$R\ [kpc]$',fontsize=18)
-            plt.xlim(0.0,(len(vel_vec)-1)*pix*DA)
+            plt.xlim(0.0,(len(vel_vec1)-1)*pix*DA)
         else:
             plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
-            plt.xlim(0.0,(len(vel_vec)-1)*pix)
+            plt.xlim(0.0,(len(vel_vec1)-1)*pix)
         plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
-        plt.text(0.8,0.8,namet[i],fontsize=20,transform=ax.transAxes,color=colr1[i],weight='bold') 
+        plt.text(0.8,0.8,namet1[i],fontsize=20,transform=ax.transAxes,color=colr1[i],weight='bold') 
     if fitmod:
-        nt=np.isfinite(vel_vec)
-        xtp=xtp[nt]
-        vel_vec=vel_vec[nt]
+        nt1=np.isfinite(vel_vec1)
+        xtp1=xtp1[nt1]
+        vel_vec1=vel_vec1[nt1]
+        nt2=np.isfinite(vel_vec2)
+        xtp2=xtp2[nt2]
+        vel_vec2=vel_vec2[nt2]
+        xtp=xtp1
+        xtp=xtp.concatenate((xtp,xtp2),axis=0)
+        vel_vec=vel_vec1
+        vel_vec=vel_vec.concatenate((vel_vec,vel_vec2),axis=0)
         xta=np.arange(0,1000)*np.nanmax(xtp)/1000.
         if model == 'vmax':
             vo,ro,vc,k=-45,5.2,100,1
