@@ -67,4 +67,5 @@ files:
 
     # Plot Options
     labplot: False #Optional, flag to activate the labels in the plots
+    scl: '-16' #Optional, label for the flux units, default -16 (ergs 10^-16)
 ...

@@ -699,7 +699,7 @@ def plot_circle(ax,xpos,ypos,nx,ny,dpix,rad=2,color='black',name='1',dtex=0,dtey
     #else:
     plt.text(yposf+dpix*0.5+dtey,xposf+dtex,name, fontsize=25,color=color,weight='bold')    
 
-def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,errp=True,fontsize=14,colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',res_norm=True,labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
+def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,errp=True,fontsize=14,scl='-16',colors=['blue','red','purple','brown','pink'],name_out='name',dir_out='',res_norm=True,labplot=True,dataFe=None,lorentz=False,skew=False,outflow=False,powlaw=False,feii=False):
     facy=1
     facx=1
     xf=7
@@ -760,7 +760,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         fontsizeL=6
     ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
-    ax1.set_ylabel(r'Flux [10$^{-16}$erg s$^{-1}$ cm$^{-2}$ $\rm{\AA}^{-1}$]',fontsize=fontsize)
+    ax1.set_ylabel(r'Flux [10$^{'+scl+'}$erg s$^{-1}$ cm$^{-2}$ $\rm{\AA}^{-1}$]',fontsize=fontsize)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
     plt.setp( ax1.get_xticklabels(), visible=False)
     if labplot:

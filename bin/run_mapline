@@ -88,9 +88,13 @@ def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,spro
     except:
         labplot=True
     try:
-        spe=data['files'][0]['spe']
+        spe=data['files'][0]['spe']#with of the RMS error measurement 
     except:
-        spe=50    
+        spe=50
+    try:
+        scl=data['files'][0]['scl']
+    except:
+        scl='-16'        
     if name_out == 'None':
         name_out=name
 
@@ -140,7 +144,7 @@ def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,spro
     line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,
          pgr_bar=pgr_bar,ncpu=ncpus,skew=skew,flux_f=fluxf,erft=0.75,cont=cont,test=test,
          error_c=error_c,i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines,outflow=outf,dir_out=dir_out,
-         powlaw=powlaw,feii=feii,res_norm=res_norm,labplot=labplot,spe=spe)
+         powlaw=powlaw,feii=feii,res_norm=res_norm,labplot=labplot,spe=spe,scl=scl)
     
 cli.add_command(run)
 

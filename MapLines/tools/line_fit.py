@@ -239,7 +239,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True,spe=50):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
     pdl_cube,pdl_cubeE,mask,wave,hdr=tol.get_cubespectra(file1,file3,flux_f=flux_f,erft=erft,error_c=error_c)
     nz,nx,ny=pdl_cube.shape
     wave_f=wave/(1+z)
@@ -426,7 +426,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     model_param[ind+4,i,j]=Fdo
                     model_param[ind+5,i,j]=Fao
                 if plot_f:
-                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm)    
+                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm,scl=scl)    
                 if pgr_bar == False:  
                     linet=''
                     for itar in range(0, len(vals)):
