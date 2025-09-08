@@ -516,7 +516,7 @@ def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,maskR=None,orienta
     map_bpt=tools.bpt(ewHa,ratio2,ratio1,ret=ret,agn=agn,sf=sf,inte=inte,comp=comp)
     
     type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
-    type_n=r'log($[OIII]/H\beta$) vs log($[NII]/H\alpha$)'
+    type_n=r'log([OIII]/H\beta) vs log([NII]/H\alpha)'
     vmax=None
     vmin=None
     ticks = [1,2,3,4,5]
