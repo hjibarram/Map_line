@@ -475,7 +475,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
         plt.show()
 
 
-def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
+def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,maskB=None,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
     flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
     flux2,vel2,sigma2,ew2=tools.get_fluxline(fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
@@ -541,7 +541,8 @@ def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,fontsize=18,maskR=
         plt.grid(color='black', ls='solid')
     if savef:
         plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
-        plt.tight_layout()
+        if tight:
+            plt.tight_layout()
     else:
         plt.show()
 
