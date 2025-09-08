@@ -477,10 +477,10 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
 
 def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
-    flux1,vel1,sigma1,ew1=tools.get_fluxline(path+'/'+fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
-    flux2,vel2,sigma2,ew2=tools.get_fluxline(path+'/'+fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
-    flux3,vel3,sigma3,ew3=tools.get_fluxline(path+'/'+fileB,path=path,ind1=indHb,  ind2=indHb+2,  ind3=indHb+1,  ind4=indcB,lo=4862.68,zt=zt,val0=0)
-    flux4,vel4,sigma4,ew4=tools.get_fluxline(path+'/'+fileB,path=path,ind1=indOIII,ind2=indOIII+2,ind3=indOIII+1,ind4=indcB,lo=5008.24,zt=zt,val0=0)
+    flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
+    flux2,vel2,sigma2,ew2=tools.get_fluxline(fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
+    flux3,vel3,sigma3,ew3=tools.get_fluxline(fileB,path=path,ind1=indHb,  ind2=indHb+2,  ind3=indHb+1,  ind4=indcB,lo=4862.68,zt=zt,val0=0)
+    flux4,vel4,sigma4,ew4=tools.get_fluxline(fileB,path=path,ind1=indOIII,ind2=indOIII+2,ind3=indOIII+1,ind4=indcB,lo=5008.24,zt=zt,val0=0)
     hdr=fits.getheader(path+'/'+fileB)
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
