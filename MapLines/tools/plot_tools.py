@@ -475,7 +475,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
         plt.show()
 
 
-def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
+def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
     flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
     flux2,vel2,sigma2,ew2=tools.get_fluxline(fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
@@ -497,6 +497,13 @@ def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,orientation=None,hd=0,ewsing=
                 dx=hdr['CDELT1']*3600.
                 dy=hdr['CDELT2']*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0 
+    if maskB is not None:
+        flux3[maskB]=np.nan
+        flux4[maskB]=np.nan
+    if maskR is not None:
+        ew1[maskR]=np.nan
+        flux1[maskR]=np.nan
+        flux2[maskR]=np.nan
     fluxOIII=flux4
     fluxNII=flux2
     fluxHa=flux1
