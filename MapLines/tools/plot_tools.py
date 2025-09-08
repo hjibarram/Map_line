@@ -475,7 +475,7 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
         plt.show()
 
 
-def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
+def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
     basefigname='BPT_map_NAME'
     flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
     flux2,vel2,sigma2,ew2=tools.get_fluxline(fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
@@ -536,7 +536,7 @@ def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,maskB=None,maskR=None,orienta
 
     cm = ListedColormap(colores)
     norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
-    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,ticks=ticks,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,ticks=ticks,fontsize=fontsize,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
@@ -603,7 +603,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,labels=None,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,fontsize=18,labels=None,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if fwcs:
         pix=3600.
@@ -645,9 +645,9 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,labels=None,cmt=N
     else: 
         cm=plt.get_cmap('jet')
     if location != 'top':
-        plt.title(r'$'+tit+'$',fontsize=18)
-    plt.xlabel(r'$'+xlab+labs+'$',fontsize=18)
-    plt.ylabel(r'$'+ylab+labs+'$',fontsize=18)
+        plt.title(r'$'+tit+'$',fontsize=fontsize)
+    plt.xlabel(r'$'+xlab+labs+'$',fontsize=fontsize)
+    plt.ylabel(r'$'+ylab+labs+'$',fontsize=fontsize)
     ict=plt.imshow(flux,cmap=cm,norm=norm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
     if cont:
         plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],zorder=1)
@@ -658,9 +658,9 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,labels=None,cmt=N
     plt.xlim(-ny*pix/2/fac+dx,ny*pix/2/fac+dx)
     plt.ylim(-nx*pix/2/fac+dy,nx*pix/2/fac+dy)  
     if location == 'top':
-        cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=18)
+        cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
     else:
-        cbar.set_label(r"$"+lab+"$",fontsize=18)  
+        cbar.set_label(r"$"+lab+"$",fontsize=fontsize)  
     if labels is not None:
         cbar.set_ticklabels(labels)       
 
