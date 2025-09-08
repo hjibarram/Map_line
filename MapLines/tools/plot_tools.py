@@ -86,9 +86,9 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     else:
         plt.show()
 
-def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',nlinsA=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsA=[6549.859,6564.632,6585.278],nlinsB=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsB=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610,lB1=6520.0,lB2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',file1='J102700+174900_Gas.fits.gz',nlinsA=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsA=[6549.859,6564.632,6585.278],nlinsB=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsB=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610,lB1=6520.0,lB2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides1,wavet1,dpix,vals1,hdr,colr1,widt1,namet1=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
-    slides2,wavet2,dpix,vals2,hdr,colr2,widt2,namet2=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lB1,lA2=lB2,sigT=sigT,cosmetic=True,hdu=hdu)
+    slides2,wavet2,dpix,vals2,hdr,colr2,widt2,namet2=tools.extract_segment(file1,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lB1,lA2=lB2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
     
     if facy == -1:
@@ -474,6 +474,69 @@ def plot_bpt_map(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,l
     else:
         plt.show()
 
+
+def plot_bpt_map2(file,name='',alpha=1,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='BPT',cont=False,path='',indcB=769,indcR=769,indOIII=76,indNII=123,indHa=124,indHb=63,ret=1,agn=5,sf=3,inte=2,comp=4):
+    basefigname='BPT_map_NAME'
+    flux1,vel1,sigma1,ew1=tools.get_fluxline(path+'/'+fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
+    flux2,vel2,sigma2,ew2=tools.get_fluxline(path+'/'+fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
+    flux3,vel3,sigma3,ew3=tools.get_fluxline(path+'/'+fileB,path=path,ind1=indHb,  ind2=indHb+2,  ind3=indHb+1,  ind4=indcB,lo=4862.68,zt=zt,val0=0)
+    flux4,vel4,sigma4,ew4=tools.get_fluxline(path+'/'+fileB,path=path,ind1=indOIII,ind2=indOIII+2,ind3=indOIII+1,ind4=indcB,lo=5008.24,zt=zt,val0=0)
+    hdr=fits.getheader(path+'/'+fileB)
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            try:
+                dx=hdr['PC1_1']*3600.
+                dy=hdr['PC2_2']*3600.
+            except:
+                dx=hdr['CDELT1']*3600.
+                dy=hdr['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    fluxOIII=flux4
+    fluxNII=flux2
+    fluxHa=flux1
+    fluxHb=flux3
+    ewHa=ewsing*ew1
+
+    ratio1=np.log10(fluxOIII/fluxHb)
+    ratio2=np.log10(fluxNII/fluxHa)
+    bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
+    map_bpt=tools.bpt(ewHa,ratio2,ratio1,ret=ret,agn=agn,sf=sf,inte=inte,comp=comp)
+    
+    type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
+    type_n=r'log($[OIII]/H\beta$) vs log($[NII]/H\alpha$)'
+    vmax=None
+    vmin=None
+    ticks = [1,2,3,4,5]
+    labels = ['Ret','Int','SF','Comp','sAGN']
+    colores = ['orange','dodgerblue','mediumspringgreen','#A788CF','darkslateblue']
+
+    plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
+    if fwcs:
+        wcs = WCS(hdr).celestial
+        plt.subplot(projection=wcs)
+        try:
+            objsys=hdr['RADESYS']
+        except:
+            objsys='J2000'
+    else:
+        objsys='J2000'
+
+    cm = ListedColormap(colores)
+    norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
+    get_plot_map(plt,map_bpt,vmax,vmin,cmt=cm,ticks=ticks,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    if fwcs:
+        plt.grid(color='black', ls='solid')
+    if savef:
+        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
+        plt.tight_layout()
+    else:
+        plt.show()
 
 def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',sumc=False,path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,facx=6.5,facy=7.6,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
 
