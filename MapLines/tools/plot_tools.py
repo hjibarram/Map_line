@@ -86,7 +86,7 @@ def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'
     else:
         plt.show()
 
-def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',file1='J102700+174900_Gas.fits.gz',nlinsA=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsA=[6549.859,6564.632,6585.278],nlinsB=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsB=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610,lB1=6520.0,lB2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
+def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,pltlabel=r'$Velocity\ shift\ [km\ s^{-1}]$',unitplots=[r'[km\ s^{-1}]',r'[km\ s^{-1}]'],labplots=['Velocity shift Blue','Velocity shift Red'],path='',DA=None,model='helic',alpha=1.0,fitmod=False,file0='J102700+174900_Gas.fits.gz',file1='J102700+174900_Gas.fits.gz',nlinsA=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsA=[6549.859,6564.632,6585.278],nlinsB=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],lamdsB=[6549.859,6564.632,6585.278],hdu=0,reg_dir='',reg_aper='apertu.reg',reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610,lB1=6520.0,lB2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides1,wavet1,dpix,vals1,hdr,colr1,widt1,namet1=tools.extract_segment(file0,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=True,hdu=hdu)
     slides2,wavet2,dpix,vals2,hdr,colr2,widt2,namet2=tools.extract_segment(file1,path=path,reg_dir=reg_dir,reg_name=reg_name,z=zt,lA1=lB1,lA2=lB2,sigT=sigT,cosmetic=True,hdu=hdu)
     pix=dpix
@@ -111,7 +111,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
     flux1,vmax1,vmin1=vals_map1
     flux2,vmax2,vmin2=vals_map2
     ax = fig.add_axes([dx1+pro1[0]*dx-dx*0.1, dy1+pro2[0]*dy*dyt, dx, dy*(2.0-dyt)])  
-    get_plot_map(plt,flux1,vmax1,vmin1,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]',alpha=alpha)
+    get_plot_map(plt,flux1,vmax1,vmin1,pix=pix,tit=labplots[0],lab=unitplots[0],alpha=alpha)
     nxt,nyt=flux1.shape
     slides_v1=tools.extract_segment_val(flux1,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
@@ -127,7 +127,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         plt.arrow(yt[0], xt[0], yt[99]-yt[0],  xt[99]-xt[0], color=colr1[i],lw=widt1[i],head_width=hwith,zorder=2) 
     
     ax = fig.add_axes([dx1+pro1[1]*dx-dx*0.1, dy1+pro2[1]*dy*dyt, dx, dy*(2.0-dyt)])  
-    get_plot_map(plt,flux2,vmax2,vmin2,pix=pix,tit='Velocity shift',lab=r'[km\ s^{-1}]',alpha=alpha)
+    get_plot_map(plt,flux2,vmax2,vmin2,pix=pix,tit=labplots[1],lab=unitplots[1],alpha=alpha)
     nxt,nyt=flux2.shape
     slides_v2=tools.extract_segment_val(flux2,hdr,pix,reg_dir=reg_dir,reg_name=reg_name)
     if reg_aper is not None:
@@ -232,7 +232,7 @@ def plot_velana2x(titf,vals_map1,vals_map2,dyt=0.95,path='',DA=None,model='helic
         else:
             plt.xlabel(r'$R\ [arcsec]$',fontsize=18)
             plt.xlim(0.0,(len(vel_vec1)-1)*pix)
-        plt.ylabel(r'$Velocity\ shift\ [km\ s^{-1}]$',fontsize=18)
+        plt.ylabel(pltlabel,fontsize=18)
         plt.text(0.8,0.8,namet1[i],fontsize=20,transform=ax.transAxes,color=colr1[i],weight='bold') 
     if fitmod:
         nt1=np.isfinite(vel_vec1)
