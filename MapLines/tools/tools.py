@@ -165,7 +165,7 @@ def get_priorsvalues(filename):
             try:
                 colors0.extend([parameters['color']])
             except:
-                colors0=['None'] 
+                colors0=['NoNe'] 
             try:
                 facN0.extend([parameters['fac_Name']])
                 fac0.extend([parameters['fac']])
