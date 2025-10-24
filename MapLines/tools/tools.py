@@ -146,6 +146,7 @@ def get_priorsvalues(filename):
         pacH=['N_Amplitude','N_Velocity','N_FWHM']
         waves0=[]
         names0=[]
+        colors0=[]
         vals0=[]
         vals=[]
         valsL=[]
@@ -161,6 +162,10 @@ def get_priorsvalues(filename):
             npar=len(parameters)
             waves0.extend([parameters['wave']])
             names0.extend([parameters['name']])
+            try:
+                colors0.extend([parameters['color']])
+            except:
+                colors0=['None'] 
             try:
                 facN0.extend([parameters['fac_Name']])
                 fac0.extend([parameters['fac']])
@@ -232,7 +237,7 @@ def get_priorsvalues(filename):
             except:
                 print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
                 sys.exit()
-        return  valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH#,region
+        return  valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH#,region
     else:
         print('No configuration line model file')
         sys.exit()    

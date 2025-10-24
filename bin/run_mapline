@@ -38,6 +38,7 @@ def cli():
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
 @click.option('-q', '--line_config', type=str, default='line_prop.yml', help='line model configuration file')
 @click.option('-w', '--line_config_path', type=str, default='', help='path to the line model configuration file')
+#@click.option('-u', '--colors', type=str, default='blue,red,purple,brown,pink', help='list of colors for the spectral plot, comma separated')
 
 def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,sprogressd,name_out,kskew,outflow,lorentz,powlaw,feii,fluxf,line_config,line_config_path):
     wave_ini=6350.0
@@ -94,7 +95,14 @@ def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,spro
     try:
         scl=data['files'][0]['scl']
     except:
-        scl='-16'        
+        scl='-16' 
+    try:
+        colors=data['files'][0]['colors'] 
+    except:
+        #try:
+        #    colors = colors.split(",")
+        #except:
+        colors=['blue','red','purple','brown','pink']       
     if name_out == 'None':
         name_out=name
 
@@ -144,7 +152,7 @@ def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,spro
     line_fit(file1,file2,file3,file_out,file_out2,name_out2,z=zt,lA1=lA1,lA2=lA2,plot_f=plot_f,
          pgr_bar=pgr_bar,ncpu=ncpus,skew=skew,flux_f=fluxf,erft=0.75,cont=cont,test=test,
          error_c=error_c,i_t=it,j_t=jt,lorentz=lorentz,config_lines=config_lines,outflow=outf,dir_out=dir_out,
-         powlaw=powlaw,feii=feii,res_norm=res_norm,labplot=labplot,spe=spe,scl=scl)
+         powlaw=powlaw,feii=feii,res_norm=res_norm,labplot=labplot,spe=spe,scl=scl,colors=colors)
     
 cli.add_command(run)
 

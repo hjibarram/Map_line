@@ -26,8 +26,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
     model_InpE=np.zeros(len(nw))
     if outflow:
         model_Outflow=np.zeros(len(nw))
-    valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
-    model_Ind=np.zeros([len(nw),n_lines])  
+    valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
+    model_Ind=np.zeros([len(nw),n_lines])
+    if colors0[0] != 'none':
+        colors=colors0   
     if cont:
         oft=2
     else:
@@ -257,8 +259,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         model_Outflow=np.zeros([len(nw),nx,ny])
     if powlaw:
         model_Powerlaw=np.zeros([len(nw),nx,ny])
-    valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
-    model_Ind=np.zeros([len(nw),nx,ny,n_lines])    
+    valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
+    model_Ind=np.zeros([len(nw),nx,ny,n_lines])
+    if colors0[0] != 'none':
+        colors=colors0
     if cont:
         oft=2
     else:
