@@ -162,10 +162,10 @@ def get_priorsvalues(filename):
             npar=len(parameters)
             waves0.extend([parameters['wave']])
             names0.extend([parameters['name']])
-            #try:
-            colors0.extend([parameters['color']])
-            #except:
-            #    colors0=['NoNe'] 
+            try:
+                colors0.extend([parameters['color']])
+            except:
+                colors0=['NoNe'] 
             try:
                 facN0.extend([parameters['fac_Name']])
                 fac0.extend([parameters['fac']])
