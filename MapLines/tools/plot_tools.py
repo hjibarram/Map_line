@@ -829,7 +829,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         fontsizeL=10
     else:
         fontsizeL=6
-    ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
+    ax1.set_title("Observed Input Spectrum",fontsize=fontsize)
     ax1.set_xlabel(r'$Wavelength\ [\rm{\AA}]$',fontsize=fontsize)
     ax1.set_ylabel(r'Flux [10$^{'+scl+r'}$erg s$^{-1}$ cm$^{-2}$ $\rm{\AA}^{-1}$]',fontsize=fontsize)
     ax1.tick_params(axis='both', which='major', labelsize=fontsize)
