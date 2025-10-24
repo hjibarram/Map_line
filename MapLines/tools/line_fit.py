@@ -261,6 +261,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         model_Powerlaw=np.zeros([len(nw),nx,ny])
     valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
     model_Ind=np.zeros([len(nw),nx,ny,n_lines])
+    print(colors0)
     if colors0[0] != 'NoNe':
         colors=colors0
     if cont:
