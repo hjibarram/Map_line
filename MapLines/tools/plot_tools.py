@@ -546,6 +546,128 @@ def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,maskB=None,fontsiz
     else:
         plt.show()
 
+
+def plot_whan_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='WHaN',cont=False,path='',indcR=769,indNII=123,indHa=124,ret=1,agn=5,sf=3,wagn=4):
+    basefigname='whan_map_NAME'
+    flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
+    flux2,vel2,sigma2,ew2=tools.get_fluxline(fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
+    hdr=fits.getheader(path+'/'+fileB)
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            try:
+                dx=hdr['PC1_1']*3600.
+                dy=hdr['PC2_2']*3600.
+            except:
+                dx=hdr['CDELT1']*3600.
+                dy=hdr['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    if maskR is not None:
+        ew1[maskR]=np.nan
+        flux1[maskR]=np.nan
+        flux2[maskR]=np.nan
+    fluxNII=flux2
+    fluxHa=flux1
+    ewHa=ewsing*ew1
+
+    ratio2=np.log10(fluxNII/fluxHa)
+    bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
+    map_whan=tools.whan(ewHa,ratio2,agn=agn,sf=sf,wagn=wagn,ret=ret)
+    
+    type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
+    type_n=r'EW_H\alpha vs log([NII]/H\alpha)'
+    vmax=None
+    vmin=None 
+    ticks = [1,3,4,5]
+    labels = ['Ret','SF','wAGN','sAGN']
+    colores = ['orange','mediumspringgreen','#A788CF','darkslateblue']
+
+    plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
+    if fwcs:
+        wcs = WCS(hdr).celestial
+        plt.subplot(projection=wcs)
+        try:
+            objsys=hdr['RADESYS']
+        except:
+            objsys='J2000'
+    else:
+        objsys='J2000'
+
+    cm = ListedColormap(colores)
+    norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
+    get_plot_map(plt,map_whan,vmax,vmin,cmt=cm,ticks=ticks,fontsize=fontsize,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    if fwcs:
+        plt.grid(color='black', ls='solid')
+    if savef:
+        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
+        if tight:
+            plt.tight_layout()
+    else:
+        plt.show()        
+
+def plot_whad_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='WHaD',cont=False,path='',indcR=769,indHa=124,ret=1,agn=5,sf=3,wagn=4,unk=2):
+    basefigname='whad_map_NAME'
+    flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
+    hdr=fits.getheader(path+'/'+fileB)
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            try:
+                dx=hdr['PC1_1']*3600.
+                dy=hdr['PC2_2']*3600.
+            except:
+                dx=hdr['CDELT1']*3600.
+                dy=hdr['CDELT2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0 
+    if maskR is not None:
+        ew1[maskR]=np.nan
+        sigma1[maskR]=np.nan
+    logew=np.log10(npewsing*ew1)
+    logsig=np.log10(sigma1)
+    bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
+    map_whad=tools.whad(logew,logsig,agn=agn,sf=sf,wagn=wagn,ret=ret,unk=unk)
+    
+    type_p=r'log($[OIII]H\beta$)~vs~log($[NII]H\alpha$)'
+    type_n=r'\sigma_H\alpha vs EW_H\alpha '
+    vmax=None
+    vmin=None 
+    ticks = [1,2,3,4,5]
+    labels = ['Ret','UNK','SF','wAGN','sAGN']
+    colores = ['orange','dodgerblue','mediumspringgreen','#A788CF','darkslateblue']
+
+    plt.rcParams['figure.figsize'] = [6.5*facp, 7.6*facp]
+    if fwcs:
+        wcs = WCS(hdr).celestial
+        plt.subplot(projection=wcs)
+        try:
+            objsys=hdr['RADESYS']
+        except:
+            objsys='J2000'
+    else:
+        objsys='J2000'
+
+    cm = ListedColormap(colores)
+    norm = colors.BoundaryNorm(boundaries=bounds, ncolors=cm.N)#niveles, len(colores))
+    get_plot_map(plt,map_whad,vmax,vmin,cmt=cm,ticks=ticks,fontsize=fontsize,labels=labels,norm=norm,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=type_n,cont=cont,orientation=orientation,location=location,alpha=alpha)
+    if fwcs:
+        plt.grid(color='black', ls='solid')
+    if savef:
+        plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
+        if tight:
+            plt.tight_layout()
+    else:
+        plt.show()        
+
 def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=False,zerofil=False,valz=None,scalef=1.0,basefigname='Ha_vel_map_NAME',sumc=False,path='',hd=0,indx=0,indx2=None,tit='',lab='',facp=0.8,facx=6.5,facy=7.6,cont=False,alpha=1,orientation=None,location=None,savef=False,fig_path=''):
 
     [data,hdr]=fits.getdata(path+'/'+file, hd, header=True)
