@@ -583,7 +583,7 @@ def plot_whan_map2(fileR,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,
     type_n=r'EW_H\alpha vs log([NII]/H\alpha)'
     vmax=None
     vmin=None 
-    ticks = [1,3,4,5]
+    ticks = [1,2,3,4]
     labels = ['Ret','SF','wAGN','sAGN']
     colores = ['orange','mediumspringgreen','#A788CF','darkslateblue']
 
