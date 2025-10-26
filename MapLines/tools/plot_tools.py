@@ -632,7 +632,7 @@ def plot_whad_map2(fileR,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,
     if maskR is not None:
         ew1[maskR]=np.nan
         sigma1[maskR]=np.nan
-    logew=np.log10(npewsing*ew1)
+    logew=np.log10(ewsing*ew1)
     logsig=np.log10(sigma1)
     bounds = np.arange(0, max_typ + 1) + 0.5  # Para centrar los ticks
     map_whad=tools.whad(logew,logsig,agn=agn,sf=sf,wagn=wagn,ret=ret,unk=unk)
