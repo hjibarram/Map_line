@@ -547,11 +547,11 @@ def plot_bpt_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,maskB=None,fontsiz
         plt.show()
 
 
-def plot_whan_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='WHaN',cont=False,path='',indcR=769,indNII=123,indHa=124,ret=1,agn=5,sf=3,wagn=4):
+def plot_whan_map2(fileR,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='WHaN',cont=False,path='',indcR=769,indNII=123,indHa=124,ret=1,agn=5,sf=3,wagn=4):
     basefigname='whan_map_NAME'
     flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
     flux2,vel2,sigma2,ew2=tools.get_fluxline(fileR,path=path,ind1=indNII, ind2=indNII+2, ind3=indNII+1, ind4=indcR,lo=6585.27,zt=zt,val0=0)
-    hdr=fits.getheader(path+'/'+fileB)
+    hdr=fits.getheader(path+'/'+fileR)
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
         dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
@@ -610,10 +610,10 @@ def plot_whan_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR
     else:
         plt.show()        
 
-def plot_whad_map2(fileR,fileB,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='WHaD',cont=False,path='',indcR=769,indHa=124,ret=1,agn=5,sf=3,wagn=4,unk=2):
+def plot_whad_map2(fileR,name='',zt=0,alpha=1,tight=True,fontsize=18,maskR=None,orientation=None,hd=0,ewsing=1,max_typ=5,location=None,savef=False,fig_path='',fwcs=False,scale=0,facp=0.8,tit='WHaD',cont=False,path='',indcR=769,indHa=124,ret=1,agn=5,sf=3,wagn=4,unk=2):
     basefigname='whad_map_NAME'
     flux1,vel1,sigma1,ew1=tools.get_fluxline(fileR,path=path,ind1=indHa,  ind2=indHa+2,  ind3=indHa+1,  ind4=indcR,lo=6564.63,zt=zt,val0=0)
-    hdr=fits.getheader(path+'/'+fileB)
+    hdr=fits.getheader(path+'/'+fileR)
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
         dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
