@@ -10,7 +10,8 @@ from astropy.io import fits
 import os
 import os.path as ptt
 import sys
-from tqdm import tqdm
+from tqdm.notebook import tqdm
+from tqdm import tqdm as tqdmT
 
 def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
     pdl_data,pdl_dataE,wave=tol.get_oneDspectra(file1,flux_f=flux_f,erft=erft,input_format=input_format,error_c=error_c)
@@ -241,7 +242,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
     pdl_cube,pdl_cubeE,mask,wave,hdr=tol.get_cubespectra(file1,file3,flux_f=flux_f,erft=erft,error_c=error_c)
     nz,nx,ny=pdl_cube.shape
     wave_f=wave/(1+z)
@@ -285,7 +286,10 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
             dataFe=None
     model_param[:,:,:]=np.nan    
     if pgr_bar:
-        pbar=tqdm(total=nx*ny)
+        if notebook:
+            pbar=tqdm(total=nx*ny)
+        else:
+            pbar=tqdmT(total=nx*ny) 
     for i in range(0, nx):
         for j in range(0, ny):
             val=mask[i,j]
