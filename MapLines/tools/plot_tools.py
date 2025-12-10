@@ -18,6 +18,141 @@ import cmasher as cmr
 from scipy.optimize import curve_fit
 
 
+def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcsec^2]',labelst=['Vaule1','Value2','Value3'],
+                   alpha=0.6,fontsizest=20,colorst='black',fontsize=20,basefigname='maps_NAME',sumc=False,scale=0,sb=False,
+                   fwcs=False,logs=False,zerofil=False,valz=None,cont=False,maxmin=[],vt='',name='Name',
+                   path='',hd=0,indx=0,indx2=None,cmt=None,scalef=1.0,facs=1,av=[0.15,0.2,0.12,0.03],pro1=[0,0,0],pro2=[0,1,2],
+                   orientation=None,location=None,ticks=None,labels=None):
+
+    n_maps=len(datalist)
+    if n_maps == 0:
+        print('No maps to plot')
+        return    
+    try:
+        dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
+        dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
+    except:
+        try:
+            dx=hdr['CD1_1']*3600.0
+            dy=hdr['CD2_2']*3600.0
+        except:
+            try:
+                dx=hdr['CDELT1']*3600.
+                dy=hdr['CDELT2']*3600.
+            except:
+                dx=hdr['PC1_1']*3600.
+                dy=hdr['PC2_2']*3600.
+    pix=(np.abs(dx)+np.abs(dy))/2.0
+    dims=mapslist[0].shape
+    mapslist=[]
+    if len(dims) == 3:
+        if sumc:
+            try:
+                for it in range(0, n_maps):
+                    data=datalist[it]
+                    mapslist.extend([np.nansum(data[indx,:,:],axis=0)*scalef])
+            except:
+                print('It is not possible to integrate the data cubes within the indexes provided, we will integrate all the cube')
+                for it in range(0, n_maps):
+                    data=datalist[it]
+                    mapslist.extend([np.nansum(data,axis=0)*scalef])
+        else:
+            for it in range(0, n_maps):
+                data=datalist[it]
+                mapslist.extend([data[indx,:,:]*scalef])
+        if indx2 != None:
+            for it in range(0, n_maps):
+                data=datalist[it]
+                valt=data[indx2,:,:]*scalef
+                mapslist[it]=mapslist[it]/valt
+    elif len(dims) == 2:
+        for it in range(0, n_maps):
+            data=datalist[it]
+            mapslist.extend([data*scalef])
+    if zerofil:
+        for it in range(0, n_maps):
+            valt=mapslist[it]
+            if valz == None:
+                valt[np.where(valt == 0)]=np.nan
+            else:
+                valt[np.where(valt <= valz)]=np.nan
+            mapslist[it]=valt    
+    if sb:
+        for it in range(0, n_maps):
+            mapslist[it]=mapslist[it]/pix**2
+    if logs:
+        for it in range(0, n_maps):
+            mapslist[it]=np.log10(mapslist[it])
+    if fwcs:
+        wcs = WCS(hdr).celestial
+        plt.subplot(projection=wcs)
+        try:
+            objsys=hdr['RADESYS']
+        except:
+            objsys='J2000'
+    else:
+        objsys='J2000'        
+
+    if len(maxmin) > 0:
+        vmax=maxmin[1]
+        vmin=maxmin[0]
+    else:
+        vmax=np.nammax(map_val0)*1.1
+        vmin=0.001
+    facx=0.99
+    facy=0.99
+    nx=np.nanmax(pro1)+1
+    ny=np.nanmax(pro2)+1
+    dx1=av[0]/facx
+    dx2=av[1]/facx
+    dy1=av[2]/facy
+    dy2=av[3]/facy
+    dx=(1.0-(dx1+dx2))
+    dy=(1.0-(dy1+dy2))
+    dx1=dx1/(1.0+(nx-1)*dx)
+    dx2=dx2/(1.0+(nx-1)*dx)
+    dy1=dy1/(1.0+(ny-1)*dy)
+    dy2=dy2/(1.0+(ny-1)*dy)
+    dx=(1.0-(dx1+dx2))/float(nx)
+    dy=(1.0-(dy1+dy2))/float(ny)
+    xfi=6*nx*facx*facs
+    yfi=6*ny*facy
+    fig = plt.figure(figsize=(xfi,yfi))
+    for it in range(0, n_maps):
+        flux=mapslist[it]
+        ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy])
+        isc=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,orientation=orientation,location=location,cmt=cmt,cbarp=False)
+        plt.text(0.05, 0.96, labelst[it % len(labelst)], fontsize=fontsizest, color=colorst, va='center',transform=ax.transAxes)
+        ax.tick_params(axis='both', which='major', labelsize=20)
+        ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+        ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+        if pro1[it] != 0:
+            ax.set_ylabel('').set_visible(False)
+            plt.setp(ax.get_yticklabels(), visible=False)
+        if pro2[it] != 0:
+            ax.set_xlabel('').set_visible(False)
+            plt.setp(ax.get_xticklabels(), visible=False)  
+        if pro1[it] == np.nanmax(pro1) or pro2[it] == np.nanmax(pro2):
+            if pro1[it] == np.nanmax(pro1) and orientation == 'vertical':
+                ax2 = fig.add_axes([dx1+pro1[it]*dx+dx, dy1+pro2[it]*dy, dx*0.05, dy]) 
+            elif pro2[it] == np.nanmax(pro2) and orientation == 'horizontal':
+                ax2 = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy+dy, dx, dy*0.05]) 
+            ax2.tick_params(axis='both',which='major',labelsize=18)
+            if ticks is not None:
+                cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location,ticks=ticks,pad=0.01)
+            else:
+                cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location)
+            if location == 'top':
+                cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
+            else:
+                cbar.set_label(r"$"+lab+"$",fontsize=fontsize)
+            if labels is not None:
+                cbar.set_ticklabels(labels)     
+    plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
+    plt.show()
+    plt.close()
+
+
 def plot_mapapertures(titf,vals_map,nlins=[r'$[NII]$',r'$H_{\alpha}$',r'$[NII]$'],titp='Velocity~ shift',lab=r'[km\ s^{-1}]',cont=False,alpha=0.5,lamds=[6549.859,6564.632,6585.278],path='',nzeros=False,hdu=0,wcs=None,file0='J102700+174900_Gas.fits.gz',reg_dir='',reg_aper='apertu.reg',dtex=0,dtey=0,rad=1.5,cosmetic=False,reg_name='paths_J1027_C.reg',zt=0,facs=1,lA1=6520.0,lA2=6610.0,dxR=0.25,savef=True,pro1=[0,1,2],nx=2,ny=4,pro2=[0,0,0],av=[0.10,0.03,0.09,0.03],sigT=2,loc=3,facx=0.8,facy=-1,tpt=1,obt=['C','D','E','G','J','L'],y_min=0,y_max=1,x_min=0,x_max=1,txt_size=18,ylabel='y-value',xlabel='x-value',dxl=0.2,dyl=0.9,color=['blue','green','red'],lin=['-','--',':'],dir='./'):
     slides,wavet,dpix,vals,hdr,colr,widt,namet,namesS=tools.extract_segment1d(file0,path=path,wcs=wcs,reg_dir=reg_dir,reg_name=reg_name,nzeros=nzeros,rad=rad,z=zt,lA1=lA1,lA2=lA2,sigT=sigT,cosmetic=cosmetic,hdu=hdu)
     pix=dpix
@@ -718,7 +853,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
             objsys='J2000'
     else:
         objsys='J2000'
-    get_plot_map(plt,map_val,valmax,valmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location)
+    get_plot_map(plt,map_val,valmax,valmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,orientation=orientation,location=location,alpha=alpha)
     if fwcs:
         plt.grid(color='black', ls='solid')
     if savef:
@@ -727,7 +862,7 @@ def plot_single_map(file,valmax,valmin,name='',scale=0,sb=False,fwcs=False,logs=
     else:
         plt.show()
 
-def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,fontsize=18,labels=None,cmt=None,norm=None,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
+def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,fontsize=18,labels=None,cmt=None,norm=None,cbarp=True,fwcs=False,objsys='J2000',tit='flux',lab='[10^{-16}erg/s/cm^2/arcsec^2]',cont=False,alpha=1,orientation=None,location=None):
     nx,ny=flux.shape
     if fwcs:
         pix=3600.
@@ -773,20 +908,23 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,fontsize=18,label
     plt.xlabel(r'$'+xlab+labs+'$',fontsize=fontsize)
     plt.ylabel(r'$'+ylab+labs+'$',fontsize=fontsize)
     ict=plt.imshow(flux,cmap=cm,norm=norm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
-    if cont:
-        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],zorder=1)
-    if ticks is not None:
-        cbar=plt.colorbar(ict,orientation=orientation,location=location,ticks = ticks,pad=0.01)
-    else:
-        cbar=plt.colorbar(ict,orientation=orientation,location=location)
     plt.xlim(-ny*pix/2/fac+dx,ny*pix/2/fac+dx)
     plt.ylim(-nx*pix/2/fac+dy,nx*pix/2/fac+dy)  
-    if location == 'top':
-        cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
+    if cont:
+        plt.contour(flux,lev,colors='black',linewidths=2,extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],zorder=1)
+    if cbarp:
+        if ticks is not None:
+            cbar=plt.colorbar(ict,orientation=orientation,location=location,ticks = ticks,pad=0.01)
+        else:
+            cbar=plt.colorbar(ict,orientation=orientation,location=location)
+        if location == 'top':
+            cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
+        else:
+            cbar.set_label(r"$"+lab+"$",fontsize=fontsize)  
+        if labels is not None:
+            cbar.set_ticklabels(labels) 
     else:
-        cbar.set_label(r"$"+lab+"$",fontsize=fontsize)  
-    if labels is not None:
-        cbar.set_ticklabels(labels)       
+        return ict              
 
 def get_plot(flux,savef=True,pix=0.2,name='Residual',tit='flux',outs=[],title=None,cbtr=True,bpte=False,maxmin=[],ewp=False):
     nx,ny=flux.shape
