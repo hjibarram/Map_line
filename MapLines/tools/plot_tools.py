@@ -904,7 +904,8 @@ def get_plot_map(plt,flux,vmax,vmin,pix=0.2,scale=0,ticks=None,fontsize=18,label
     else: 
         cm=plt.get_cmap('jet')
     if location != 'top':
-        plt.title(r'$'+tit+'$',fontsize=fontsize)
+        if tit != '':
+            plt.title(r'$'+tit+'$',fontsize=fontsize)
     plt.xlabel(r'$'+xlab+labs+'$',fontsize=fontsize)
     plt.ylabel(r'$'+ylab+labs+'$',fontsize=fontsize)
     ict=plt.imshow(flux,cmap=cm,norm=norm,origin='lower',extent=[-ny*pix/2./fac+dx,ny*pix/2./fac+dx,-nx*pix/2./fac+dy,nx*pix/2./fac+dy],vmax=vmax,vmin=vmin,alpha=alpha)#,norm=LogNorm(0.2,7.0))#colors.SymLogNorm(10**-1))#50  norm=colors.SymLogNorm(10**-0.1)
