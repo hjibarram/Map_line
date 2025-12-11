@@ -21,7 +21,7 @@ from scipy.optimize import curve_fit
 def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcsec^2]',labelst=['Vaule1','Value2','Value3'],
                    alpha=0.6,fontsizest=20,colorst='black',fontsize=20,basefigname='maps_NAME',sumc=False,scale=0,sb=False,
                    fwcs=False,logs=False,zerofil=False,valz=None,cont=False,maxmin=[],vt='',name='Name',
-                   path='',hd=0,indx=0,indx2=None,cmt=None,scalef=1.0,facs=1,av=[0.15,0.2,0.12,0.03],pro1=[0,0,0],pro2=[0,1,2],
+                   indx=0,indx2=None,cmt=None,scalef=1.0,facs=1,av=[0.15,0.2,0.12,0.03],pro1=[0,0,0],pro2=[0,1,2],
                    orientation=None,location=None,ticks=None,labels=None):
 
     n_maps=len(datalist)
@@ -43,7 +43,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
                 dx=hdr['PC1_1']*3600.
                 dy=hdr['PC2_2']*3600.
     pix=(np.abs(dx)+np.abs(dy))/2.0
-    dims=mapslist[0].shape
+    dims=datalist[0].shape
     mapslist=[]
     if len(dims) == 3:
         if sumc:
