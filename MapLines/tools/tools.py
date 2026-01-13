@@ -346,12 +346,12 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
             if erft != 0:
                 pdl_dataE=pdl_dataE*flux_f*erft
             else:
-                pdl_dataE=pdl_dataE*flux_f
-        return pdl_data,pdl_dataE,wave        
+                pdl_dataE=pdl_dataE*flux_f        
     else:
         print('Error: input_format not recognized')
         print('Options are: TableFits, IrafFits, CSV, ASCII')
         sys.exit()   
+    return pdl_data,pdl_dataE,wave
 
 def get_cubespectra(file1,file3,flux_f=1,erft=0,error_c=True):
     try:
