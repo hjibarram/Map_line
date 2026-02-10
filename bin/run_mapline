@@ -84,6 +84,9 @@ def run(config_file,name,mask,path,path_out,zt,ncpus,test,error,bcont,it,jt,spro
         else:
             print('Error: The config file is not for IFS spectra')
             return
+    else:
+        if config_file != '':
+            print('Error: The config file could not be read')
     try:
         labplot=data['files'][0]['labplot']
     except:
