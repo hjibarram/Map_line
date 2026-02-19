@@ -1342,7 +1342,7 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
     #mintc=np.nanmin(mapT)# We define the lowest continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
     #mapT[np.where(mapT==mintc)]=np.nan
     
-    mapT[np.where(np.isfinite(mapT) == False)]=0#-2
+    mapT[np.where(np.isfinite(mapT) == False)]=-2
     maxval=np.nanmax(mapT[indxt])
     minval=np.nanmin(mapT[indxt])
     if verbose:
@@ -1359,11 +1359,11 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
         print(maxval,minval,'Map2')
     mapT[np.where(np.isfinite(mapT) == False)]=minval
     mapT[indx]=minval
-    mapT[np.where(mapT < 0)]=minval
+    mapT[np.where(mapT < 0)]=-0.2#minval
     nx,ny=mapT.shape
-
     sycall('mkdir -p '+path_out)
     map_to_stl(mapT*25.34, modelbasename.replace('NAME',name), path_out=path_out+'/')
+    mapT[np.where(mapT < 0)]=0
     h1=fits.PrimaryHDU(mapT)
     head_list=[h1]
     hlist=fits.HDUList(head_list)
