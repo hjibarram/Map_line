@@ -1364,14 +1364,7 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
 
     sycall('mkdir -p '+path_out)
     map_to_stl(mapT*25.34, modelbasename.replace('NAME',name), path_out=path_out+'/')
-    keys=list(hdr.keys())
     h1=fits.PrimaryHDU(mapT)
-    h=h1.header
-    for i in range(0, len(keys)):
-        if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
-            h[keys[i]]=hdr[keys[i]]
-            h.comments[keys[i]]=hdr.comments[keys[i]]
-    h.update() 
     head_list=[h1]
     hlist=fits.HDUList(head_list)
     hlist.update_extend()
