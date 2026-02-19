@@ -1442,4 +1442,4 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     hlist.update_extend()
     filet=path_out+'/'+psfmbasename.replace('NAME',name)+'.fits'
     hlist.writeto(filet,overwrite=True)
-    tol.sycall('gzip -f '+filet)    
+    sycall('gzip -f '+filet)    
