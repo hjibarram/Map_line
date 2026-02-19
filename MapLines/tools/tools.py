@@ -1291,3 +1291,155 @@ def A_l(Rv,l):
             val=0
         Arat[i]=val
     return Arat
+
+def get_headervals(hdr,keymatch='HaBroad'):
+    keys=list(hdr.keys())
+    vals={}
+    nkeys=[]
+    for i in range(0, len(keys)):
+        if keymatch in str(hdr[keys[i]]) and 'VAL_' in keys[i]:
+            vals[keys[i]]=hdr[keys[i]]
+            nkeys.extend([keys[i]])
+    return vals,nkeys
+
+
+def get_map_component_index(hdr,keymatch='HaBroad'):
+    vals,nkeys=get_headervals(hdr,keymatch=keymatch)
+    keys=list(vals.keys())
+    n_comp=int(len(keys)/3)
+    indx_amp=np.zeros(int(n_comp),dtype=int)
+    indx_vel=np.zeros(int(n_comp),dtype=int)
+    indx_fwh=np.zeros(int(n_comp),dtype=int)
+    for i in range(0, n_comp):
+        if 'Amplitude' in vals[keys[3*i]]:
+            indx_amp[i]=int(keys[3*i].replace('VAL_',''))
+        else:
+            print('No Amplitude found for component',i)
+        if 'Velocity' in vals[keys[3*i+1]]:    
+            indx_vel[i]=int(keys[3*i+1].replace('VAL_',''))
+        else:
+            print('No Velocity found for component',i)
+        if 'FWHM' in vals[keys[3*i+2]]:    
+            indx_fwh[i]=int(keys[3*i+2].replace('VAL_',''))
+        else:
+            print('No FWHM found for component',i)
+    return indx_amp,indx_vel,indx_fwh
+
+def get_map_param(hdr,keymatch='Noise'):
+    keys=list(hdr.keys())
+    for i in range(0, len(keys)):
+        if keymatch in str(hdr[keys[i]]) and 'VAL_' in keys[i]:    
+            indx=int(keys[i].replace('VAL_',''))
+    return indx
+
+def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,set_am=False,AmpT=2):
+    file=path_map+'/'+basename.replace('NAME',name)
+    [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
+    indx_amp,indx_vel,indx_fwh=get_map_component_index(hdr,keymatch='HaBroad')
+    indx_noi=get_map_param(hdr,keymatch='Noise')
+    indx_con=get_map_param(hdr,keymatch='Continum')
+    nz,nx,ny=pdl_cube.shape
+    n_comp=len(indx_amp)
+    fluxT=np.zeros((n_comp,nx,ny))
+    velT=np.zeros((n_comp,nx,ny))
+    sigmaT=np.zeros((n_comp,nx,ny))
+    ewT=np.zeros((n_comp,nx,ny))
+    for i in range(0, len(indx_amp)):   
+        flux,vel,sigma,ew=get_fluxline(basename.replace('NAME',name),path=path_map,ind1=indx_amp[i],ind2=indx_fwh[i],ind3=indx_vel[i],ind4=indx_con,lo=lo,zt=0.0,val0=0)
+        fluxT[i,:,:]=flux
+        velT[i,:,:]=vel
+        sigmaT[i,:,:]=sigma
+        ewT[i,:,:]=ew
+    cont1=pdl_cube[indx_con,:,:]
+    indx = np.where((cont1 == 0) | (np.isfinite(cont1) == False))
+    indxt = np.where((np.isfinite(cont1)))
+    mapE=pdl_cube[indx_noi,:,:]
+    mapT=np.nansum(fluxT,axis=0)
+    nx,ny=mapT.shape
+    mapT[indx]=np.nan
+    cont1[indx]=np.nan
+    mintc=np.nanmin(cont1)# We define the lowest continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
+    mapT[np.where(cont1==mintc)]=np.nan
+    if set_am:
+        #Use the Amplitude of the briad component to define the usefull spaxels, AmpT is the threshold for the amplitude value defined in MapLine, below which the map is set to NaN. This is because in some cases there are very low amplitude values that produce very high flux/continuum ratios, which are not realistic.
+        indx_amp=get_map_param(hdr,keymatch='HaBroad1_Amplitude')
+        amp_val=pdl_cube[indx_amp,:,:]
+        amp_val=np.round(amp_val,3)
+        mapT[np.where(amp_val == AmpT)]=np.nan
+    if pow_cr:
+        #Use the power line continum to define the usefull spaxels
+        try:
+            # We define the lowest power line continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
+            indx_pow=get_map_param(hdr,keymatch='Amp_powerlow')
+            amp_pow=pdl_cube[indx_pow,:,:]
+            mintc=np.nanmin(amp_pow)
+            mapT[np.where(amp_pow==mintc)]=np.nan
+        except:
+            pass
+    #mapT=np.log10(mapT)
+    mapT[np.where(np.isfinite(mapT) == False)]=-2
+    #map[0:4,0:ny]=0
+    #map[nx-4:nx,0:ny]=0
+    #map[0:nx,0:4]=0
+    #map[0:nx,ny-4:ny]=0
+    maxval=np.nanmax(mapT[indxt])
+    minval=np.nanmin(mapT[indxt])
+    if verbose:
+        print(maxval,minval,'Map0')
+    #ict=plt.imshow(mapT)
+    #cbar=plt.colorbar(ict)
+    #plt.show()
+    mapT=filtNd(mapT,sigma=sigmat)
+    maxval=np.nanmax(mapT[indxt])
+    minval=0#np.nanmin(map[indxt])
+    if verbose:
+        print(maxval,minval,'Map1')
+    #ict=plt.imshow(mapT)
+    #cbar=plt.colorbar(ict)
+    #plt.show()
+    mapT=(mapT-minval)/(maxval-minval)*1+0
+    maxval=np.nanmax(mapT[indxt])
+    minval=np.nanmin(mapT[indxt])
+    if verbose:
+        print(maxval,minval,'Map2')
+    mapT[np.where(np.isfinite(mapT) == False)]=minval
+    mapT[indx]=minval
+    mapT[np.where(mapT < 0)]=minval
+    #ict=plt.imshow(mapT)
+    #cbar=plt.colorbar(ict)
+    #plt.show()
+    nx,ny=mapT.shape
+    maxvalE=np.nanmax(mapE[indxt])
+    minvalE=np.nanmin(mapE[indxt])
+    if verbose:
+        print(minvalE,maxvalE,'Err')
+    mapE=(mapE-minvalE)/(maxvalE-minvalE)*0.5+0
+    mapE=filtNd(mapE,sigma=sigmat)
+    mapE[indx]=0.01
+    mapE[np.where(np.isfinite(mapE) == False)]=0.01
+    #mapE[0:4,0:ny]=0.02
+    #mapE[nx-4:nx,0:ny]=0.02
+    #mapE[0:nx,0:4]=0.02
+    #mapE[0:nx,ny-4:ny]=0.02
+    #mapE[np.where(mapE < 0)]=0.02
+
+    #ict=plt.imshow(mapE)
+    #cbar=plt.colorbar(ict)
+    #plt.show()
+    sycall('mkdir -p '+path_out)
+    map_to_stl(mapT*25.34, 'psf_NAME'.replace('NAME',name), path_out=path_out+'/')
+    keys=list(hdr.keys())
+    h1=fits.PrimaryHDU(mapT)
+    h2=fits.ImageHDU(mapE)
+    h=h1.header
+    for i in range(0, len(keys)):
+        if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
+            h[keys[i]]=hdr[keys[i]]
+            h.comments[keys[i]]=hdr.comments[keys[i]]
+    h.update() 
+    head_list=[h1,h2]
+    hlist=fits.HDUList(head_list)
+    hlist.update_extend()
+    filet=path_out+'/'+psfmbasename.replace('NAME',name)+'.fits'
+    hlist.writeto(filet,overwrite=True)
+    tol.sycall('gzip -f '+filet)    
