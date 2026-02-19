@@ -1332,6 +1332,53 @@ def get_map_param(hdr,keymatch='Noise'):
             indx=int(keys[i].replace('VAL_',''))
     return indx
 
+
+def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2,verbose=False):
+    indx = np.where((mapT == 0) | (np.isfinite(mapT) == False))
+    indxt = np.where((np.isfinite(mapT)))
+    
+    nx,ny=mapT.shape
+    mapT[indx]=np.nan
+    #mintc=np.nanmin(mapT)# We define the lowest continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
+    #mapT[np.where(mapT==mintc)]=np.nan
+    
+    mapT[np.where(np.isfinite(mapT) == False)]=-2
+    maxval=np.nanmax(mapT[indxt])
+    minval=np.nanmin(mapT[indxt])
+    if verbose:
+        print(maxval,minval,'Map0')
+    mapT=filtNd(mapT,sigma=sigmat)
+    maxval=np.nanmax(mapT[indxt])
+    minval=0
+    if verbose:
+        print(maxval,minval,'Map1')
+    mapT=(mapT-minval)/(maxval-minval)*1+0
+    maxval=np.nanmax(mapT[indxt])
+    minval=np.nanmin(mapT[indxt])
+    if verbose:
+        print(maxval,minval,'Map2')
+    mapT[np.where(np.isfinite(mapT) == False)]=minval
+    mapT[indx]=minval
+    mapT[np.where(mapT < 0)]=minval
+    nx,ny=mapT.shape
+
+    sycall('mkdir -p '+path_out)
+    map_to_stl(mapT*25.34, modelbasename.replace('NAME',name), path_out=path_out+'/')
+    keys=list(hdr.keys())
+    h1=fits.PrimaryHDU(mapT)
+    h=h1.header
+    for i in range(0, len(keys)):
+        if not "COMMENT" in  keys[i] and not 'HISTORY' in keys[i]:
+            h[keys[i]]=hdr[keys[i]]
+            h.comments[keys[i]]=hdr.comments[keys[i]]
+    h.update() 
+    head_list=[h1]
+    hlist=fits.HDUList(head_list)
+    hlist.update_extend()
+    filet=path_out+'/'+modelbasename.replace('NAME',name)+'.fits'
+    hlist.writeto(filet,overwrite=True)
+    sycall('gzip -f '+filet)    
+
 def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,set_am=False,AmpT=2):
     file=path_map+'/'+basename.replace('NAME',name)
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
@@ -1427,7 +1474,7 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     #cbar=plt.colorbar(ict)
     #plt.show()
     sycall('mkdir -p '+path_out)
-    map_to_stl(mapT*25.34, 'psf_NAME'.replace('NAME',name), path_out=path_out+'/')
+    map_to_stl(mapT*25.34, psfmbasename.replace('NAME',name), path_out=path_out+'/')
     keys=list(hdr.keys())
     h1=fits.PrimaryHDU(mapT)
     h2=fits.ImageHDU(mapE)
