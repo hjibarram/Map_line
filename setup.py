@@ -25,6 +25,7 @@ requirements = [
     'tqdm',
     'corner',
     'numpy-stl',
+    'cmasher',
 ]
 
 DATA_DIRNAME = 'data'#'examples/example_data'

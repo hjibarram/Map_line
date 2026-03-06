@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MapLines.tools.models &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MapLines.tools.plot_tools" href="MapLines.tools.plot_tools.html" />
+    <link rel="prev" title="MapLines.tools.mcmc" href="MapLines.tools.mcmc.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="maplines-tools-models">
+<h1>MapLines.tools.models<a class="headerlink" href="#maplines-tools-models" title="Link to this heading">¶</a></h1>
+<p>Spectral line models used by MapLines.</p>
+<section id="module-MapLines.tools.models">
+<span id="id1"></span><h2>MapLines.tools.models<a class="headerlink" href="#module-MapLines.tools.models" title="Link to this heading">¶</a></h2>
+<p>Spectral line models used by MapLines.</p>
+<p>This module defines the spectral models used to fit emission lines in
+astronomical spectra. The models are used by the MCMC sampler to evaluate
+the likelihood of the observed data given a set of model parameters.</p>
+<p>Two main levels of modeling are implemented:</p>
+<ol class="arabic simple">
+<li><p>emission_line_model
+Computes individual emission-line profiles (Gaussian, Lorentzian,
+Voigt, or skewed Gaussian).</p></li>
+<li><p>line_model
+Builds the full spectral model combining multiple emission lines,
+optional outflow components, continuum power-law emission, and
+FeII templates.</p></li>
+</ol>
+<p>These models are used in combination with the fitting routines in
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.line_fit</span></code> and the likelihood functions defined in
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.priors</span></code>.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.models.emission_line_model">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.models.</span></span><span class="sig-name descname"><span class="pre">emission_line_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[5100]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[200.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lorentz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voigt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/models.html#emission_line_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.models.emission_line_model" title="Link to this definition">¶</a></dt>
+<dd><p>Compute emission-line profiles.</p>
+<p>This function generates emission-line profiles for a set of spectral
+lines using different profile shapes (Gaussian, skewed Gaussian,
+Lorentzian, or Voigt).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength grid where the model is evaluated.</p></li>
+<li><p><strong>xo</strong> (<em>list</em><em> of </em><em>float</em>) – Rest-frame wavelengths of the emission lines.</p></li>
+<li><p><strong>A</strong> (<em>list</em><em> of </em><em>float</em>) – Amplitudes of each emission-line component.</p></li>
+<li><p><strong>dv</strong> (<em>list</em><em> of </em><em>float</em>) – Velocity shifts relative to the rest-frame wavelength (km/s).</p></li>
+<li><p><strong>fwhm</strong> (<em>list</em><em> of </em><em>float</em>) – Full width at half maximum (km/s) of each line.</p></li>
+<li><p><strong>alph</strong> (<em>list</em><em> of </em><em>float</em>) – Skewness parameter (used when <code class="docutils literal notranslate"><span class="pre">skew=True</span></code>).</p></li>
+<li><p><strong>gam</strong> (<em>list</em><em> of </em><em>float</em>) – Lorentzian width parameter for Voigt profiles.</p></li>
+<li><p><strong>skew</strong> (<em>bool</em>) – Use skewed Gaussian profiles.</p></li>
+<li><p><strong>lorentz</strong> (<em>bool</em>) – Use Lorentzian profiles.</p></li>
+<li><p><strong>voigt</strong> (<em>bool</em>) – Use Voigt profiles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List containing the model profile of each emission line.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The line width is converted from velocity space (km/s) to wavelength
+dispersion using:</p>
+<blockquote>
+<div><p>sigma = FWHM / c * lambda / (2 * sqrt(2 ln 2))</p>
+</div></blockquote>
+<p>where <code class="docutils literal notranslate"><span class="pre">c</span></code> is the speed of light.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.models.line_model">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.models.</span></span><span class="sig-name descname"><span class="pre">line_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waves0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velfac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velfacN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhfac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhfacN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">powlaw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret_com</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lorentz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voigt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/models.html#line_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.models.line_model" title="Link to this definition">¶</a></dt>
+<dd><p>Construct the full spectral model for an emission-line complex.</p>
+<p>This function combines multiple emission-line components into a
+single spectral model. The parameters are provided as a vector
+(<code class="docutils literal notranslate"><span class="pre">theta</span></code>) sampled by the MCMC fitting procedure.</p>
+<p>The model may include:</p>
+<ul class="simple">
+<li><p>Narrow emission lines</p></li>
+<li><p>Optional outflow components</p></li>
+<li><p>Power-law continuum</p></li>
+<li><p>FeII emission templates</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>array-like</em>) – Parameter vector defining amplitudes, velocities, widths,
+and additional model parameters.</p></li>
+<li><p><strong>waves0</strong> (<em>list</em>) – Rest-frame wavelengths of emission lines.</p></li>
+<li><p><strong>fac0</strong> (<em>list</em>) – Scaling relations between line amplitudes.</p></li>
+<li><p><strong>facN0</strong> (<em>list</em>) – Scaling relations between line amplitudes.</p></li>
+<li><p><strong>velfac0</strong> (<em>list</em>) – Relations between velocity parameters.</p></li>
+<li><p><strong>velfacN0</strong> (<em>list</em>) – Relations between velocity parameters.</p></li>
+<li><p><strong>fwhfac0</strong> (<em>list</em>) – Relations between line widths.</p></li>
+<li><p><strong>fwhfacN0</strong> (<em>list</em>) – Relations between line widths.</p></li>
+<li><p><strong>names0</strong> (<em>list</em>) – Names of emission lines.</p></li>
+<li><p><strong>n_lines</strong> (<em>int</em>) – Number of emission lines in the model.</p></li>
+<li><p><strong>vals</strong> (<em>list</em>) – Names of free parameters.</p></li>
+<li><p><strong>x</strong> (<em>ndarray</em>) – Wavelength grid where the model is evaluated.</p></li>
+<li><p><strong>Components</strong> (<em>Optional</em>)</p></li>
+<li><p><strong>-------------------</strong></p></li>
+<li><p><strong>powlaw</strong> (<em>bool</em>) – Include a power-law continuum component.</p></li>
+<li><p><strong>feii</strong> (<em>bool</em>) – Include FeII emission templates.</p></li>
+<li><p><strong>outflow</strong> (<em>bool</em>) – Include outflow components for emission lines.</p></li>
+<li><p><strong>skew</strong> (<em>bool</em>) – Use skewed Gaussian profiles.</p></li>
+<li><p><strong>lorentz</strong> (<em>bool</em>) – Use Lorentzian profiles.</p></li>
+<li><p><strong>voigt</strong> (<em>bool</em>) – Use Voigt profiles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>If <code class="docutils literal notranslate"><span class="pre">ret_com=False</span></code>, returns the full model spectrum.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">ret_com=True</span></code>, returns a list containing:
+- total model spectrum
+- individual emission-line components
+- optional continuum and FeII components</p>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray or list</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function is the core spectral model evaluated during the MCMC
+sampling performed in <code class="docutils literal notranslate"><span class="pre">MapLines.tools.mcmc</span></code>.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Map_line</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="MapLines.html">MapLine package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Map_line</a><ul>
+  <li><a href="MapLines.html">MapLine package</a><ul>
+  <li><a href="MapLines.tools.html">MapLines.tools package</a><ul>
+      <li>Previous: <a href="MapLines.tools.mcmc.html" title="previous chapter">MapLines.tools.mcmc</a></li>
+      <li>Next: <a href="MapLines.tools.plot_tools.html" title="next chapter">MapLines.tools.plot_tools</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/MapLines.tools.models.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,84 +1,251 @@
-# MapLine 2.0.0
+# MapLine 2.0.1
 
 ## Description
 
 **MapLine** is an emission line fitting software optimized for active galactic nuclei (AGN) spectra, whether one-dimensional or obtained through integral field spectroscopy (IFS). Its main purpose is to characterize the broad and narrow components of various emission lines in the optical range. It allows modifying aspects such as the number of components to fit, the lines to consider, the flux profile (Gaussian, double Gaussian, Lorentzian, skew), the spectral fitting range, the input/output file type, continuum extraction, among others. The software is written in Python and has a modular structure, making it easy to customize and adapt to different analysis needs.
 
-## Installation
+The package supports both:
 
-First, verify the Python version installed on your system. MapLine requires Python 3.12.3 or higher.
+- **single-spectrum fitting**
+- **spatially resolved IFU cube fitting**
 
-It is recommended to create a virtual environment for installing MapLine and the necessary dependencies. This allows better control of the environment and avoids conflicts with other installed packages. You can create a virtual environment with the following commands:
+MapLines includes tools for spectral modeling, Bayesian parameter estimation
+via MCMC, diagnostic plotting, and spatial analysis of emission-line
+properties.
 
-```bash
-# Create a folder for virtual environments
-mkdir .venvs
+---
 
-# Create a virtual environment named 'MyEnv'
-python -m venv .venvs/MyEnv
+# Documentation
 
-# Activate the virtual environment
-source .venvs/MyEnv/bin/activate
-```
+Complete documentation is available through the Sphinx documentation included
+in the repository.
 
-Once the virtual environment is activated, you can install MapLine with the following command:
-
-```bash
-pip install mapline
-```
-
-During the installation, all necessary dependencies will be installed.
-
-## Project Structure
-
-MapLine is composed of different modules that contain the functions needed for emission line fitting:
-
-- **line_fit.py**: Main module that contains the fitting functions for one-dimensional spectra (`line_fit_single`) and data cubes (`line_fit`).
-- **mcmc.py**: Implements the Monte Carlo – Markov Chain (MCMC) algorithm to optimize emission line fitting using the `emcee` package.
-- **models.py**: Contains the emission line models used in the fitting, such as `emission_line_model` and `line_model`.
-- **priors.py**: Provides statistical functions to estimate the likelihood and initial parameter values for fitting.
-- **tools.py**: Includes additional tools such as reading `.fits` files and handling configuration files.
-
-## Usage
-
-MapLine is run from the command line using the `run_mapline` command. The basic execution structure is as follows:
+To build the documentation locally:
 
 ```bash
-run_mapline [options]
+cd docs
+make html
 ```
 
-Some available commands are:
+The generated documentation will appear in:
 
-- `run`: Runs MapLine to fit emission lines.
-- `runoned`: Gets the spectrum model.
+```
+docs/build/html/index.html
+```
 
-### Options
+The documentation includes:
 
-| Option            | Description                                  |
-|-------------------|----------------------------------------------|
-| `-g, --config_file` | Configuration file name.                    |
-| `-n, --name`      | Data cube name.                              |
-| `-o, --name_out`  | Output file name.                            |
-| `-m, --mask`      | Mask file name.                              |
-| `-p, --path`      | Path to the data cube.                       |
-| `-y, --path_out`  | Path to the output files.                    |
-| `-c, --ncpus`     | Number of CPUs to use.                       |
-| `-k, --kskew`     | Enable skew line mode.                       |
-| `-t, --test`      | Test mode.                                   |
-| `-e, --error`     | Calculate error vector.                      |
-| `-z, --zt`        | Object redshift.                             |
+- Installation guide
+- Quickstart tutorial
+- Configuration file documentation
+- Methodology overview
+- Example workflows
+- CLI documentation
+- Full API reference
 
-For example, to run MapLine using a configuration file named `config.yml`, using 6 CPUs, the double Gaussian model, and a line configuration file named `line_prop.yml`, the command would be:
+---
+
+# Features
+
+MapLines provides several features for emission-line analysis:
+
+- Flexible emission-line modeling
+- Gaussian, skewed Gaussian, Lorentzian, and Voigt profiles
+- Outflow component modeling
+- FeII template fitting
+- Bayesian parameter estimation using **MCMC (emcee)**
+- IFU cube fitting
+- Diagnostic diagram generation (BPT, WHAN, WHAD)
+- Spatial extraction tools
+- Automated plotting utilities
+
+---
+
+# Installation
+
+MapLines requires **Python ≥ 3.10** and the scientific Python ecosystem.
+
+The recommended installation method is through a virtual environment.
 
 ```bash
-run_mapline -g config.yml -c 6 -d -q line_prop.yml
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-All these options, along with additional ones, can also be specified in the configuration file.
+Install the package from the repository:
 
-## Configuration Files
+```bash
+pip install -e .
+```
 
-MapLine allows defining several parameters through configuration files, such as `config.yml` and `line_prop.yml`. These files allow full customization of the settings and options of the program to meet the user's specific needs.
+Typical dependencies include:
+
+- numpy
+- scipy
+- matplotlib
+- astropy
+- emcee
+- pyyaml
+- corner
+
+---
+
+# Command Line Interface
+
+MapLines provides a command-line interface using **Click**.
+
+The main command is:
+
+```bash
+run_mapline
+```
+
+Two main workflows are available.
+
+---
+
+## IFU cube fitting
+
+```bash
+run_mapline run -g config.yml
+```
+
+This command fits emission lines across an IFU data cube.
+
+Outputs typically include:
+
+- model FITS cubes
+- parameter FITS cubes
+- diagnostic plots
+
+---
+
+## Single-spectrum fitting
+
+```bash
+run_mapline runoned -g config.yml
+```
+
+This runs the fitting procedure on a single spectrum.
+
+---
+
+# Configuration Files
+
+MapLines uses YAML configuration files to define the spectral model and
+fitting setup.
+
+Typical configuration files include:
+
+- `config.yml`
+- `line_prop.yml`
+
+These files define:
+
+- emission lines to fit
+- model components
+- parameter priors
+- fitting wavelength ranges
+
+---
+
+# Project Structure
+
+The core functionality is organized in the following modules:
+
+```
+MapLines
+│
+├── line_fit.py
+│   Main spectral fitting routines
+│
+├── models.py
+│   Emission-line model definitions
+│
+├── mcmc.py
+│   Bayesian sampling utilities
+│
+├── priors.py
+│   Likelihood and prior functions
+│
+├── tools.py
+│   General utilities and data extraction tools
+│
+└── plot_tools.py
+    Visualization and diagnostic plotting
+```
+
+---
+
+# Example Workflows
+
+Example configurations and scripts are provided in:
+
+```
+examples/
+├── single_spectra
+├── ifu_spectra
+└── notebooks
+```
+
+These demonstrate typical use cases such as:
+
+- emission-line fitting
+- IFU cube analysis
+- diagnostic diagram generation
+- spatial extraction of spectra
+
+---
+
+# Documentation Structure
+
+The Sphinx documentation is organized into two main sections.
+
+## User Guide
+
+- Installation
+- Quickstart
+- Configuration
+- Examples
+- CLI usage
+- Methodology
+
+## API Reference
+
+- MapLines modules
+- tools
+- plot_tools
+- mcmc
+- priors
+
+---
+
+# Contributing
+
+Contributions are welcome.
+
+You can contribute by:
+
+- reporting bugs
+- suggesting improvements
+- adding features
+- improving documentation
+
+Please open an issue or pull request in the GitHub repository.
+
+---
+
+# License
+
+MapLines is distributed under the **MIT License**.
+
+You are free to use, modify, and distribute it provided that proper
+attribution is maintained.
+
+---
+
+
+
 
 ## Contributions
 
@@ -88,91 +255,261 @@ Contributions to MapLine are welcome. You can submit your suggestions, bug repor
 
 MapLine is distributed under the MIT license. You are free to use, modify, and distribute it, as long as proper attribution is maintained.
 
+# Acknowledgements
+
+MapLines was developed for the analysis of emission-line spectra in
+galaxies and AGN, with particular emphasis on applications to
+integral-field spectroscopy surveys. HIM acknowledge the support from grants SECIHTI CBF2023-2024-1418 and CF-2023-G-543, PAPIIT UNAM IA104325, IN-106823, and IN-119123
+
 ## Español
 ## Descripción
 
 **MapLine** es un software de ajuste de líneas de emisión optimizado para espectros de núcleos activos de galaxias (AGN), ya sean unidimensionales o obtenidos por espectroscopía de campo integral (IFS). Su principal propósito es caracterizar los componentes anchos y angostos de varias líneas de emisión en el rango óptico. Permite modificar aspectos como el número de componentes a ajustar, las líneas a considerar, el perfil de flujo (gaussiano, doble gaussiano, lorentziano, skew), el rango espectral de ajuste, el tipo de archivo de entrada/salida, la extracción del continuo, entre otros. El software está escrito en Python y tiene una estructura modular, lo cual facilita su personalización y adaptación a diferentes necesidades de análisis.
 
-## Instalación
+El paquete permite trabajar tanto con:
 
-Primero, verifica la versión de Python instalada en tu equipo. MapLine requiere Python 3.12.3 o superior.
+- **ajuste de espectros individuales**
+- **ajuste de cubos IFU con resolución espacial**
 
-Es recomendable crear un entorno virtual para la instalación de MapLine y las dependencias necesarias. Esto permite un mejor control del entorno y evita conflictos con otros paquetes instalados. Puedes crear un entorno virtual con los siguientes comandos:
+MapLines incluye herramientas para el modelado espectral, estimación
+bayesiana de parámetros mediante MCMC, generación de gráficos de diagnóstico
+y análisis espacial de propiedades de líneas de emisión.
 
-```bash
-# Crear una carpeta para entornos virtuales
-mkdir .venvs
+---
 
-# Crear un entorno virtual llamado 'MyEnv'
-python -m venv .venvs/MyEnv
+# Documentación
 
-# Activar el entorno virtual
-source .venvs/MyEnv/bin/activate
-```
+La documentación completa está disponible a través de la documentación de
+Sphinx incluida en el repositorio.
 
-Una vez activado el entorno virtual, puedes instalar MapLine con el siguiente comando:
-
-```bash
-pip install mapline
-```
-
-Durante la instalación se instalarán todas las dependencias necesarias.
-
-## Estructura del Proyecto
-
-MapLine está compuesto por distintos módulos que contienen las funciones necesarias para los ajustes de líneas de emisión:
-
-- **line_fit.py**: Módulo principal que contiene las funciones de ajuste para espectros en una dimensión (`line_fit_single`) y para cubos de datos (`line_fit`).
-- **mcmc.py**: Implementa el algoritmo Monte Carlo – Markov Chain (MCMC) para optimizar los ajustes de líneas de emisión usando la paquetería `emcee`.
-- **models.py**: Contiene los modelos de líneas de emisión utilizados en los ajustes, como `emission_line_model` y `line_model`.
-- **priors.py**: Proporciona funciones estadísticas para estimar la confiabilidad (likelihood) y los valores iniciales de los parámetros de ajuste.
-- **tools.py**: Incluye herramientas adicionales como la lectura de archivos en formato `.fits` y manejo de archivos de configuración.
-
-## Uso
-
-MapLine se ejecuta desde la línea de comandos utilizando la instrucción `run_mapline`. La estructura básica de ejecución es la siguiente:
+Para generar la documentación localmente:
 
 ```bash
-run_mapline [opciones]
+cd docs
+make html
 ```
 
-Algunos de los comandos disponibles son:
+La documentación generada aparecerá en:
 
-- `run`: Ejecuta MapLine para ajustar líneas de emisión.
-- `runoned`: Obtiene el modelo del espectro.
+```
+docs/build/html/index.html
+```
 
-### Opciones
+La documentación incluye:
 
-| Opción           | Descripción                                  |
-|------------------|----------------------------------------------|
-| `-g, --config_file` | Nombre del archivo de configuración.       |
-| `-n, --name`     | Nombre del cubo de datos.                    |
-| `-o, --name_out` | Nombre de los archivos de salida.            |
-| `-m, --mask`     | Nombre del archivo de 'máscara'.             |
-| `-p, --path`     | Ruta al cubo de datos.                       |
-| `-y, --path_out` | Ruta de los archivos de salida.              |
-| `-c, --ncpus`    | Número de CPUs a utilizar.                   |
-| `-k, --kskew`    | Activar el modo skew line.                   |
-| `-t, --test`     | Modo de prueba.                              |
-| `-e, --error`    | Calcular el vector de errores.               |
-| `-z, --zt`       | Redshift del objeto.                         |
+- Guía de instalación
+- Tutorial de inicio rápido
+- Documentación de archivos de configuración
+- Descripción de la metodología
+- Flujos de trabajo de ejemplo
+- Documentación de la interfaz de línea de comandos (CLI)
+- Referencia completa de la API
 
-Por ejemplo, para ejecutar MapLine usando un archivo de configuración llamado `config.yml`, utilizando 6 CPUs, el modelo de doble gaussiana, y un archivo de configuración de líneas de emisión llamado `line_prop.yml`, el comando sería:
+---
+
+# Características
+
+MapLines proporciona varias funcionalidades para el análisis de líneas de
+emisión:
+
+- Modelado flexible de líneas de emisión
+- Perfiles Gaussianos, Gaussianos asimétricos (skewed), Lorentzianos y Voigt
+- Modelado de componentes de outflow
+- Ajuste de plantillas de FeII
+- Estimación bayesiana de parámetros mediante **MCMC (emcee)**
+- Ajuste de cubos IFU
+- Generación de diagramas de diagnóstico (BPT, WHAN, WHAD)
+- Herramientas de extracción espacial
+- Utilidades automáticas de visualización
+
+---
+
+# Instalación
+
+MapLines requiere **Python ≥ 3.10** y el ecosistema científico de Python.
+
+El método de instalación recomendado es mediante un entorno virtual.
 
 ```bash
-run_mapline -g config.yml -c 6 -d -q line_prop.yml
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-Todas estas opciones, junto con otras adicionales, también pueden ser especificadas en el archivo de configuración.
+Instalar el paquete desde el repositorio:
 
-## Archivos de Configuración
+```bash
+pip install -e .
+```
 
-MapLine permite definir varios parámetros a través de archivos de configuración, como `config.yml` y `line_prop.yml`. Estos archivos permiten personalizar completamente los ajustes y opciones del programa para adaptarse a las necesidades específicas del usuario.
+Las dependencias típicas incluyen:
 
-## Contribuciones
+- numpy
+- scipy
+- matplotlib
+- astropy
+- emcee
+- pyyaml
+- corner
 
-Las contribuciones a MapLine son bienvenidas. Puedes enviar tus sugerencias, errores encontrados, o mejoras a través del repositorio oficial en GitHub.
+---
 
-## Licencia
+# Interfaz de Línea de Comandos
 
-MapLine está distribuido bajo la licencia MIT. Puedes usarlo, modificarlo y distribuirlo libremente siempre y cuando se mantenga la atribución correspondiente.
+MapLines proporciona una interfaz de línea de comandos utilizando **Click**.
+
+El comando principal es:
+
+```bash
+run_mapline
+```
+
+Existen dos flujos de trabajo principales.
+
+---
+
+## Ajuste de cubos IFU
+
+```bash
+run_mapline run -g config.yml
+```
+
+Este comando ajusta líneas de emisión a lo largo de un cubo de datos IFU.
+
+Las salidas típicamente incluyen:
+
+- cubos FITS del modelo
+- cubos FITS de parámetros
+- gráficos de diagnóstico
+
+---
+
+## Ajuste de espectro individual
+
+```bash
+run_mapline runoned -g config.yml
+```
+
+Este comando ejecuta el procedimiento de ajuste sobre un espectro individual.
+
+---
+
+# Archivos de Configuración
+
+MapLines utiliza archivos de configuración en formato YAML para definir el
+modelo espectral y la configuración del ajuste.
+
+Los archivos típicos incluyen:
+
+- `config.yml`
+- `line_prop.yml`
+
+Estos archivos definen:
+
+- líneas de emisión a ajustar
+- componentes del modelo
+- priors de los parámetros
+- rangos de longitud de onda para el ajuste
+
+---
+
+# Estructura del Proyecto
+
+La funcionalidad principal está organizada en los siguientes módulos:
+
+```
+MapLines
+│
+├── line_fit.py
+│   Rutinas principales de ajuste espectral
+│
+├── models.py
+│   Definición de modelos de líneas de emisión
+│
+├── mcmc.py
+│   Utilidades para muestreo bayesiano
+│
+├── priors.py
+│   Funciones de verosimilitud y priors
+│
+├── tools.py
+│   Utilidades generales y herramientas de extracción de datos
+│
+└── plot_tools.py
+    Visualización y gráficos de diagnóstico
+```
+
+---
+
+# Flujos de Trabajo de Ejemplo
+
+Ejemplos de configuraciones y scripts se encuentran en:
+
+```
+examples/
+├── single_spectra
+├── ifu_spectra
+└── notebooks
+```
+
+Estos demuestran casos de uso típicos como:
+
+- ajuste de líneas de emisión
+- análisis de cubos IFU
+- generación de diagramas de diagnóstico
+- extracción espacial de espectros
+
+---
+
+# Estructura de la Documentación
+
+La documentación generada con Sphinx está organizada en dos secciones
+principales.
+
+## Guía de Usuario
+
+- Instalación
+- Inicio rápido
+- Configuración
+- Ejemplos
+- Uso del CLI
+- Metodología
+
+## Referencia de la API
+
+- Módulos de MapLines
+- tools
+- plot_tools
+- mcmc
+- priors
+
+---
+
+# Contribuciones
+
+Las contribuciones son bienvenidas.
+
+Puedes contribuir mediante:
+
+- reporte de errores
+- sugerencias de mejora
+- desarrollo de nuevas funcionalidades
+- mejora de la documentación
+
+Por favor abre un issue o un pull request en el repositorio de GitHub.
+
+---
+
+# Licencia
+
+MapLines se distribuye bajo la **Licencia MIT**.
+
+Eres libre de usar, modificar y distribuir el código siempre que se mantenga
+la atribución correspondiente.
+
+---
+
+# Agradecimientos
+
+MapLines fue desarrollado para el análisis de espectros de líneas de emisión
+en galaxias y AGN, con especial énfasis en aplicaciones a observaciones de
+espectroscopía de campo integral. HIM agradece el apoyo de los proyectos SECIHTI CBF2023-2024-1418 y CF-2023-G-543, así como de los proyectos PAPIIT de la UNAM IA104325, IN-106823 e IN-119123.

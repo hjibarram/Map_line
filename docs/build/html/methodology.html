@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Methodology &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Map_line" href="modules.html" />
+    <link rel="prev" title="Command Line Interface" href="cli.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="methodology">
+<h1>Methodology<a class="headerlink" href="#methodology" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>MapLines models emission-line spectra using parametric line profiles
+combined with Bayesian parameter estimation.</p>
+<p>The approach is designed to analyze both integrated spectra and
+spatially resolved IFU observations.</p>
+</section>
+<section id="spectral-models">
+<h2>Spectral models<a class="headerlink" href="#spectral-models" title="Link to this heading">¶</a></h2>
+<p>The spectral model can include several components:</p>
+<ul class="simple">
+<li><p>Gaussian emission lines</p></li>
+<li><p>skewed Gaussian profiles</p></li>
+<li><p>Lorentzian profiles</p></li>
+<li><p>Voigt profiles</p></li>
+<li><p>outflow components</p></li>
+<li><p>power-law continuum</p></li>
+<li><p>FeII templates</p></li>
+</ul>
+<p>Each component is defined in the configuration file and combined
+to produce the total model spectrum.</p>
+</section>
+<section id="parameter-inference">
+<h2>Parameter inference<a class="headerlink" href="#parameter-inference" title="Link to this heading">¶</a></h2>
+<p>Parameter estimation is performed using Markov Chain Monte Carlo (MCMC)
+sampling through the <code class="docutils literal notranslate"><span class="pre">emcee</span></code> ensemble sampler.</p>
+<p>The posterior probability is defined as:</p>
+<div class="math notranslate nohighlight">
+\[P(\theta | D) \propto L(D | \theta) P(\theta)\]</div>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(L\)</span> is the likelihood</p></li>
+<li><p><span class="math notranslate nohighlight">\(P\)</span> is the prior</p></li>
+<li><p><span class="math notranslate nohighlight">\(D\)</span> is the observed spectrum</p></li>
+</ul>
+</section>
+<section id="likelihood-function">
+<h2>Likelihood function<a class="headerlink" href="#likelihood-function" title="Link to this heading">¶</a></h2>
+<p>The likelihood assumes Gaussian uncertainties in the observed spectrum.</p>
+<p>It is implemented in:</p>
+<p><code class="docutils literal notranslate"><span class="pre">MapLines.tools.priors</span></code></p>
+</section>
+<section id="posterior-sampling">
+<h2>Posterior sampling<a class="headerlink" href="#posterior-sampling" title="Link to this heading">¶</a></h2>
+<p>Posterior sampling is performed using the routines in:</p>
+<p><code class="docutils literal notranslate"><span class="pre">MapLines.tools.mcmc</span></code></p>
+<p>These routines generate chains of model parameters that sample the
+posterior distribution.</p>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">¶</a></h2>
+<p>The fitting procedure produces several products:</p>
+<ul class="simple">
+<li><p>best-fit spectra</p></li>
+<li><p>posterior parameter distributions</p></li>
+<li><p>parameter maps (for IFU data)</p></li>
+<li><p>diagnostic plots</p></li>
+</ul>
+<p>These products can then be used to study the physical properties
+of ionized gas in galaxies and active galactic nuclei.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Methodology</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#spectral-models">Spectral models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameter-inference">Parameter inference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#likelihood-function">Likelihood function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#posterior-sampling">Posterior sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Map_line</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cli.html" title="previous chapter">Command Line Interface</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">Map_line</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/methodology.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

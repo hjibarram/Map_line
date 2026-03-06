@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Example Gallery &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command Line Interface" href="cli.html" />
+    <link rel="prev" title="Examples" href="examples.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="example-gallery">
+<h1>Example Gallery<a class="headerlink" href="#example-gallery" title="Link to this heading">¶</a></h1>
+<p>This page collects representative MapLines workflows.</p>
+<section id="single-spectrum-fit">
+<h2>Single-spectrum fit<a class="headerlink" href="#single-spectrum-fit" title="Link to this heading">¶</a></h2>
+<p>Fit an emission-line complex in a one-dimensional spectrum.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">MapLines.tools.line_fit</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_fit_single</span>
+
+<span class="n">line_fit_single</span><span class="p">(</span>
+    <span class="n">file1</span><span class="o">=</span><span class="s2">&quot;spectrum.fits&quot;</span><span class="p">,</span>
+    <span class="n">file_out</span><span class="o">=</span><span class="s2">&quot;fit_result&quot;</span><span class="p">,</span>
+    <span class="n">file_out2</span><span class="o">=</span><span class="s2">&quot;fit_parameters&quot;</span><span class="p">,</span>
+    <span class="n">name_out2</span><span class="o">=</span><span class="s2">&quot;single_example&quot;</span><span class="p">,</span>
+    <span class="n">config_lines</span><span class="o">=</span><span class="s2">&quot;line_prop.yml&quot;</span><span class="p">,</span>
+    <span class="n">z</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">lA1</span><span class="o">=</span><span class="mf">6500.0</span><span class="p">,</span>
+    <span class="n">lA2</span><span class="o">=</span><span class="mf">6600.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ifu-cube-analysis">
+<h2>IFU cube analysis<a class="headerlink" href="#ifu-cube-analysis" title="Link to this heading">¶</a></h2>
+<p>Fit a spectral cube spaxel by spaxel.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">MapLines.tools.line_fit</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_fit</span>
+
+<span class="n">line_fit</span><span class="p">(</span>
+    <span class="n">file1</span><span class="o">=</span><span class="s2">&quot;cube.fits&quot;</span><span class="p">,</span>
+    <span class="n">file2</span><span class="o">=</span><span class="s2">&quot;aux.fits&quot;</span><span class="p">,</span>
+    <span class="n">file3</span><span class="o">=</span><span class="s2">&quot;mask.fits&quot;</span><span class="p">,</span>
+    <span class="n">file_out</span><span class="o">=</span><span class="s2">&quot;cube_model&quot;</span><span class="p">,</span>
+    <span class="n">file_out2</span><span class="o">=</span><span class="s2">&quot;cube_params&quot;</span><span class="p">,</span>
+    <span class="n">name_out2</span><span class="o">=</span><span class="s2">&quot;ifu_example&quot;</span><span class="p">,</span>
+    <span class="n">config_lines</span><span class="o">=</span><span class="s2">&quot;line_prop.yml&quot;</span><span class="p">,</span>
+    <span class="n">z</span><span class="o">=</span><span class="mf">0.01</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bpt-diagnostics">
+<h2>BPT diagnostics<a class="headerlink" href="#bpt-diagnostics" title="Link to this heading">¶</a></h2>
+<p>Build and visualize a BPT classification map from fitted products.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.plot_tools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pt</span>
+
+<span class="n">pt</span><span class="o">.</span><span class="n">plot_bpt_map2</span><span class="p">(</span>
+    <span class="n">fileR</span><span class="o">=</span><span class="s2">&quot;red_fit.fits.gz&quot;</span><span class="p">,</span>
+    <span class="n">fileB</span><span class="o">=</span><span class="s2">&quot;blue_fit.fits.gz&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;galaxy_name&quot;</span><span class="p">,</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;outputs/&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="region-extraction">
+<h2>Region extraction<a class="headerlink" href="#region-extraction" title="Link to this heading">¶</a></h2>
+<p>Extract spectra or values from DS9-defined apertures and paths.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.tools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tools</span>
+
+<span class="n">wave</span><span class="p">,</span> <span class="n">spec</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">extract_spec</span><span class="p">(</span>
+    <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;cube.fits&quot;</span><span class="p">,</span>
+    <span class="n">ra</span><span class="o">=</span><span class="s2">&quot;10:27:00.0&quot;</span><span class="p">,</span>
+    <span class="n">dec</span><span class="o">=</span><span class="s2">&quot;+17:49:00.0&quot;</span><span class="p">,</span>
+    <span class="n">rad</span><span class="o">=</span><span class="mf">1.5</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="map-visualization">
+<h2>Map visualization<a class="headerlink" href="#map-visualization" title="Link to this heading">¶</a></h2>
+<p>Display parameter maps and derived products.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.plot_tools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pt</span>
+
+<span class="n">pt</span><span class="o">.</span><span class="n">plot_single_map</span><span class="p">(</span>
+    <span class="n">file</span><span class="o">=</span><span class="s2">&quot;Ha_map.fits.gz&quot;</span><span class="p">,</span>
+    <span class="n">valmax</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">valmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">tit</span><span class="o">=</span><span class="s2">&quot;Halpha Flux&quot;</span><span class="p">,</span>
+    <span class="n">lab</span><span class="o">=</span><span class="s2">&quot;[10^{-16} erg/s/cm^2/arcsec^2]&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example Gallery</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#single-spectrum-fit">Single-spectrum fit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ifu-cube-analysis">IFU cube analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bpt-diagnostics">BPT diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#region-extraction">Region extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#map-visualization">Map visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Map_line</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="examples.html" title="previous chapter">Examples</a></li>
+      <li>Next: <a href="cli.html" title="next chapter">Command Line Interface</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/gallery.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,129 +1,144 @@
 #!/usr/bin/env python
+"""
+MapLines.tools.line_fit
+=======================
+
+Core routines for emission-line fitting in astronomical spectra.
+
+This module implements the main spectral fitting routines used by
+MapLines to model emission lines in both single spectra and IFU
+datacubes. The fitting procedure uses Bayesian parameter estimation
+based on Markov Chain Monte Carlo (MCMC) sampling.
+
+Two main interfaces are provided:
+
+line_fit_single
+    Fits emission lines in a single spectrum.
+
+line_fit
+    Fits emission lines in each spaxel of an IFU datacube.
+
+The models can include:
+
+- Gaussian emission-line components
+- skewed line profiles
+- Voigt or Lorentzian profiles
+- outflow components
+- power-law continuum
+- Fe II templates
+
+The fitting procedure relies on:
+
+- prior definitions from YAML configuration files
+- spectral models defined in ``MapLines.tools.models``
+- likelihood functions in ``MapLines.tools.priors``
+- MCMC sampling implemented in ``MapLines.tools.mcmc``
+
+Outputs include model spectra, individual line components, and
+best-fit parameters saved in FITS format.
+"""
 import numpy as np
+import MapLines
 import MapLines.tools.models as mod
 import MapLines.tools.mcmc as mcm
 import MapLines.tools.tools as tol
+import MapLines.tools.plot_tools as ptol
 import MapLines.tools.priors as pri
 from astropy.io import fits
-#from progressbar import ProgressBar
-from astropy.io import fits
+import os
 import os.path as ptt
 import sys
-from tqdm import tqdm
-import corner 
-import matplotlib.pyplot as plt
+from tqdm.notebook import tqdm
+from tqdm import tqdm as tqdmT
 
-def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
-    
-    if input_format == 'TableFits':
-        try:
-            hdu_list = fits.open(file1)
-        except:
-            hdu_list = fits.open(file1+'.gz')
-        table_hdu = hdu_list[1]
-        table_data = table_hdu.data
-        try:
-            pdl_data=table_data.field('FLUX')
-        except:
-            pdl_data=table_data.field('flux')
-        try:
-            wave=table_data.field('LAMBDA')
-        except:
-            try:
-                wave=table_data.field('lambda')
-            except:
-                wave=table_data.field('wave')
-        if error_c:
-            try:
-                pdl_dataE=table_data.field('ERROR')
-            except:
-                pdl_dataE=table_data.field('fluxE')
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    elif input_format == 'SDSS':
-        hdu_list = fits.open(file1)
-        table_hdu = hdu_list[1]
-        table_data = table_hdu.data
-        pdl_data=table_data.field('FLUX')
-        wave=table_data.field('LOGLAM')
-        wave=10**wave
-        if error_c:
-            pdl_dataE=table_data.field('IVAR')
-            pdl_dataE=1/np.sqrt(pdl_dataE)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    elif input_format == 'IrafFits':
-        [pdl_data, hdr]=fits.getdata(file1, 0, header=True)
-        if error_c:
-            pdl_dataE =fits.getdata(file1, 1, header=False)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-        crpix=hdr["CRPIX3"]
-        try:
-            cdelt=hdr["CD3_3"]
-        except:
-            cdelt=hdr["CDELT3"]
-        crval=hdr["CRVAL3"]
-        wave=crval+cdelt*(np.arange(nz)+1-crpix)  
-    elif input_format == 'CSV':
-        ft=open(file1,'r')
-        wave=[]
-        pdl_data=[]
-        if error_c:
-            pdl_dataE=[]
-        for line in ft:
-            if not 'Wave' in line:
-                data=line.replace('\n','')
-                data=data.split(',')
-                data=list(filter(None,data))
-                if len(data) > 1:
-                    wave.extend([float(data[0])])
-                    pdl_data.extend([float(data[1])])
-                    if error_c:
-                        pdl_dataE.extend([float(data[2])])
-        wave=np.array(wave)
-        pdl_data=np.array(pdl_data)
-        if error_c:
-            pdl_dataE=np.array(pdl_dataE)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    elif input_format == 'ASCII':
-        ft=open(file1,'r')
-        wave=[]
-        pdl_data=[]
-        if error_c:
-            pdl_dataE=[]
-        for line in ft:
-            if not 'Wave' in line:
-                data=line.replace('\n','')
-                data=data.split(' ')
-                data=list(filter(None,data))
-                if len(data) > 1:
-                    wave.extend([float(data[0])])
-                    pdl_data.extend([float(data[1])])
-                    if error_c:
-                        pdl_dataE.extend([float(data[2])])
-        wave=np.array(wave)
-        pdl_data=np.array(pdl_data)
-        if error_c:
-            pdl_dataE=np.array(pdl_dataE)
-            if erft != 0:
-                pdl_dataE=pdl_dataE*flux_f*erft
-            else:
-                pdl_dataE=pdl_dataE*flux_f
-    else:
-        print('Error: input_format not recognized')
-        print('Options are: TableFits, IrafFits, CSV, ASCII')
-        return
- 
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
+    colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,
+    config_lines='line_prop.yml',labplot=True,input_format='TableFits',
+    z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,
+    feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,
+    ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+    """
+    Fit emission lines in a single astronomical spectrum.
+
+    This function performs a Bayesian fit of emission lines in a
+    one-dimensional spectrum using an MCMC sampler. The line model
+    and parameter priors are defined through a YAML configuration file.
+
+    Parameters
+    ----------
+    file1 : str
+        Input spectrum file.
+    file_out : str
+        Output file name for the fitted spectral model.
+    file_out2 : str
+        Output file name for the parameter results.
+    name_out2 : str
+        Name used for output plots.
+    dir_out : str, optional
+        Output directory for plots and results.
+    colors : list of str, optional
+        Colors used for plotting individual line components.
+    smoth : bool, optional
+        If True, apply smoothing to the input spectrum.
+    ker : int, optional
+        Kernel size used for smoothing.
+    config_lines : str, optional
+        YAML file defining emission lines and priors.
+    z : float, optional
+        Redshift used to shift wavelengths to rest frame.
+    lA1, lA2 : float
+        Wavelength range used for fitting.
+    verbose : bool, optional
+        Print best-fit parameters.
+    outflow : bool, optional
+        Include an outflow component in the model.
+    powlaw : bool, optional
+        Include a power-law continuum component.
+    feii : bool, optional
+        Include FeII emission templates.
+    voigt : bool, optional
+        Use Voigt profiles instead of Gaussian profiles.
+    lorentz : bool, optional
+        Use Lorentzian profiles.
+    skew : bool, optional
+        Use skewed Gaussian profiles.
+    ncpu : int, optional
+        Number of CPUs used by the MCMC sampler.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The fitting procedure consists of the following steps:
+
+    1. Load the spectrum and associated uncertainties.
+    2. Select the wavelength range used for fitting.
+    3. Define the spectral model and parameter priors.
+    4. Run an MCMC sampler to estimate the posterior distribution.
+    5. Compute the best-fit model parameters.
+    6. Save model spectra and parameters in FITS files.
+
+    The output FITS files include:
+
+    - total model spectrum
+    - individual emission-line components
+    - input spectrum
+    - error spectrum
+    - derived parameters
+
+    Examples
+    --------
+    >>> from MapLines.tools.line_fit import line_fit_single
+    >>> line_fit_single(
+    ...     "spectrum.fits",
+    ...     "fit_output",
+    ...     "params_output",
+    ...     "Ha_fit"
+    ... )
+    """
+    pdl_data,pdl_dataE,wave=tol.get_oneDspectra(file1,flux_f=flux_f,erft=erft,input_format=input_format,error_c=error_c)
     if smoth:
         pdl_data=tol.conv(pdl_data,ke=ker)
     nz=len(pdl_data)
@@ -136,104 +151,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
     model_InpE=np.zeros(len(nw))
     if outflow:
         model_Outflow=np.zeros(len(nw))
-       
-    data_lines=tol.read_config_file(config_lines)
-    if data_lines:
-        n_lines=len(data_lines['lines'])
-        pac=['AoN','dvoN','fwhmoN']
-        pacL=[r'$A_{N}$',r'$\Delta v_{N}$',r'$FWHM_{N}$']
-        pacH=['N_Amplitude','N_Velocity','N_FWHM']
-        waves0=[]
-        names0=[]
-        vals0=[]
-        vals=[]
-        valsL=[]
-        valsH=[]
-        fac0=[]
-        facN0=[]
-        velfac0=[]
-        velfacN0=[]
-        fwhfac0=[]
-        fwhfacN0=[]
-        for i in range(0, n_lines):
-            parameters=data_lines['lines'][i]
-            npar=len(parameters)
-            waves0.extend([parameters['wave']])
-            names0.extend([parameters['name']])
-            try:
-                facN0.extend([parameters['fac_Name']])
-                fac0.extend([parameters['fac']])
-                facp=True
-            except:
-                facN0.extend(['NoNe'])
-                fac0.extend([None])
-                facp=False
-            try:
-                velfacN0.extend([parameters['vel_Name']])
-                velfac0.extend([parameters['velF']])
-                velfacp=True
-            except:
-                velfacN0.extend(['NoNe'])
-                velfac0.extend([None])
-                velfacp=False    
-            try:
-                fwhfacN0.extend([parameters['fwh_Name']])
-                fwhfac0.extend([parameters['fwhF']])
-                fwhfacp=True
-            except:
-                fwhfacN0.extend(['NoNe'])
-                fwhfac0.extend([None])
-                fwhfacp=False    
-            inr=0    
-            for a in pac:
-                val_t=a.replace('N',str(i))
-                val_tL=pacL[inr].replace('N',names0[i])
-                val_tH=pacH[inr].replace('N',names0[i])
-                if 'AoN' in a:
-                    if facp == False:
-                        vals.extend([val_t])
-                        valsL.extend([val_tL])
-                elif 'dvoN' in a:
-                    if velfacp == False:
-                        vals.extend([val_t])
-                        valsL.extend([val_tL])        
-                elif 'fwhmoN' in a:
-                    if fwhfacp == False:
-                        vals.extend([val_t])
-                        valsL.extend([val_tL])
-                else:    
-                    vals.extend([val_t])
-                    valsL.extend([val_tL])
-                valsH.extend([val_tH])
-                vals0.extend([val_t])    
-                inr=inr+1
-        region=data_lines['continum'][0]['region']
-        wavec1=data_lines['continum'][0]['wave1']
-        wavec2=data_lines['continum'][0]['wave2']
-        valsp=data_lines['priors']
-        Inpvalues=[]
-        Infvalues=[]
-        Supvalues=[]
-        for valt in vals:
-            try:
-                Inpvalues.extend([valsp[valt]])
-            except:
-                print('The keyword '+valt+' is missing in the line config file')
-                return
-            try:
-                Infvalues.extend([valsp[valt.replace('o','i')]])
-            except:
-                print('The keyword '+valt.replace('o','i')+' is missing in the line config file')
-                return
-            try:
-                Supvalues.extend([valsp[valt.replace('o','s')]])
-            except:
-                print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
-                return
-    else:
-        print('No configuration line model file')
-        return
-    model_Ind=np.zeros([len(nw),n_lines])  
+    valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
+    model_Ind=np.zeros([len(nw),n_lines])
+    if colors0[0] != 'NoNe':
+        colors=colors0   
     if cont:
         oft=2
     else:
@@ -245,6 +166,15 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
             model_param=np.zeros(n_lines*3+4+oft)
         else:
             model_param=np.zeros(n_lines*3+oft)
+    dataFe=None        
+    if powlaw:
+        if feii:
+            model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+            dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
+            dataFe=np.loadtxt(dirFe+'FeII.dat')
+        else:
+            model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+            dataFe=None        
     model_param[:]=np.nan    
 
     for i in range(0, 1):
@@ -365,67 +295,9 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
                 model_param[ind+2]=dvO_f
                 model_param[ind+3]=fwhmO_f
                 model_param[ind+4]=alphaO_f
-
-                    
             # Make plots
-            colors=['blue','red','purple','brown','pink']
-            fig = plt.figure(figsize=(7,5))
-            ax1 = fig.add_subplot(1,1,1)
-            ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
-            ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-            ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-            ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')    
-            for namel in names0:
-                if namel != 'None':
-                    indl=names0.index(namel)
-                    ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
-            if outflow:
-                ct1a=0
-                for namel in names0:
-                    if namel != 'None':
-                        indl=names0.index(namel)
-                        if ct1a == 0:
-                            ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
-                        else:
-                            ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
-                        ct1a=ct1a+1
-            fontsize=14
-            ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
-            ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
-            ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
-            ax1.legend(fontsize=fontsize)
-            plt.tight_layout()
-            fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
-            plt.show()
-
-            if skew:
-                labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
-            else:
-                if outflow:
-                    labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
-                else:
-                    labels2 = valsL
-            fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
-            fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-            fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
-                                   
-            med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
-                       
-            
-            fig = plt.figure(figsize=(6*1.5,3*1.5))
-            ax1 = fig.add_subplot(1,1,1)
-            #ax1.set_xlim(lA1,lA2)
-            ax1.plot(wave_i,fluxt,label='Input spectrum')
-            ax1.plot(wave_i,model,label='Highest Likelihood Model')
-            plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
-            plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
-            ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
-            ax1.legend(fontsize=14)
-            plt.tight_layout()
-            plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                
+            ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,res_norm=res_norm,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
             if verbose:    
-                #print Best fit parameters
                 print('Best fit parameters:')
                 linet=''
                 for itar in range(0, len(vals)):
@@ -437,8 +309,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
                         print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                     else:
                         print(linet)  
-                    
-               
     hli=[]
     hli.extend([fits.PrimaryHDU(model_all)])
     for myt in range(0,n_lines):
@@ -496,155 +366,96 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',smoth=False,ke
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False):
-    try:
-        [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
-    except:
-        try:
-            [pdl_cube, hdr]=fits.getdata(file1, 'SCI', header=True)
-        except:
-            [pdl_cube, hdr]=fits.getdata(file1, 0, header=True)
-    if error_c:
-        try:
-            try:
-                pdl_cubeE =fits.getdata(file1, 'ERROR', header=False)
-            except:
-                pdl_cubeE =fits.getdata(file1, 'ERR', header=False)
-        except:
-            try:
-                pdl_cubeE =fits.getdata(file1, 'IVAR', header=False)
-                pdl_cubeE=1.0/np.sqrt(pdl_cubeE)
-            except:
-                pdl_cubeE =fits.getdata(file1, 1, header=False)    
-        if erft != 0:
-            pdl_cubeE=pdl_cubeE*flux_f*erft
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
+    dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,
+    powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',
+    lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,
+    error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,
+    erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
+    """
+    Fit emission lines in an IFU datacube.
 
+    This routine performs emission-line fitting for each spatial
+    pixel (spaxel) in a spectral cube. Each spectrum is fitted
+    independently using an MCMC sampler.
+
+    Parameters
+    ----------
+    file1 : str
+        Input spectral cube.
+    file2 : str
+        Auxiliary input file.
+    file3 : str
+        Mask or error cube.
+    file_out : str
+        Output FITS cube containing the fitted models.
+    file_out2 : str
+        Output FITS cube containing fitted parameters.
+    name_out2 : str
+        Base name used for plots.
+    notebook : bool, optional
+        If True, use tqdm notebook progress bars.
+    dir_out : str, optional
+        Output directory for plots.
+    z : float, optional
+        Redshift of the object.
+    config_lines : str
+        YAML file defining line models and priors.
+    outflow : bool, optional
+        Include outflow emission components.
+    powlaw : bool, optional
+        Include power-law continuum component.
+    feii : bool, optional
+        Include FeII emission templates.
+    skew : bool, optional
+        Use skewed Gaussian line profiles.
+    voigt : bool, optional
+        Use Voigt line profiles.
+    lorentz : bool, optional
+        Use Lorentzian profiles.
+    ncpu : int, optional
+        Number of CPUs used for MCMC sampling.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The routine iterates over all spatial pixels in the datacube,
+    fitting emission lines independently.
+
+    The outputs are:
+
+    - a cube containing the best-fit spectral model
+    - cubes containing individual line components
+    - cubes with fitted parameters
+    - diagnostic plots for each spaxel (optional)
+
+    The results are stored in FITS format with extensions
+    corresponding to each model component.
+    """
+    pdl_cube,pdl_cubeE,mask,wave,hdr=tol.get_cubespectra(file1,file3,flux_f=flux_f,erft=erft,error_c=error_c)
     nz,nx,ny=pdl_cube.shape
-    pdl_cube=pdl_cube*flux_f
-    if ptt.exists(file3):
-        mask =fits.getdata(file3, 0, header=False)
-        nxt,nyt=mask.shape
-        if nxt != nx and nyt != ny:
-            mask=np.zeros([nx,ny])
-            mask[:,:]=1
-    else:
-        mask=np.zeros([nx,ny])
-        mask[:,:]=1
-    crpix=hdr["CRPIX3"]
-    try:
-        cdelt=hdr["CD3_3"]
-    except:
-        cdelt=hdr["CDELT3"]
-    crval=hdr["CRVAL3"]
-    wave=crval+cdelt*(np.arange(nz)+1-crpix)
     wave_f=wave/(1+z)
     nw=np.where((wave_f >= lA1) & (wave_f <= lA2))[0]
     wave_i=wave_f[nw]
+    hdr["CRVAL3"]=wave_i[0]
+    try:
+        hdr["CD3_3"]=hdr["CD3_3"]/(1+z)
+    except:
+        hdr["CDELT3"]=hdr["CDELT3"]/(1+z)
     model_all=np.zeros([len(nw),nx,ny])
     model_Inp=np.zeros([len(nw),nx,ny])
     model_InpE=np.zeros([len(nw),nx,ny])
     if outflow:
         model_Outflow=np.zeros([len(nw),nx,ny])
-
-    data_lines=tol.read_config_file(config_lines)
-    if data_lines:
-        n_lines=len(data_lines['lines'])
-        pac=['AoN','dvoN','fwhmoN']
-        pacL=[r'$A_{N}$',r'$\Delta v_{N}$',r'$FWHM_{N}$']
-        pacH=['N_Amplitude','N_Velocity','N_FWHM']
-        waves0=[]
-        names0=[]
-        vals0=[]
-        vals=[]
-        valsL=[]
-        valsH=[]
-        fac0=[]
-        facN0=[]
-        velfac0=[]
-        velfacN0=[]
-        fwhfac0=[]
-        fwhfacN0=[]
-        for i in range(0, n_lines):
-            parameters=data_lines['lines'][i]
-            npar=len(parameters)
-            waves0.extend([parameters['wave']])
-            names0.extend([parameters['name']])
-            try:
-                facN0.extend([parameters['fac_Name']])
-                fac0.extend([parameters['fac']])
-                facp=True
-            except:
-                facN0.extend(['NoNe'])
-                fac0.extend([None])
-                facp=False
-            try:
-                velfacN0.extend([parameters['vel_Name']])
-                velfac0.extend([parameters['velF']])
-                velfacp=True
-            except:
-                velfacN0.extend(['NoNe'])
-                velfac0.extend([None])
-                velfacp=False    
-            try:
-                fwhfacN0.extend([parameters['fwh_Name']])
-                fwhfac0.extend([parameters['fwhF']])
-                fwhfacp=True
-            except:
-                fwhfacN0.extend(['NoNe'])
-                fwhfac0.extend([None])
-                fwhfacp=False    
-            inr=0    
-            for a in pac:
-                val_t=a.replace('N',str(i))
-                val_tL=pacL[inr].replace('N',names0[i])
-                val_tH=pacH[inr].replace('N',names0[i])
-                if 'AoN' in a:
-                    if facp == False:
-                        vals.extend([val_t])
-                        valsL.extend([val_tL])
-                elif 'dvoN' in a:
-                    if velfacp == False:
-                        vals.extend([val_t])
-                        valsL.extend([val_tL])        
-                elif 'fwhmoN' in a:
-                    if fwhfacp == False:
-                        vals.extend([val_t])
-                        valsL.extend([val_tL])
-                else:    
-                    vals.extend([val_t])
-                    valsL.extend([val_tL])
-                valsH.extend([val_tH])
-                vals0.extend([val_t])    
-                inr=inr+1
-        region=data_lines['continum'][0]['region']
-        wavec1=data_lines['continum'][0]['wave1']
-        wavec2=data_lines['continum'][0]['wave2']
-        valsp=data_lines['priors']
-
-        Inpvalues=[]
-        Infvalues=[]
-        Supvalues=[]
-        for valt in vals:
-            try:
-                Inpvalues.extend([valsp[valt]])
-            except:
-                print('The keyword '+valt+' is missing in the line config file')
-                return
-            try:
-                Infvalues.extend([valsp[valt.replace('o','i')]])
-            except:
-                print('The keyword '+valt.replace('o','i')+' is missing in the line config file')
-                return
-            try:
-                Supvalues.extend([valsp[valt.replace('o','s')]])
-            except:
-                print('The keyword '+valt.replace('o','s')+' is missing in the line config file')
-                return
-    else:
-        print('No configuration line model file')
-        return
-    model_Ind=np.zeros([len(nw),nx,ny,n_lines])    
-
+    if powlaw:
+        model_Powerlaw=np.zeros([len(nw),nx,ny])
+    valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
+    model_Ind=np.zeros([len(nw),nx,ny,n_lines])
+    if colors0[0] != 'NoNe':
+        colors=colors0
     if cont:
         oft=2
     else:
@@ -656,15 +467,21 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
             model_param=np.zeros([n_lines*3+4+oft,nx,ny])
         else:
             model_param=np.zeros([n_lines*3+oft,nx,ny])
+    dataFe=None        
+    if powlaw:
+        if feii:
+            model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+            dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
+            dataFe=np.loadtxt(dirFe+'FeII.dat')
+        else:
+            model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+            dataFe=None
     model_param[:,:,:]=np.nan    
-
-    hdr["CRVAL3"]=wave_i[0]
-    try:
-        hdr["CD3_3"]=cdelt/(1+z)
-    except:
-        hdr["CDELT3"]=cdelt/(1+z)
     if pgr_bar:
-        pbar=tqdm(total=nx*ny)
+        if notebook:
+            pbar=tqdm(total=nx*ny)
+        else:
+            pbar=tqdmT(total=nx*ny) 
     for i in range(0, nx):
         for j in range(0, ny):
             val=mask[i,j]
@@ -680,15 +497,16 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 if error_c:
                     fluxtE=pdl_cubeE[nw,i,j]
                 else:
-                	fluxtE=tol.step_vect(fluxt,sp=50)
+                	fluxtE=tol.step_vect(fluxt,sp=spe)#50)
                 if cont:
                     #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
-                    fluxpt=np.nanmean(fluxt[nwt])  
-                    fluxt=fluxt-fluxpt
+                    fluxpt=np.nanmean(fluxt[nwt]) 
+                    if powlaw == False:
+                        fluxt=fluxt-fluxpt
                 fluxe_t=np.nanmean(fluxtE)
                 #Defining the input data for the fitting model
-                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow)
+                data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii, dataFe)
                 nwalkers=240
                 niter=1024
                 #Defining the initian conditions
@@ -699,6 +517,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         initial = np.array([*Inpvalues, valsp['f1o'], valsp['dvOo'], valsp['fwhmOo'], valsp['alpOo']])
                     else:
                         initial = np.array([*Inpvalues])
+                if powlaw:
+                    if feii:
+                        initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o'], valsp['Fso'], valsp['Fdo'], valsp['Fao']])
+                    else:
+                        initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o']])
+                #else:
+                #    if feii:
+                #        initial = np.array([*Inpvalues, valsp['Fso'], valsp['Fdo'], valsp['Fao']])
                 
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
@@ -719,6 +545,12 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     else:
                         f_parm=theta_max
                     model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)
+                if powlaw:
+                    if feii:
+                        *f_parm,P1o,P2o,Fso,Fdo,Fao=theta_max
+                    else:
+                        *f_parm,P1o,P2o=theta_max
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
                 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
@@ -786,67 +618,15 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                     model_param[ind+2,i,j]=dvO_f
                     model_param[ind+3,i,j]=fwhmO_f
                     model_param[ind+4,i,j]=alphaO_f
-                
-
+                if powlaw:
+                    model_param[ind+1,i,j]=P1o
+                    model_param[ind+2,i,j]=P2o
+                if feii:
+                    model_param[ind+3,i,j]=Fso
+                    model_param[ind+4,i,j]=Fdo
+                    model_param[ind+5,i,j]=Fao
                 if plot_f:
-                    fig = plt.figure(figsize=(7,5))
-                    ax1 = fig.add_subplot(1,1,1)
-                    ax1.plot(wave_i,fluxt,linewidth=1,color='black',label=r'Spectrum')
-                    ax1.plot(wave_i,fluxtE,linewidth=1,color='grey',label=r'$1\sigma$ Error')
-                    ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
-                    ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
-                    for namel in names0:
-                        if namel != 'None':
-                            indl=names0.index(namel)
-                            ax1.plot(wave_i,modsI[indl],linewidth=1,label=namel,color=colors[indl % len(colors)])
-                    if outflow:
-                        ct1a=0
-                        for namel in names0:
-                            if namel != 'None':
-                                indl=names0.index(namel)
-                                if ct1a == 0:
-                                    ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange',label=r'Outflow')
-                                else:
-                                    ax1.plot(wave_i,modsI[indl+n_lines],linewidth=1,color='orange')
-                                ct1a=ct1a+1
-                    fontsize=14
-                    ax1.set_title("Observed Spectrum Input",fontsize=fontsize)
-                    ax1.set_xlabel(r'$\lambda$ ($\rm{\AA}$)',fontsize=fontsize)
-                    ax1.set_ylabel(r'$f_\lambda$ (10$^{-16}$erg cm$^{-2}$ s$^{-1}$ $\rm{\AA}^{-1}$)',fontsize=fontsize)
-                    if labplot:
-                        ax1.legend(fontsize=fontsize)
-                    plt.tight_layout()
-                    fig.savefig(dir_out+'spectraFit_NAME.pdf'.replace('NAME',name_out2))
-                    plt.show()
-
-
-                    if skew:
-                        labels2 = [*valsL,r'$\alpha_n$',r'$\alpha_b$']
-                    else:
-                        if outflow:
-                            labels2 = [*valsL,r'$F_{out}$',r'$\Delta v_{out}$',r'$FWHM_{out}$',r'$\alpha_{out}$']
-                        else:
-                            labels2 = valsL
-                               
-                    fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
-                    fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
-                    fig.savefig(dir_out+'corners_NAME.pdf'.replace('NAME',name_out2))
-                
-                    
-                    med_model, spread = mcm.sample_walkers(10, samples, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, skew=skew, lorentz=lorentz, outflow=outflow)
-                    
-                    fig = plt.figure(figsize=(6*1.5,3*1.5))
-                    ax1 = fig.add_subplot(1,1,1)
-                    #ax1.set_xlim(lA1,lA2)
-                    ax1.plot(wave_i,fluxt,label='Input spectrum')
-                    ax1.plot(wave_i,model,label='Highest Likelihood Model')
-                    plt.ylabel(r'$Flux\ [10^{-16} erg/s/cm^2/\AA]$',fontsize=16)
-                    plt.xlabel(r'$Wavelength\ [\AA]$',fontsize=16)
-                    ax1.fill_between(wave_i,med_model-spread*50,med_model+spread*50,color='grey',alpha=0.5,label=r'$1\sigma$ Posterior Spread')
-                    ax1.legend(fontsize=14)
-                    plt.tight_layout()
-                    plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out2))
-                
+                    ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm,scl=scl)    
                 if pgr_bar == False:  
                     linet=''
                     for itar in range(0, len(vals)):
@@ -857,8 +637,13 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                         if outflow:
                             print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                         else:
-                            print(linet)
-                    
+                            if powlaw:
+                                if feii:
+                                    print(linet+'P1o='+str(P1o)+' P2o='+str(P2o)+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
+                                else:
+                                    print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
+                            else:
+                                print(linet)
                 if test:
                     return        
             if pgr_bar:
@@ -871,7 +656,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
     hli.extend([fits.ImageHDU(model_Inp)])    
     hli.extend([fits.ImageHDU(model_InpE)])    
     if outflow:
-        hli.extend([fits.ImageHDU(model_Outflow)])    
+        hli.extend([fits.ImageHDU(model_Outflow)])
+    if powlaw:
+        hli.extend([fits.ImageHDU(model_Powerlaw)])        
     h_k=hli[0].header
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
@@ -920,6 +707,16 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
                 continue
         h_y['EXTNAME'] ='Outflow_Component'
         h_y.update()  
+    if powlaw:
+        h_y=hli[3+n_lines].header
+        for i in range(0, len(keys)):
+            try:
+                h_y[keys[i]]=hdr[keys[i]]
+                h_y.comments[keys[i]]=hdr.comments[keys[i]]
+            except:
+                continue
+        h_y['EXTNAME'] ='PowerLaw_Component'
+        h_y.update()      
     hlist=fits.HDUList(hli)
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
@@ -950,14 +747,20 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,dir_out='',colors=['
         h['Val_'+str(ind+1)]='Amp_Factor_outflow'
         h['Val_'+str(ind+2)]='Vel_outflow' 
         h['Val_'+str(ind+3)]='FWHM_outflow'
-        h['Val_'+str(ind+4)]='Alpha_outflow'     
+        h['Val_'+str(ind+4)]='Alpha_outflow'  
+    if powlaw:
+        h['Val_'+str(ind+1)]='Amp_powerlow'
+        h['Val_'+str(ind+2)]='Alpha_powerlow'    
+    if feii:
+        h['Val_'+str(ind+3)]='Sigma_FeII'
+        h['Val_'+str(ind+4)]='Delta_FeII'
+        h['Val_'+str(ind+5)]='Amp_FeII'
     try:    
         del h['CRVAL3']
         del h['CRPIX3']
         del h['CDELT3']    
     except:
         print('No vals')
-
     h.update()        
     hlist=fits.HDUList([h1])
     hlist.update_extend()

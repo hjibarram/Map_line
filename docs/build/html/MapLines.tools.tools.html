@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MapLines.tools.tools module &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="MapLines.tools.priors" href="MapLines.tools.priors.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="maplines-tools-tools-module">
+<h1>MapLines.tools.tools module<a class="headerlink" href="#maplines-tools-tools-module" title="Link to this heading">¶</a></h1>
+<p>Utility routines used throughout <strong>MapLines</strong> for spectral modelling,
+data extraction from FITS cubes, diagnostic diagrams, region handling,
+and map manipulation.</p>
+<dl class="py function" id="module-MapLines.tools.tools">
+<dt class="sig sig-object py" id="MapLines.tools.tools.wfits_ext">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">wfits_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hlist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#wfits_ext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.wfits_ext" title="Link to this definition">¶</a></dt>
+<dd><p>Write a FITS HDUList to disk, removing an existing compressed file if needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Output FITS file name.</p></li>
+<li><p><strong>hlist</strong> (<em>astropy.io.fits.HDUList</em>) – FITS HDUList to be written.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If a compressed version <code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">+</span> <span class="pre">'.gz'</span></code> exists, it is removed before
+writing the new file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.sycall">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">sycall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comand</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#sycall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.sycall" title="Link to this definition">¶</a></dt>
+<dd><p>Execute a shell command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>comand</strong> (<em>str</em>) – Shell command to be executed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.conv">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">conv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ke</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#conv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.conv" title="Link to this definition">¶</a></dt>
+<dd><p>Smooth a one-dimensional array with a Gaussian kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xt</strong> (<em>array-like</em>) – Input vector or spectrum.</p></li>
+<li><p><strong>ke</strong> (<em>float</em><em>, </em><em>optional</em>) – Gaussian kernel width in pixels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Smoothed array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.voigt">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">voigt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gam1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#voigt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.voigt" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a normalized Voigt line profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength or coordinate grid.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Gaussian width of the Voigt profile.</p></li>
+<li><p><strong>xo</strong> (<em>float</em><em>, </em><em>optional</em>) – Central position of the profile.</p></li>
+<li><p><strong>A1</strong> (<em>float</em><em>, </em><em>optional</em>) – Peak amplitude scaling.</p></li>
+<li><p><strong>gam1</strong> (<em>float</em><em>, </em><em>optional</em>) – Lorentzian width parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Voigt profile evaluated on <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.spow_law">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">spow_law</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5100.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#spow_law"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.spow_law" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a power-law continuum model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength grid.</p></li>
+<li><p><strong>A</strong> (<em>float</em><em>, </em><em>optional</em>) – Amplitude at the reference wavelength <code class="docutils literal notranslate"><span class="pre">xo</span></code>.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Power-law index.</p></li>
+<li><p><strong>xo</strong> (<em>float</em><em>, </em><em>optional</em>) – Reference wavelength.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Power-law continuum evaluated on <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.lorentz">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">lorentz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#lorentz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.lorentz" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a Lorentzian line profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength or coordinate grid.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Profile width parameter.</p></li>
+<li><p><strong>xo</strong> (<em>float</em><em>, </em><em>optional</em>) – Central position of the profile.</p></li>
+<li><p><strong>A1</strong> (<em>float</em><em>, </em><em>optional</em>) – Peak amplitude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Lorentzian profile evaluated on <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.gauss_K">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">gauss_K</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#gauss_K"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.gauss_K" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a skewed Gaussian line profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength or coordinate grid.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Gaussian width parameter.</p></li>
+<li><p><strong>xo</strong> (<em>float</em><em>, </em><em>optional</em>) – Central position of the line.</p></li>
+<li><p><strong>A1</strong> (<em>float</em><em>, </em><em>optional</em>) – Amplitude scaling.</p></li>
+<li><p><strong>alp</strong> (<em>float</em><em>, </em><em>optional</em>) – Skewness parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Skewed Gaussian profile evaluated on <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.gauss_M">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">gauss_M</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#gauss_M"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.gauss_M" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a Gaussian line profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength or coordinate grid.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Gaussian dispersion.</p></li>
+<li><p><strong>xo</strong> (<em>float</em><em>, </em><em>optional</em>) – Central position of the line.</p></li>
+<li><p><strong>A1</strong> (<em>float</em><em>, </em><em>optional</em>) – Peak amplitude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gaussian profile evaluated on <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.opticFeII">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">opticFeII</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#opticFeII"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.opticFeII" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate an optical FeII template model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Wavelength grid.</p></li>
+<li><p><strong>data</strong> (<em>ndarray</em>) – Template array containing wavelength and flux columns.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width applied to the template.</p></li>
+<li><p><strong>xo</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength shift applied to the template.</p></li>
+<li><p><strong>A1</strong> (<em>float</em><em>, </em><em>optional</em>) – Amplitude scaling factor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Interpolated and smoothed FeII template spectrum.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The implementation follows the optical FeII template approach
+referenced in Kovacevic et al. (2010). :contentReference[oaicite:2]{index=2}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.step_vect">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">step_vect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fluxi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#step_vect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.step_vect" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate a local noise or step-like uncertainty vector from a spectrum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fluxi</strong> (<em>array-like</em>) – Input spectrum.</p></li>
+<li><p><strong>sp</strong> (<em>int</em><em>, </em><em>optional</em>) – Window size used to estimate the local scatter.</p></li>
+<li><p><strong>pst</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use percentile-based robust estimation. If False, use
+the standard deviation.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width used to remove large-scale structure before
+estimating local scatter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Estimated uncertainty vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.read_config_file">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">read_config_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#read_config_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.read_config_file" title="Link to this definition">¶</a></dt>
+<dd><p>Read a YAML configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em>) – Path to the YAML file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Parsed configuration dictionary, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the file could
+not be read.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_priorsvalues">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_priorsvalues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_priorsvalues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_priorsvalues" title="Link to this definition">¶</a></dt>
+<dd><p>Parse the line-model configuration file and assemble fitting priors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Path to the YAML configuration file describing the emission-line
+setup and priors.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple containing the prior dictionary, number of lines, continuum
+windows, initial values, lower and upper limits, line names,
+wavelengths, colors, scaling relations, and parameter labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function builds the internal parameter bookkeeping used by
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.line_fit</span></code> and <code class="docutils literal notranslate"><span class="pre">MapLines.tools.models</span></code>. It reads
+the <code class="docutils literal notranslate"><span class="pre">lines</span></code>, <code class="docutils literal notranslate"><span class="pre">continum</span></code> and <code class="docutils literal notranslate"><span class="pre">priors</span></code> sections from the YAML
+file. :contentReference[oaicite:3]{index=3}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_oneDspectra">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_oneDspectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SDSS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_oneDspectra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_oneDspectra" title="Link to this definition">¶</a></dt>
+<dd><p>Read a one-dimensional spectrum from several supported formats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file1</strong> (<em>str</em>) – Input file name.</p></li>
+<li><p><strong>flux_f</strong> (<em>float</em><em>, </em><em>optional</em>) – Global multiplicative flux factor.</p></li>
+<li><p><strong>erft</strong> (<em>float</em><em>, </em><em>optional</em>) – Additional multiplicative scaling applied to the error vector.</p></li>
+<li><p><strong>input_format</strong> (<em>{'TableFits'</em><em>, </em><em>'SDSS'</em><em>, </em><em>'IrafFits'</em><em>, </em><em>'CSV'</em><em>, </em><em>'ASCII'}</em><em>, </em><em>optional</em>) – Input spectrum format.</p></li>
+<li><p><strong>error_c</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, also read or estimate the uncertainty vector.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>pdl_data</strong> (<em>ndarray</em>) – Flux array.</p></li>
+<li><p><strong>pdl_dataE</strong> (<em>ndarray</em>) – Error array.</p></li>
+<li><p><strong>wave</strong> (<em>ndarray</em>) – Wavelength array.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>For SDSS spectra, the routine converts <code class="docutils literal notranslate"><span class="pre">LOGLAM</span></code> to linear wavelength
+and <code class="docutils literal notranslate"><span class="pre">IVAR</span></code> to uncertainties. :contentReference[oaicite:4]{index=4}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_cubespectra">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_cubespectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_cubespectra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_cubespectra" title="Link to this definition">¶</a></dt>
+<dd><p>Read a spectral cube, associated uncertainty cube, and spatial mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file1</strong> (<em>str</em>) – Input spectral cube.</p></li>
+<li><p><strong>file3</strong> (<em>str</em>) – Mask file. If it does not exist, a full-valid mask is created.</p></li>
+<li><p><strong>flux_f</strong> (<em>float</em><em>, </em><em>optional</em>) – Global multiplicative flux factor.</p></li>
+<li><p><strong>erft</strong> (<em>float</em><em>, </em><em>optional</em>) – Additional multiplicative scaling applied to the error cube.</p></li>
+<li><p><strong>error_c</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, read or estimate the error cube.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>pdl_cube</strong> (<em>ndarray</em>) – Flux cube with shape <code class="docutils literal notranslate"><span class="pre">(nz,</span> <span class="pre">nx,</span> <span class="pre">ny)</span></code>.</p></li>
+<li><p><strong>pdl_cubeE</strong> (<em>ndarray or None</em>) – Error cube.</p></li>
+<li><p><strong>mask</strong> (<em>ndarray</em>) – Spatial mask.</p></li>
+<li><p><strong>wave</strong> (<em>ndarray</em>) – Wavelength vector.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header of the cube.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function attempts multiple common FITS extension names such as
+<code class="docutils literal notranslate"><span class="pre">FLUX</span></code>, <code class="docutils literal notranslate"><span class="pre">SCI</span></code>, <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>, <code class="docutils literal notranslate"><span class="pre">ERR</span></code> and <code class="docutils literal notranslate"><span class="pre">IVAR</span></code>. :contentReference[oaicite:5]{index=5}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_fluxline">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_fluxline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind4</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6564.632</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_fluxline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_fluxline" title="Link to this definition">¶</a></dt>
+<dd><p>Derive line flux, velocity, dispersion, and equivalent width maps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – FITS file containing parameter maps.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the file.</p></li>
+<li><p><strong>ind1</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of amplitude, FWHM, velocity, and continuum maps.</p></li>
+<li><p><strong>ind2</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of amplitude, FWHM, velocity, and continuum maps.</p></li>
+<li><p><strong>ind3</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of amplitude, FWHM, velocity, and continuum maps.</p></li>
+<li><p><strong>ind4</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of amplitude, FWHM, velocity, and continuum maps.</p></li>
+<li><p><strong>lo</strong> (<em>float</em><em>, </em><em>optional</em>) – Rest wavelength of the emission line in Angstrom.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift correction applied to the velocity field.</p></li>
+<li><p><strong>val0</strong> (<em>float</em><em>, </em><em>optional</em>) – Sentinel velocity value used to identify invalid pixels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>flux</strong> (<em>ndarray</em>) – Integrated line-flux map.</p></li>
+<li><p><strong>vel</strong> (<em>ndarray</em>) – Velocity map.</p></li>
+<li><p><strong>sigma</strong> (<em>ndarray</em>) – Velocity-dispersion map.</p></li>
+<li><p><strong>ew</strong> (<em>ndarray or None</em>) – Equivalent-width map if a continuum map is available.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_spec">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_cube_m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avgra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_spec" title="Link to this definition">¶</a></dt>
+<dd><p>Extract a 1D spectrum from a circular aperture in a spectral cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Cube file name.</p></li>
+<li><p><strong>dir_cube_m</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the cube.</p></li>
+<li><p><strong>ra</strong> (<em>str</em><em>, </em><em>optional</em>) – Sky coordinates of the aperture center. If not provided, the
+cube center is used.</p></li>
+<li><p><strong>dec</strong> (<em>str</em><em>, </em><em>optional</em>) – Sky coordinates of the aperture center. If not provided, the
+cube center is used.</p></li>
+<li><p><strong>rad</strong> (<em>float</em><em>, </em><em>optional</em>) – Aperture radius in arcseconds.</p></li>
+<li><p><strong>sig</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width applied if <code class="docutils literal notranslate"><span class="pre">smoth=True</span></code>.</p></li>
+<li><p><strong>smoth</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth the extracted spectrum.</p></li>
+<li><p><strong>avgra</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, average the flux inside the aperture. Otherwise sum it.</p></li>
+<li><p><strong>head</strong> (<em>int</em><em>, </em><em>optional</em>) – FITS HDU index to read.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>wave_f</strong> (<em>ndarray</em>) – Wavelength vector.</p></li>
+<li><p><strong>single_T</strong> (<em>ndarray</em>) – Extracted spectrum.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_apertures">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_apertures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_apertures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_apertures" title="Link to this definition">¶</a></dt>
+<dd><p>Read circular and box apertures from a DS9 region file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em>) – DS9 region file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Arrays containing RA, Dec, radius, box sizes, position angles,
+colors, names, and aperture types.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_segment">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_segment" title="Link to this definition">¶</a></dt>
+<dd><p>Read DS9 segment regions from a region file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the region file.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Region file name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>raL, decL, colr, widt, namet</strong> – Segment coordinates, colors, line widths, and labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_segment1d">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_segment1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6450.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6850.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmetic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nzeros</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_segment1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_segment1d" title="Link to this definition">¶</a></dt>
+<dd><p>Extract 1D spectra along DS9 segment regions from a spectral cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Input cube file.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the cube.</p></li>
+<li><p><strong>wcs</strong> (<em>astropy.wcs.WCS</em><em>, </em><em>optional</em>) – WCS object. If not provided, it is built from the FITS header.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to transform wavelengths to rest frame.</p></li>
+<li><p><strong>rad</strong> (<em>float</em><em>, </em><em>optional</em>) – Circular extraction radius around each segment node.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength range to extract.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength range to extract.</p></li>
+<li><p><strong>plot_t</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the extracted pseudo-slit.</p></li>
+<li><p><strong>sigT</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width used when <code class="docutils literal notranslate"><span class="pre">cosmetic=True</span></code>.</p></li>
+<li><p><strong>cosmetic</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth the extracted spectra for display.</p></li>
+<li><p><strong>hdu</strong> (<em>int</em><em>, </em><em>optional</em>) – FITS HDU index.</p></li>
+<li><p><strong>nzeros</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, replace negative values with NaN before extraction.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Extracted spectra, wavelength array, spatial scale, geometry
+values, header, colors, widths, names, and segment labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_regs">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_regs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'file.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avgra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_regs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_regs" title="Link to this definition">¶</a></dt>
+<dd><p>Extract values from multiple DS9 apertures on a 2D map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map</strong> (<em>ndarray</em>) – Input 2D map.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing the spatial WCS.</p></li>
+<li><p><strong>reg_file</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file.</p></li>
+<li><p><strong>avgra</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, average values in each aperture. Otherwise sum them.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Extracted values for all apertures.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_single_reg">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_single_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avgra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_single_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_single_reg" title="Link to this definition">¶</a></dt>
+<dd><p>Extract the value of a single circular aperture from a 2D map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map</strong> (<em>ndarray</em>) – Input 2D image.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing WCS information.</p></li>
+<li><p><strong>ra</strong> (<em>str</em>) – Aperture center coordinates.</p></li>
+<li><p><strong>dec</strong> (<em>str</em>) – Aperture center coordinates.</p></li>
+<li><p><strong>rad</strong> (<em>float</em><em>, </em><em>optional</em>) – Aperture radius in arcseconds.</p></li>
+<li><p><strong>pix</strong> (<em>float</em><em>, </em><em>optional</em>) – Pixel scale in arcseconds per pixel.</p></li>
+<li><p><strong>avgra</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, compute the average value. Otherwise compute the sum.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Aperture-integrated or aperture-averaged value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_segment_val">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_segment_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_segment_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_segment_val" title="Link to this definition">¶</a></dt>
+<dd><p>Extract values along DS9 segment regions from a 2D map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flux</strong> (<em>ndarray</em>) – Input 2D map.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing WCS information.</p></li>
+<li><p><strong>dpix</strong> (<em>float</em>) – Spatial scale in arcseconds per pixel.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Extracted 1D profiles along each segment.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_segment">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6450.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6850.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmetic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_segment" title="Link to this definition">¶</a></dt>
+<dd><p>Extract pseudo-slit spectra along DS9 segment regions from a cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Input cube file.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the cube.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to shift the wavelength axis to rest frame.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength interval to extract.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength interval to extract.</p></li>
+<li><p><strong>plot_t</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the extracted pseudo-slit.</p></li>
+<li><p><strong>sigT</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width used for cosmetic plotting.</p></li>
+<li><p><strong>cosmetic</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth extracted spectra.</p></li>
+<li><p><strong>hdu</strong> (<em>int</em><em>, </em><em>optional</em>) – FITS HDU index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pseudo-slit spectra, wavelength axis, pixel scale, geometric
+metadata, header, colors, widths, and names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_line_val">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_line_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_line_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_line_val" title="Link to this definition">¶</a></dt>
+<dd><p>Extract values along DS9 line regions from a 2D map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flux</strong> (<em>ndarray</em>) – Input 2D map.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header with WCS information.</p></li>
+<li><p><strong>dpix</strong> (<em>float</em>) – Pixel scale in arcseconds.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Profiles extracted along each line region.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.extract_line">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">extract_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6450.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6850.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmetic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#extract_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.extract_line" title="Link to this definition">¶</a></dt>
+<dd><p>Extract pseudo-slit spectra along DS9 line regions from a cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Input cube file.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region file location.</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to shift the wavelength axis to rest frame.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength interval to extract.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength interval to extract.</p></li>
+<li><p><strong>plot_t</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the extracted pseudo-slit.</p></li>
+<li><p><strong>sigT</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width used for cosmetic display.</p></li>
+<li><p><strong>cosmetic</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth extracted spectra.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Extracted pseudo-slit spectra, wavelength axis, pixel scale,
+geometric metadata, and FITS header.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_line">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_line" title="Link to this definition">¶</a></dt>
+<dd><p>Read DS9 line regions from a region file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the region file.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Region file name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Arrays containing line start/end coordinates, colors, and labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.bpt">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">bpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niiha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oiiihb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inte</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'BPT_map'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#bpt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.bpt" title="Link to this definition">¶</a></dt>
+<dd><p>Build a BPT classification map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wha</strong> (<em>ndarray</em>) – Halpha equivalent-width map.</p></li>
+<li><p><strong>niiha</strong> (<em>ndarray</em>) – Log([NII]/Halpha) map.</p></li>
+<li><p><strong>oiiihb</strong> (<em>ndarray</em>) – Log([OIII]/Hbeta) map.</p></li>
+<li><p><strong>ret</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to retired, AGN, star-forming,
+intermediate, and composite classes.</p></li>
+<li><p><strong>agn</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to retired, AGN, star-forming,
+intermediate, and composite classes.</p></li>
+<li><p><strong>sf</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to retired, AGN, star-forming,
+intermediate, and composite classes.</p></li>
+<li><p><strong>inte</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to retired, AGN, star-forming,
+intermediate, and composite classes.</p></li>
+<li><p><strong>comp</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to retired, AGN, star-forming,
+intermediate, and composite classes.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the classification map to a FITS file.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Output base name.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em><em>, </em><em>optional</em>) – Header used when saving the FITS file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>BPT classification map.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.whan">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">whan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niiha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wagn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WHAN_map'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#whan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.whan" title="Link to this definition">¶</a></dt>
+<dd><p>Build a WHAN classification map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wha</strong> (<em>ndarray</em>) – Halpha equivalent-width map.</p></li>
+<li><p><strong>niiha</strong> (<em>ndarray</em>) – Log([NII]/Halpha) map.</p></li>
+<li><p><strong>agn</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to strong AGN, star-forming, weak AGN,
+and retired classes.</p></li>
+<li><p><strong>sf</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to strong AGN, star-forming, weak AGN,
+and retired classes.</p></li>
+<li><p><strong>wagn</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to strong AGN, star-forming, weak AGN,
+and retired classes.</p></li>
+<li><p><strong>ret</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to strong AGN, star-forming, weak AGN,
+and retired classes.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the classification map to a FITS file.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Output base name.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em><em>, </em><em>optional</em>) – Header used when saving the FITS file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>WHAN classification map.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.whad">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">whad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logew</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logsig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wagn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WHAD_map'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#whad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.whad" title="Link to this definition">¶</a></dt>
+<dd><p>Build a WHAD classification map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logew</strong> (<em>ndarray</em>) – Logarithmic equivalent-width map.</p></li>
+<li><p><strong>logsig</strong> (<em>ndarray</em>) – Logarithmic velocity-dispersion map.</p></li>
+<li><p><strong>agn</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to AGN, star-forming, weak AGN, retired,
+and uncertain classes.</p></li>
+<li><p><strong>sf</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to AGN, star-forming, weak AGN, retired,
+and uncertain classes.</p></li>
+<li><p><strong>wagn</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to AGN, star-forming, weak AGN, retired,
+and uncertain classes.</p></li>
+<li><p><strong>ret</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to AGN, star-forming, weak AGN, retired,
+and uncertain classes.</p></li>
+<li><p><strong>unk</strong> (<em>float</em><em>, </em><em>optional</em>) – Numeric labels assigned to AGN, star-forming, weak AGN, retired,
+and uncertain classes.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the classification map to a FITS file.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Output base name.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em><em>, </em><em>optional</em>) – Header used when saving the FITS file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>WHAD classification map.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_map_to_stl">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_map_to_stl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nameid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">27</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofsval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_map_to_stl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_map_to_stl" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a 2D map into a normalized STL surface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map</strong> (<em>ndarray</em>) – Input 2D map.</p></li>
+<li><p><strong>nameid</strong> (<em>str</em><em>, </em><em>optional</em>) – Output STL base name.</p></li>
+<li><p><strong>path_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>sig</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width used when <code class="docutils literal notranslate"><span class="pre">smoth=True</span></code>.</p></li>
+<li><p><strong>smoth</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth the map before STL generation.</p></li>
+<li><p><strong>pval</strong> (<em>float</em><em>, </em><em>optional</em>) – Linear rescaling parameters applied before STL export.</p></li>
+<li><p><strong>mval</strong> (<em>float</em><em>, </em><em>optional</em>) – Linear rescaling parameters applied before STL export.</p></li>
+<li><p><strong>border</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, zero the border pixels.</p></li>
+<li><p><strong>logP</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, apply logarithmic scaling before normalization.</p></li>
+<li><p><strong>ofsval</strong> (<em>float</em><em>, </em><em>optional</em>) – Floor value used before smoothing.</p></li>
+<li><p><strong>maxval</strong> (<em>float</em><em>, </em><em>optional</em>) – Manual normalization bounds.</p></li>
+<li><p><strong>minval</strong> (<em>float</em><em>, </em><em>optional</em>) – Manual normalization bounds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_maps_to_stl">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_maps_to_stl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nameid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_in</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">27</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">border</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_maps_to_stl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_maps_to_stl" title="Link to this definition">¶</a></dt>
+<dd><p>Convert all parameter maps stored in a FITS file into STL surfaces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_in</strong> (<em>str</em>) – Input FITS file containing parameter maps.</p></li>
+<li><p><strong>nameid</strong> (<em>str</em><em>, </em><em>optional</em>) – Suffix appended to the STL names.</p></li>
+<li><p><strong>path_in</strong> (<em>str</em><em>, </em><em>optional</em>) – Input directory.</p></li>
+<li><p><strong>path_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>sig</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width used when <code class="docutils literal notranslate"><span class="pre">smoth=True</span></code>.</p></li>
+<li><p><strong>smoth</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth the maps before STL generation.</p></li>
+<li><p><strong>pval</strong> (<em>float</em><em>, </em><em>optional</em>) – Linear rescaling parameters.</p></li>
+<li><p><strong>mval</strong> (<em>float</em><em>, </em><em>optional</em>) – Linear rescaling parameters.</p></li>
+<li><p><strong>border</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, zero the border pixels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.map_to_stl">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">map_to_stl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#map_to_stl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.map_to_stl" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a 2D array into an STL triangular mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map</strong> (<em>ndarray</em>) – Input 2D map.</p></li>
+<li><p><strong>file_out</strong> (<em>str</em>) – Output STL base name.</p></li>
+<li><p><strong>path_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.jwst_nirspecIFU_MJy2erg">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">jwst_nirspecIFU_MJy2erg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#jwst_nirspecIFU_MJy2erg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.jwst_nirspecIFU_MJy2erg" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a JWST/NIRSpec IFU cube from MJy/sr-like units to
+1e-17 erg/s/cm^2/Angstrom units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Input FITS cube.</p></li>
+<li><p><strong>file_out</strong> (<em>str</em>) – Output FITS cube.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to shift the spectral axis to rest frame.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Input directory.</p></li>
+<li><p><strong>path_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The routine updates the output header to use Angstrom in the spectral
+axis and <code class="docutils literal notranslate"><span class="pre">E-17erg/s/cm^2/Angstrom</span></code> as brightness unit. :contentReference[oaicite:6]{index=6}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.A_l">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">A_l</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Rv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#A_l"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.A_l" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the Cardelli, Clayton, and Mathis (1989) extinction law.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Rv</strong> (<em>float</em>) – Total-to-selective extinction ratio.</p></li>
+<li><p><strong>l</strong> (<em>array-like</em>) – Wavelength array in Angstrom.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Extinction curve A(lambda)/A(V).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_headervals">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_headervals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keymatch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HaBroad'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_headervals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_headervals" title="Link to this definition">¶</a></dt>
+<dd><p>Extract header keywords whose values match a given component name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing parameter labels.</p></li>
+<li><p><strong>keymatch</strong> (<em>str</em><em>, </em><em>optional</em>) – Substring used to identify the desired component.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>vals</strong> (<em>dict</em>) – Dictionary of matching header keywords and values.</p></li>
+<li><p><strong>nkeys</strong> (<em>list of str</em>) – Matching keyword names.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_map_component_index">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_map_component_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keymatch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HaBroad'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_map_component_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_map_component_index" title="Link to this definition">¶</a></dt>
+<dd><p>Find the amplitude, velocity, and FWHM indices of a map component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing <code class="docutils literal notranslate"><span class="pre">VAL_*</span></code> parameter labels.</p></li>
+<li><p><strong>keymatch</strong> (<em>str</em><em>, </em><em>optional</em>) – Component name to search for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>indx_amp, indx_vel, indx_fwh</strong> – Arrays with indices of amplitude, velocity, and FWHM maps.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_map_param">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_map_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keymatch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Noise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_map_param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_map_param" title="Link to this definition">¶</a></dt>
+<dd><p>Return the index of a single parameter map identified from the header.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing <code class="docutils literal notranslate"><span class="pre">VAL_*</span></code> labels.</p></li>
+<li><p><strong>keymatch</strong> (<em>str</em><em>, </em><em>optional</em>) – Parameter name to search for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Index of the matching parameter map.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.rescale_mapmodel">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">rescale_mapmodel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modelbasename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'psf_NAME'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#rescale_mapmodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.rescale_mapmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Rescale, smooth, and export a 2D model map as FITS and STL products.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mapT</strong> (<em>ndarray</em>) – Input 2D map.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Object name used in the output file names.</p></li>
+<li><p><strong>path_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>modelbasename</strong> (<em>str</em><em>, </em><em>optional</em>) – Base output name containing the token <code class="docutils literal notranslate"><span class="pre">NAME</span></code>.</p></li>
+<li><p><strong>sigmat</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width applied to the map.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, print normalization diagnostics.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.tools.get_mapmodel">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.tools.</span></span><span class="sig-name descname"><span class="pre">get_mapmodel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NAME-2iter_param_V2_HaNII.fits.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psfmbasename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'psf_NAME'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6564.632</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pow_cr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_am</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AmpT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/tools.html#get_mapmodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.tools.get_mapmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Build a rescaled broad-line model map from fitted parameter products.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Object identifier used to replace <code class="docutils literal notranslate"><span class="pre">NAME</span></code> in file templates.</p></li>
+<li><p><strong>path_map</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the fitted parameter cubes.</p></li>
+<li><p><strong>path_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>basename</strong> (<em>str</em><em>, </em><em>optional</em>) – Input FITS file template.</p></li>
+<li><p><strong>psfmbasename</strong> (<em>str</em><em>, </em><em>optional</em>) – Output model base name.</p></li>
+<li><p><strong>sigmat</strong> (<em>float</em><em>, </em><em>optional</em>) – Smoothing width applied to the final map.</p></li>
+<li><p><strong>lo</strong> (<em>float</em><em>, </em><em>optional</em>) – Rest wavelength of the target emission line.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, print normalization diagnostics.</p></li>
+<li><p><strong>pow_cr</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use the power-law continuum to mask unreliable spaxels.</p></li>
+<li><p><strong>set_am</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use the broad-line amplitude threshold to mask spaxels.</p></li>
+<li><p><strong>AmpT</strong> (<em>float</em><em>, </em><em>optional</em>) – Broad-line amplitude threshold used when <code class="docutils literal notranslate"><span class="pre">set_am=True</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The routine combines component maps identified in the FITS header,
+builds integrated flux maps, masks unreliable spaxels, rescales the
+result, and exports model products.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Map_line</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="MapLines.html">MapLine package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Map_line</a><ul>
+  <li><a href="MapLines.html">MapLine package</a><ul>
+  <li><a href="MapLines.tools.html">MapLines.tools package</a><ul>
+      <li>Previous: <a href="MapLines.tools.priors.html" title="previous chapter">MapLines.tools.priors</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/MapLines.tools.tools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

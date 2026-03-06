@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MapLines.tools.mcmc &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MapLines.tools.models" href="MapLines.tools.models.html" />
+    <link rel="prev" title="MapLines.tools.line_fit" href="MapLines.tools.line_fit.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="maplines-tools-mcmc">
+<h1>MapLines.tools.mcmc<a class="headerlink" href="#maplines-tools-mcmc" title="Link to this heading">¶</a></h1>
+<p>MCMC routines used by MapLines.</p>
+<section id="module-MapLines.tools.mcmc">
+<span id="id1"></span><h2>MapLines.tools.mcmc<a class="headerlink" href="#module-MapLines.tools.mcmc" title="Link to this heading">¶</a></h2>
+<p>MCMC utilities for spectral fitting in MapLines.</p>
+<p>This module provides helper routines to run Markov Chain Monte Carlo
+sampling and to evaluate posterior model realizations from the resulting
+chains.</p>
+<p>The main functionality includes:</p>
+<ul class="simple">
+<li><p>execution of the <code class="docutils literal notranslate"><span class="pre">emcee</span></code> ensemble sampler</p></li>
+<li><p>optional multiprocessing support</p></li>
+<li><p>burn-in and production runs</p></li>
+<li><p>extraction of representative model realizations from posterior samples</p></li>
+</ul>
+<p>These routines are used by the fitting functions in
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.line_fit</span></code> and rely on the spectral models defined in
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.models</span></code>.</p>
+<p class="rubric">Notes</p>
+<p>The sampler is designed for flexible use with the posterior probability
+functions defined in <code class="docutils literal notranslate"><span class="pre">MapLines.tools.priors</span></code> and supports both serial
+and multiprocessing execution modes.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.mcmc.mcmc">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.mcmc.</span></span><span class="sig-name descname"><span class="pre">mcmc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nwalkers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lnprob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/mcmc.html#mcmc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.mcmc.mcmc" title="Link to this definition">¶</a></dt>
+<dd><p>Run an MCMC sampler using the <code class="docutils literal notranslate"><span class="pre">emcee</span></code> ensemble sampler.</p>
+<p>This function performs parameter estimation for spectral models using
+a Markov Chain Monte Carlo (MCMC) approach. It supports both serial
+and multiprocessing execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p0</strong> (<em>array_like</em>) – Initial positions of the walkers in parameter space.</p></li>
+<li><p><strong>nwalkers</strong> (<em>int</em>) – Number of walkers used by the sampler.</p></li>
+<li><p><strong>niter</strong> (<em>int</em>) – Number of iterations in the production run.</p></li>
+<li><p><strong>ndim</strong> (<em>int</em>) – Number of model parameters.</p></li>
+<li><p><strong>lnprob</strong> (<em>callable</em>) – Log-probability function used by the sampler.</p></li>
+<li><p><strong>data</strong> (<em>tuple</em>) – Additional arguments passed to <code class="docutils literal notranslate"><span class="pre">lnprob</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print progress messages.</p></li>
+<li><p><strong>multi</strong> (<em>bool</em><em>, </em><em>optional</em>) – Enable multiprocessing.</p></li>
+<li><p><strong>tim</strong> (<em>bool</em><em>, </em><em>optional</em>) – Measure execution time.</p></li>
+<li><p><strong>ncpu</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of CPUs used when multiprocessing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>sampler</strong> (<em>emcee.EnsembleSampler</em>) – MCMC sampler object.</p></li>
+<li><p><strong>pos</strong> (<em>ndarray</em>) – Final walker positions.</p></li>
+<li><p><strong>prob</strong> (<em>ndarray</em>) – Log-probability values.</p></li>
+<li><p><strong>state</strong> (<em>object</em>) – Internal sampler state.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function performs a burn-in phase before the production run.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.mcmc.sample_walkers">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.mcmc.</span></span><span class="sig-name descname"><span class="pre">sample_walkers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flattened_chain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waves0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velfac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velfacN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhfac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhfacN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lorentz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">powlaw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/mcmc.html#sample_walkers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.mcmc.sample_walkers" title="Link to this definition">¶</a></dt>
+<dd><p>Generate model realizations from the posterior MCMC samples.</p>
+<p>This function randomly samples walkers from the flattened MCMC chain
+and computes the corresponding spectral models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of models to draw from the chain.</p></li>
+<li><p><strong>flattened_chain</strong> (<em>ndarray</em>) – Flattened MCMC chain.</p></li>
+<li><p><strong>waves0</strong> (<em>array_like</em>) – Rest wavelengths of spectral lines.</p></li>
+<li><p><strong>fac0</strong> (<em>array_like</em>) – Flux normalization factors.</p></li>
+<li><p><strong>facN0</strong> (<em>array_like</em>) – Flux normalization factors.</p></li>
+<li><p><strong>velfac0</strong> (<em>array_like</em>) – Velocity scaling factors.</p></li>
+<li><p><strong>velfacN0</strong> (<em>array_like</em>) – Velocity scaling factors.</p></li>
+<li><p><strong>fwhfac0</strong> (<em>array_like</em>) – Line-width scaling factors.</p></li>
+<li><p><strong>fwhfacN0</strong> (<em>array_like</em>) – Line-width scaling factors.</p></li>
+<li><p><strong>names0</strong> (<em>list</em>) – Names of the spectral components.</p></li>
+<li><p><strong>n_lines</strong> (<em>int</em>) – Number of emission lines.</p></li>
+<li><p><strong>vals</strong> (<em>dict</em>) – Additional model parameters.</p></li>
+<li><p><strong>x</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Spectral axis.</p></li>
+<li><p><strong>skew</strong> (<em>bool</em>) – Flags controlling model components.</p></li>
+<li><p><strong>lorentz</strong> (<em>bool</em>) – Flags controlling model components.</p></li>
+<li><p><strong>outflow</strong> (<em>bool</em>) – Flags controlling model components.</p></li>
+<li><p><strong>powlaw</strong> (<em>bool</em>) – Flags controlling model components.</p></li>
+<li><p><strong>feii</strong> (<em>bool</em>) – Flags controlling model components.</p></li>
+<li><p><strong>data</strong> (<em>optional</em>) – Additional data passed to the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>med_model</strong> (<em>ndarray</em>) – Median model spectrum.</p></li>
+<li><p><strong>spread</strong> (<em>ndarray</em>) – Standard deviation of the sampled models.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function uses the spectral model defined in
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.models</span></code>. :contentReference[oaicite:0]{index=0}</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Map_line</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="MapLines.html">MapLine package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Map_line</a><ul>
+  <li><a href="MapLines.html">MapLine package</a><ul>
+  <li><a href="MapLines.tools.html">MapLines.tools package</a><ul>
+      <li>Previous: <a href="MapLines.tools.line_fit.html" title="previous chapter">MapLines.tools.line_fit</a></li>
+      <li>Next: <a href="MapLines.tools.models.html" title="next chapter">MapLines.tools.models</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/MapLines.tools.mcmc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

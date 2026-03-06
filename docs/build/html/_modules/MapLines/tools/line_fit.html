@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MapLines.tools.line_fit &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for MapLines.tools.line_fit</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">MapLines.tools.line_fit</span>
+<span class="sd">=======================</span>
+
+<span class="sd">Core routines for emission-line fitting in astronomical spectra.</span>
+
+<span class="sd">This module implements the main spectral fitting routines used by</span>
+<span class="sd">MapLines to model emission lines in both single spectra and IFU</span>
+<span class="sd">datacubes. The fitting procedure uses Bayesian parameter estimation</span>
+<span class="sd">based on Markov Chain Monte Carlo (MCMC) sampling.</span>
+
+<span class="sd">Two main interfaces are provided:</span>
+
+<span class="sd">line_fit_single</span>
+<span class="sd">    Fits emission lines in a single spectrum.</span>
+
+<span class="sd">line_fit</span>
+<span class="sd">    Fits emission lines in each spaxel of an IFU datacube.</span>
+
+<span class="sd">The models can include:</span>
+
+<span class="sd">- Gaussian emission-line components</span>
+<span class="sd">- skewed line profiles</span>
+<span class="sd">- Voigt or Lorentzian profiles</span>
+<span class="sd">- outflow components</span>
+<span class="sd">- power-law continuum</span>
+<span class="sd">- Fe II templates</span>
+
+<span class="sd">The fitting procedure relies on:</span>
+
+<span class="sd">- prior definitions from YAML configuration files</span>
+<span class="sd">- spectral models defined in ``MapLines.tools.models``</span>
+<span class="sd">- likelihood functions in ``MapLines.tools.priors``</span>
+<span class="sd">- MCMC sampling implemented in ``MapLines.tools.mcmc``</span>
+
+<span class="sd">Outputs include model spectra, individual line components, and</span>
+<span class="sd">best-fit parameters saved in FITS format.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mod</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.mcmc</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mcm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.tools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tol</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.plot_tools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ptol</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.priors</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pri</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ptt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm.notebook</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span> <span class="k">as</span> <span class="n">tqdmT</span>
+
+<div class="viewcode-block" id="line_fit_single">
+<a class="viewcode-back" href="../../../MapLines.tools.line_fit.html#MapLines.tools.line_fit.line_fit_single">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">line_fit_single</span><span class="p">(</span><span class="n">file1</span><span class="p">,</span><span class="n">file_out</span><span class="p">,</span><span class="n">file_out2</span><span class="p">,</span><span class="n">name_out2</span><span class="p">,</span><span class="n">dir_out</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span><span class="s1">&#39;red&#39;</span><span class="p">,</span><span class="s1">&#39;purple&#39;</span><span class="p">,</span><span class="s1">&#39;brown&#39;</span><span class="p">,</span><span class="s1">&#39;pink&#39;</span><span class="p">],</span><span class="n">smoth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">ker</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">config_lines</span><span class="o">=</span><span class="s1">&#39;line_prop.yml&#39;</span><span class="p">,</span><span class="n">labplot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">input_format</span><span class="o">=</span><span class="s1">&#39;TableFits&#39;</span><span class="p">,</span>
+    <span class="n">z</span><span class="o">=</span><span class="mf">0.05536</span><span class="p">,</span><span class="n">lA1</span><span class="o">=</span><span class="mf">6450.0</span><span class="p">,</span><span class="n">lA2</span><span class="o">=</span><span class="mf">6850.0</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">outflow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">powlaw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">feii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">res_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">voigt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">lorentz</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">skew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">error_c</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ncpu</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">flux_f</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span><span class="n">erft</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span><span class="n">cont</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fit emission lines in a single astronomical spectrum.</span>
+
+<span class="sd">    This function performs a Bayesian fit of emission lines in a</span>
+<span class="sd">    one-dimensional spectrum using an MCMC sampler. The line model</span>
+<span class="sd">    and parameter priors are defined through a YAML configuration file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file1 : str</span>
+<span class="sd">        Input spectrum file.</span>
+<span class="sd">    file_out : str</span>
+<span class="sd">        Output file name for the fitted spectral model.</span>
+<span class="sd">    file_out2 : str</span>
+<span class="sd">        Output file name for the parameter results.</span>
+<span class="sd">    name_out2 : str</span>
+<span class="sd">        Name used for output plots.</span>
+<span class="sd">    dir_out : str, optional</span>
+<span class="sd">        Output directory for plots and results.</span>
+<span class="sd">    colors : list of str, optional</span>
+<span class="sd">        Colors used for plotting individual line components.</span>
+<span class="sd">    smoth : bool, optional</span>
+<span class="sd">        If True, apply smoothing to the input spectrum.</span>
+<span class="sd">    ker : int, optional</span>
+<span class="sd">        Kernel size used for smoothing.</span>
+<span class="sd">    config_lines : str, optional</span>
+<span class="sd">        YAML file defining emission lines and priors.</span>
+<span class="sd">    z : float, optional</span>
+<span class="sd">        Redshift used to shift wavelengths to rest frame.</span>
+<span class="sd">    lA1, lA2 : float</span>
+<span class="sd">        Wavelength range used for fitting.</span>
+<span class="sd">    verbose : bool, optional</span>
+<span class="sd">        Print best-fit parameters.</span>
+<span class="sd">    outflow : bool, optional</span>
+<span class="sd">        Include an outflow component in the model.</span>
+<span class="sd">    powlaw : bool, optional</span>
+<span class="sd">        Include a power-law continuum component.</span>
+<span class="sd">    feii : bool, optional</span>
+<span class="sd">        Include FeII emission templates.</span>
+<span class="sd">    voigt : bool, optional</span>
+<span class="sd">        Use Voigt profiles instead of Gaussian profiles.</span>
+<span class="sd">    lorentz : bool, optional</span>
+<span class="sd">        Use Lorentzian profiles.</span>
+<span class="sd">    skew : bool, optional</span>
+<span class="sd">        Use skewed Gaussian profiles.</span>
+<span class="sd">    ncpu : int, optional</span>
+<span class="sd">        Number of CPUs used by the MCMC sampler.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The fitting procedure consists of the following steps:</span>
+
+<span class="sd">    1. Load the spectrum and associated uncertainties.</span>
+<span class="sd">    2. Select the wavelength range used for fitting.</span>
+<span class="sd">    3. Define the spectral model and parameter priors.</span>
+<span class="sd">    4. Run an MCMC sampler to estimate the posterior distribution.</span>
+<span class="sd">    5. Compute the best-fit model parameters.</span>
+<span class="sd">    6. Save model spectra and parameters in FITS files.</span>
+
+<span class="sd">    The output FITS files include:</span>
+
+<span class="sd">    - total model spectrum</span>
+<span class="sd">    - individual emission-line components</span>
+<span class="sd">    - input spectrum</span>
+<span class="sd">    - error spectrum</span>
+<span class="sd">    - derived parameters</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from MapLines.tools.line_fit import line_fit_single</span>
+<span class="sd">    &gt;&gt;&gt; line_fit_single(</span>
+<span class="sd">    ...     &quot;spectrum.fits&quot;,</span>
+<span class="sd">    ...     &quot;fit_output&quot;,</span>
+<span class="sd">    ...     &quot;params_output&quot;,</span>
+<span class="sd">    ...     &quot;Ha_fit&quot;</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pdl_data</span><span class="p">,</span><span class="n">pdl_dataE</span><span class="p">,</span><span class="n">wave</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">get_oneDspectra</span><span class="p">(</span><span class="n">file1</span><span class="p">,</span><span class="n">flux_f</span><span class="o">=</span><span class="n">flux_f</span><span class="p">,</span><span class="n">erft</span><span class="o">=</span><span class="n">erft</span><span class="p">,</span><span class="n">input_format</span><span class="o">=</span><span class="n">input_format</span><span class="p">,</span><span class="n">error_c</span><span class="o">=</span><span class="n">error_c</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">smoth</span><span class="p">:</span>
+        <span class="n">pdl_data</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">pdl_data</span><span class="p">,</span><span class="n">ke</span><span class="o">=</span><span class="n">ker</span><span class="p">)</span>
+    <span class="n">nz</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pdl_data</span><span class="p">)</span>
+    <span class="n">pdl_data</span><span class="o">=</span><span class="n">pdl_data</span><span class="o">*</span><span class="n">flux_f</span>     
+    <span class="n">wave_f</span><span class="o">=</span><span class="n">wave</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">nw</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">wave_f</span> <span class="o">&gt;=</span> <span class="n">lA1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">wave_f</span> <span class="o">&lt;=</span> <span class="n">lA2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">wave_i</span><span class="o">=</span><span class="n">wave_f</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span>
+    <span class="n">model_all</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">))</span>
+    <span class="n">model_Inp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">))</span>
+    <span class="n">model_InpE</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">model_Outflow</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">))</span>
+    <span class="n">valsp</span><span class="p">,</span><span class="n">n_lines</span><span class="p">,</span><span class="n">wavec1</span><span class="p">,</span><span class="n">wavec2</span><span class="p">,</span><span class="n">Inpvalues</span><span class="p">,</span><span class="n">Infvalues</span><span class="p">,</span><span class="n">Supvalues</span><span class="p">,</span><span class="n">waves0</span><span class="p">,</span><span class="n">names0</span><span class="p">,</span><span class="n">colors0</span><span class="p">,</span><span class="n">vals0</span><span class="p">,</span><span class="n">fac0</span><span class="p">,</span><span class="n">facN0</span><span class="p">,</span><span class="n">velfac0</span><span class="p">,</span><span class="n">velfacN0</span><span class="p">,</span><span class="n">fwhfac0</span><span class="p">,</span><span class="n">fwhfacN0</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="n">valsL</span><span class="p">,</span><span class="n">valsH</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">get_priorsvalues</span><span class="p">(</span><span class="n">config_lines</span><span class="p">)</span>   
+    <span class="n">model_Ind</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">n_lines</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">colors0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;NoNe&#39;</span><span class="p">:</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors0</span>   
+    <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">oft</span><span class="o">=</span><span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">oft</span><span class="o">=</span><span class="mi">1</span>
+    <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+        <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">+</span><span class="n">oft</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">4</span><span class="o">+</span><span class="n">oft</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">oft</span><span class="p">)</span>
+    <span class="n">dataFe</span><span class="o">=</span><span class="kc">None</span>        
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">5</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+            <span class="n">dirFe</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">MapLines</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/&#39;</span>
+            <span class="n">dataFe</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">dirFe</span><span class="o">+</span><span class="s1">&#39;FeII.dat&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+            <span class="n">dataFe</span><span class="o">=</span><span class="kc">None</span>        
+    <span class="n">model_param</span><span class="p">[:]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>    
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1">#val=1</span>
+            <span class="c1">#if val == 1:</span>
+            <span class="n">fluxt</span><span class="o">=</span><span class="n">pdl_data</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">error_c</span><span class="p">:</span>
+                <span class="n">fluxtE</span><span class="o">=</span><span class="n">pdl_dataE</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fluxtE</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">step_vect</span><span class="p">(</span><span class="n">fluxt</span><span class="p">,</span><span class="n">sp</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+                <span class="c1">#Defining the continum windows</span>
+                <span class="n">nwt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">wave_f</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">wavec1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">wave_f</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">wavec2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>  
+                <span class="n">fluxpt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">fluxt</span><span class="p">[</span><span class="n">nwt</span><span class="p">])</span>  
+                <span class="n">fluxt</span><span class="o">=</span><span class="n">fluxt</span><span class="o">-</span><span class="n">fluxpt</span>
+            <span class="n">fluxe_t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">fluxtE</span><span class="p">)</span>
+            <span class="c1">#Defining the input data for the fitting model</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">fluxt</span><span class="p">,</span> <span class="n">fluxtE</span><span class="p">,</span> <span class="n">wave_i</span><span class="p">,</span> <span class="n">Infvalues</span><span class="p">,</span> <span class="n">Supvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">voigt</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="p">)</span>
+            <span class="n">nwalkers</span><span class="o">=</span><span class="mi">240</span>
+            <span class="n">niter</span><span class="o">=</span><span class="mi">1024</span>
+            <span class="c1">#Defining the initian conditions</span>
+            <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>  
+                <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                    <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;f1o&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;dvOo&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;fwhmOo&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;alpOo&#39;</span><span class="p">]])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">voigt</span><span class="p">:</span>
+                        <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;gam1&#39;</span><span class="p">]])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">])</span>
+
+            <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span>
+            <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">)]</span>
+            <span class="n">tim</span><span class="o">=</span><span class="kc">True</span> <span class="c1">#allways allow to print the time stamp</span>
+            <span class="n">sampler</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">mcm</span><span class="o">.</span><span class="n">mcmc</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span><span class="n">nwalkers</span><span class="p">,</span><span class="n">niter</span><span class="p">,</span><span class="n">ndim</span><span class="p">,</span><span class="n">pri</span><span class="o">.</span><span class="n">lnprob_gauss_Lin</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">tim</span><span class="o">=</span><span class="n">tim</span><span class="p">,</span><span class="n">ncpu</span><span class="o">=</span><span class="n">ncpu</span><span class="p">)</span>  
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">flatchain</span>
+            <span class="n">theta_max</span>  <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">flatlnprobability</span><span class="p">)]</span>
+                
+            <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+                <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">alph1_f</span><span class="p">,</span><span class="n">alphB_f</span><span class="o">=</span><span class="n">theta_max</span>
+                <span class="n">model</span><span class="p">,</span><span class="o">*</span><span class="n">modsI</span><span class="o">=</span><span class="n">mod</span><span class="o">.</span><span class="n">line_model</span><span class="p">(</span><span class="n">theta_max</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">wave_i</span><span class="p">,</span> <span class="n">ret_com</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                    <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">F1o_f</span><span class="p">,</span><span class="n">dvO_f</span><span class="p">,</span><span class="n">fwhmO_f</span><span class="p">,</span><span class="n">alphaO_f</span><span class="o">=</span><span class="n">theta_max</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">voigt</span><span class="p">:</span>
+                        <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">gam1_f</span><span class="o">=</span><span class="n">theta_max</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">gam1_f</span><span class="o">=</span><span class="mf">0.0</span>
+                        <span class="n">f_parm</span><span class="o">=</span><span class="n">theta_max</span>
+                <span class="n">model</span><span class="p">,</span><span class="o">*</span><span class="n">modsI</span><span class="o">=</span><span class="n">mod</span><span class="o">.</span><span class="n">line_model</span><span class="p">(</span><span class="n">theta_max</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">wave_i</span><span class="p">,</span> <span class="n">ret_com</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">,</span> <span class="n">lorentz</span><span class="o">=</span><span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="o">=</span><span class="n">outflow</span><span class="p">)</span>
+ 
+            <span class="n">model_all</span><span class="p">[:]</span><span class="o">=</span><span class="n">model</span>
+            <span class="n">model_Inp</span><span class="p">[:]</span><span class="o">=</span><span class="n">fluxt</span>
+            <span class="n">model_InpE</span><span class="p">[:]</span><span class="o">=</span><span class="n">fluxtE</span>
+            <span class="k">for</span> <span class="n">myt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_lines</span><span class="p">):</span>
+                <span class="n">model_Ind</span><span class="p">[:,</span><span class="n">myt</span><span class="p">]</span><span class="o">=</span><span class="n">modsI</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                <span class="n">inNaM</span><span class="o">=</span><span class="n">facN0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                <span class="n">velinNaM</span><span class="o">=</span><span class="n">velfacN0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                <span class="n">fwhinNaM</span><span class="o">=</span><span class="n">fwhfacN0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                <span class="n">valname</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+                <span class="n">velvalname</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+                <span class="n">fwhvalname</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+                <span class="n">indf</span><span class="o">=-</span><span class="mi">1</span>
+                <span class="n">velindf</span><span class="o">=-</span><span class="mi">1</span>
+                <span class="n">fwhindf</span><span class="o">=-</span><span class="mi">1</span>
+                <span class="n">vt1</span><span class="o">=</span><span class="s1">&#39;AoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">myt</span><span class="p">))</span>
+                <span class="n">vt2</span><span class="o">=</span><span class="s1">&#39;dvoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">myt</span><span class="p">))</span>
+                <span class="n">vt3</span><span class="o">=</span><span class="s1">&#39;fwhmoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">myt</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">names0</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">names0</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">inNaM</span><span class="p">:</span>
+                        <span class="n">valname</span><span class="o">=</span><span class="s1">&#39;AoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">atp</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">names0</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">velinNaM</span><span class="p">:</span>
+                        <span class="n">velvalname</span><span class="o">=</span><span class="s1">&#39;dvoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">atp</span><span class="p">))</span>      
+                    <span class="k">if</span> <span class="n">names0</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">fwhinNaM</span><span class="p">:</span>
+                        <span class="n">fwhvalname</span><span class="o">=</span><span class="s1">&#39;fwhmoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">atp</span><span class="p">))</span>    
+                <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">valname</span><span class="p">:</span>
+                        <span class="n">indf</span><span class="o">=</span><span class="n">atp</span>
+                    <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">velvalname</span><span class="p">:</span>
+                        <span class="n">velindf</span><span class="o">=</span><span class="n">atp</span>
+                    <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">fwhvalname</span><span class="p">:</span>
+                        <span class="n">fwhindf</span><span class="o">=</span><span class="n">atp</span>    
+                <span class="k">if</span> <span class="n">indf</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indf</span><span class="p">]</span><span class="o">/</span><span class="n">fac0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span><span class="o">/</span><span class="n">flux_f</span>
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">vt1</span><span class="p">:</span>
+                            <span class="n">indfT1</span><span class="o">=</span><span class="n">atp</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indfT1</span><span class="p">]</span><span class="o">/</span><span class="n">flux_f</span>   
+                <span class="k">if</span> <span class="n">velindf</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">velindf</span><span class="p">]</span><span class="o">*</span><span class="n">velfac0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>      
+                    <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">vt2</span><span class="p">:</span>
+                            <span class="n">indfT2</span><span class="o">=</span><span class="n">atp</span>  
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indfT2</span><span class="p">]</span>        
+                <span class="k">if</span> <span class="n">fwhindf</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">fwhindf</span><span class="p">]</span><span class="o">*</span><span class="n">fwhfac0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">vt3</span><span class="p">:</span>
+                            <span class="n">indfT3</span><span class="o">=</span><span class="n">atp</span>   
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indfT3</span><span class="p">]</span>       
+            <span class="n">model_param</span><span class="p">[</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">fluxe_t</span><span class="o">/</span><span class="n">flux_f</span>
+            <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">fluxpt</span><span class="o">/</span><span class="n">flux_f</span>
+                <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span>
+            <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">alph1_f</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">alphB_f</span>
+            <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">F1o_f</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">dvO_f</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">fwhmO_f</span>
+                <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">4</span><span class="p">]</span><span class="o">=</span><span class="n">alphaO_f</span>
+            <span class="c1"># Make plots</span>
+            <span class="n">ptol</span><span class="o">.</span><span class="n">plot_outputfits</span><span class="p">(</span><span class="n">wave_i</span><span class="p">,</span><span class="n">fluxt</span><span class="p">,</span><span class="n">fluxtE</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">modsI</span><span class="p">,</span><span class="n">n_lines</span><span class="p">,</span><span class="n">waves0</span><span class="p">,</span><span class="n">fac0</span><span class="p">,</span><span class="n">facN0</span><span class="p">,</span><span class="n">velfac0</span><span class="p">,</span><span class="n">velfacN0</span><span class="p">,</span><span class="n">fwhfac0</span><span class="p">,</span><span class="n">fwhfacN0</span><span class="p">,</span><span class="n">names0</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="n">valsL</span><span class="p">,</span><span class="n">samples</span><span class="p">,</span><span class="n">res_norm</span><span class="o">=</span><span class="n">res_norm</span><span class="p">,</span><span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span><span class="n">name_out</span><span class="o">=</span><span class="n">name_out2</span><span class="p">,</span><span class="n">dir_out</span><span class="o">=</span><span class="n">dir_out</span><span class="p">,</span><span class="n">labplot</span><span class="o">=</span><span class="n">labplot</span><span class="p">,</span><span class="n">dataFe</span><span class="o">=</span><span class="n">dataFe</span><span class="p">,</span><span class="n">lorentz</span><span class="o">=</span><span class="n">lorentz</span><span class="p">,</span><span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">,</span><span class="n">outflow</span><span class="o">=</span><span class="n">outflow</span><span class="p">,</span><span class="n">powlaw</span><span class="o">=</span><span class="n">powlaw</span><span class="p">,</span><span class="n">feii</span><span class="o">=</span><span class="n">feii</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>    
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best fit parameters:&#39;</span><span class="p">)</span>
+                <span class="n">linet</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+                <span class="k">for</span> <span class="n">itar</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                    <span class="n">linet</span><span class="o">=</span><span class="n">linet</span><span class="o">+</span><span class="n">vals</span><span class="p">[</span><span class="n">itar</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">f_parm</span><span class="p">[</span><span class="n">itar</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39; &#39;</span>
+                <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="o">+</span><span class="s1">&#39;alph1=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">alph1_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; alphB=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">alphB_f</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="o">+</span><span class="s1">&#39;F1o=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">F1o_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; dvO=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">dvO_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; fwhmO=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">fwhmO_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; alph0=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">alphaO_f</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="p">)</span>  
+    <span class="n">hli</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">model_all</span><span class="p">)])</span>
+    <span class="k">for</span> <span class="n">myt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_lines</span><span class="p">):</span>
+        <span class="n">temp</span><span class="o">=</span><span class="n">model_Ind</span><span class="p">[:,</span><span class="n">myt</span><span class="p">]</span>
+        <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">temp</span><span class="p">)])</span>
+    <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_Inp</span><span class="p">)])</span>    
+    <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_InpE</span><span class="p">)])</span>    
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_Outflow</span><span class="p">)])</span>    
+    <span class="n">h_k</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">h_k</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;Model&#39;</span>    
+    <span class="n">h_k</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">myt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_lines</span><span class="p">):</span>
+        <span class="n">h_t</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">myt</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="n">h_t</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;N_Component&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="n">names0</span><span class="p">[</span><span class="n">myt</span><span class="p">])</span>
+        <span class="n">h_t</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  
+    <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;Input_Component&#39;</span>
+    <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>   
+    <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">2</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;InputE_Component&#39;</span>
+    <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;Outflow_Component&#39;</span>
+        <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  
+    <span class="n">hlist</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">(</span><span class="n">hli</span><span class="p">)</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">update_extend</span><span class="p">()</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">file_out</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tol</span><span class="o">.</span><span class="n">sycall</span><span class="p">(</span><span class="s1">&#39;gzip -f &#39;</span><span class="o">+</span><span class="n">file_out</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">)</span>
+    
+
+    <span class="n">h1</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">model_param</span><span class="p">)</span>
+    <span class="n">h</span><span class="o">=</span><span class="n">h1</span><span class="o">.</span><span class="n">header</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">valsH</span><span class="p">)):</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">=</span><span class="n">valsH</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+    <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="p">)]</span> <span class="o">=</span><span class="s1">&#39;Noise_Median&#39;</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span><span class="s1">&#39;Continum&#39;</span>
+        <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span>
+    <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_Narrow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_Broad&#39;</span> 
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span> 
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Amp_Factor_outflow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Vel_outflow&#39;</span> 
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">3</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;FWHM_outflow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">4</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_outflow&#39;</span>     
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>        
+    <span class="n">hlist</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">([</span><span class="n">h1</span><span class="p">])</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">update_extend</span><span class="p">()</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">file_out2</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tol</span><span class="o">.</span><span class="n">sycall</span><span class="p">(</span><span class="s1">&#39;gzip -f &#39;</span><span class="o">+</span><span class="n">file_out2</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="line_fit">
+<a class="viewcode-back" href="../../../MapLines.tools.line_fit.html#MapLines.tools.line_fit.line_fit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">line_fit</span><span class="p">(</span><span class="n">file1</span><span class="p">,</span><span class="n">file2</span><span class="p">,</span><span class="n">file3</span><span class="p">,</span><span class="n">file_out</span><span class="p">,</span><span class="n">file_out2</span><span class="p">,</span><span class="n">name_out2</span><span class="p">,</span><span class="n">notebook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">dir_out</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span><span class="s1">&#39;red&#39;</span><span class="p">,</span><span class="s1">&#39;purple&#39;</span><span class="p">,</span><span class="s1">&#39;brown&#39;</span><span class="p">,</span><span class="s1">&#39;pink&#39;</span><span class="p">],</span><span class="n">z</span><span class="o">=</span><span class="mf">0.05536</span><span class="p">,</span><span class="n">j_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">i_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">powlaw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">feii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">labplot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">config_lines</span><span class="o">=</span><span class="s1">&#39;line_prop.yml&#39;</span><span class="p">,</span>
+    <span class="n">lA1</span><span class="o">=</span><span class="mf">6450.0</span><span class="p">,</span><span class="n">lA2</span><span class="o">=</span><span class="mf">6850.0</span><span class="p">,</span><span class="n">outflow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">voigt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">lorentz</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">skew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">error_c</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">plot_f</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">ncpu</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">pgr_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">flux_f</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">erft</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">cont</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">res_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">spe</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span><span class="n">scl</span><span class="o">=</span><span class="s1">&#39;-16&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fit emission lines in an IFU datacube.</span>
+
+<span class="sd">    This routine performs emission-line fitting for each spatial</span>
+<span class="sd">    pixel (spaxel) in a spectral cube. Each spectrum is fitted</span>
+<span class="sd">    independently using an MCMC sampler.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file1 : str</span>
+<span class="sd">        Input spectral cube.</span>
+<span class="sd">    file2 : str</span>
+<span class="sd">        Auxiliary input file.</span>
+<span class="sd">    file3 : str</span>
+<span class="sd">        Mask or error cube.</span>
+<span class="sd">    file_out : str</span>
+<span class="sd">        Output FITS cube containing the fitted models.</span>
+<span class="sd">    file_out2 : str</span>
+<span class="sd">        Output FITS cube containing fitted parameters.</span>
+<span class="sd">    name_out2 : str</span>
+<span class="sd">        Base name used for plots.</span>
+<span class="sd">    notebook : bool, optional</span>
+<span class="sd">        If True, use tqdm notebook progress bars.</span>
+<span class="sd">    dir_out : str, optional</span>
+<span class="sd">        Output directory for plots.</span>
+<span class="sd">    z : float, optional</span>
+<span class="sd">        Redshift of the object.</span>
+<span class="sd">    config_lines : str</span>
+<span class="sd">        YAML file defining line models and priors.</span>
+<span class="sd">    outflow : bool, optional</span>
+<span class="sd">        Include outflow emission components.</span>
+<span class="sd">    powlaw : bool, optional</span>
+<span class="sd">        Include power-law continuum component.</span>
+<span class="sd">    feii : bool, optional</span>
+<span class="sd">        Include FeII emission templates.</span>
+<span class="sd">    skew : bool, optional</span>
+<span class="sd">        Use skewed Gaussian line profiles.</span>
+<span class="sd">    voigt : bool, optional</span>
+<span class="sd">        Use Voigt line profiles.</span>
+<span class="sd">    lorentz : bool, optional</span>
+<span class="sd">        Use Lorentzian profiles.</span>
+<span class="sd">    ncpu : int, optional</span>
+<span class="sd">        Number of CPUs used for MCMC sampling.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The routine iterates over all spatial pixels in the datacube,</span>
+<span class="sd">    fitting emission lines independently.</span>
+
+<span class="sd">    The outputs are:</span>
+
+<span class="sd">    - a cube containing the best-fit spectral model</span>
+<span class="sd">    - cubes containing individual line components</span>
+<span class="sd">    - cubes with fitted parameters</span>
+<span class="sd">    - diagnostic plots for each spaxel (optional)</span>
+
+<span class="sd">    The results are stored in FITS format with extensions</span>
+<span class="sd">    corresponding to each model component.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pdl_cube</span><span class="p">,</span><span class="n">pdl_cubeE</span><span class="p">,</span><span class="n">mask</span><span class="p">,</span><span class="n">wave</span><span class="p">,</span><span class="n">hdr</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">get_cubespectra</span><span class="p">(</span><span class="n">file1</span><span class="p">,</span><span class="n">file3</span><span class="p">,</span><span class="n">flux_f</span><span class="o">=</span><span class="n">flux_f</span><span class="p">,</span><span class="n">erft</span><span class="o">=</span><span class="n">erft</span><span class="p">,</span><span class="n">error_c</span><span class="o">=</span><span class="n">error_c</span><span class="p">)</span>
+    <span class="n">nz</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="o">=</span><span class="n">pdl_cube</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">wave_f</span><span class="o">=</span><span class="n">wave</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">nw</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">wave_f</span> <span class="o">&gt;=</span> <span class="n">lA1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">wave_f</span> <span class="o">&lt;=</span> <span class="n">lA2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">wave_i</span><span class="o">=</span><span class="n">wave_f</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span>
+    <span class="n">hdr</span><span class="p">[</span><span class="s2">&quot;CRVAL3&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">wave_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">hdr</span><span class="p">[</span><span class="s2">&quot;CD3_3&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="s2">&quot;CD3_3&quot;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">hdr</span><span class="p">[</span><span class="s2">&quot;CDELT3&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="s2">&quot;CDELT3&quot;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">model_all</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="n">model_Inp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="n">model_InpE</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">model_Outflow</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="n">model_Powerlaw</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="n">valsp</span><span class="p">,</span><span class="n">n_lines</span><span class="p">,</span><span class="n">wavec1</span><span class="p">,</span><span class="n">wavec2</span><span class="p">,</span><span class="n">Inpvalues</span><span class="p">,</span><span class="n">Infvalues</span><span class="p">,</span><span class="n">Supvalues</span><span class="p">,</span><span class="n">waves0</span><span class="p">,</span><span class="n">names0</span><span class="p">,</span><span class="n">colors0</span><span class="p">,</span><span class="n">vals0</span><span class="p">,</span><span class="n">fac0</span><span class="p">,</span><span class="n">facN0</span><span class="p">,</span><span class="n">velfac0</span><span class="p">,</span><span class="n">velfacN0</span><span class="p">,</span><span class="n">fwhfac0</span><span class="p">,</span><span class="n">fwhfacN0</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="n">valsL</span><span class="p">,</span><span class="n">valsH</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">get_priorsvalues</span><span class="p">(</span><span class="n">config_lines</span><span class="p">)</span>   
+    <span class="n">model_Ind</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">nw</span><span class="p">),</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">n_lines</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">colors0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;NoNe&#39;</span><span class="p">:</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors0</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">oft</span><span class="o">=</span><span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">oft</span><span class="o">=</span><span class="mi">1</span>
+    <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+        <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">4</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+    <span class="n">dataFe</span><span class="o">=</span><span class="kc">None</span>        
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">5</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+            <span class="n">dirFe</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">MapLines</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/&#39;</span>
+            <span class="n">dataFe</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">dirFe</span><span class="o">+</span><span class="s1">&#39;FeII.dat&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">+</span><span class="n">oft</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">])</span>
+            <span class="n">dataFe</span><span class="o">=</span><span class="kc">None</span>
+    <span class="n">model_param</span><span class="p">[:,:,:]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>    
+    <span class="k">if</span> <span class="n">pgr_bar</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">notebook</span><span class="p">:</span>
+            <span class="n">pbar</span><span class="o">=</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pbar</span><span class="o">=</span><span class="n">tqdmT</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">)</span> 
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ny</span><span class="p">):</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">test</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">j_t</span><span class="o">*</span><span class="n">i_t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">j_t</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">i_t</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">nx</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">i</span><span class="o">=</span><span class="n">i_t</span>
+                <span class="n">j</span><span class="o">=</span><span class="n">j_t</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;testing spaxel &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; , &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">fluxt</span><span class="o">=</span><span class="n">pdl_cube</span><span class="p">[</span><span class="n">nw</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">error_c</span><span class="p">:</span>
+                    <span class="n">fluxtE</span><span class="o">=</span><span class="n">pdl_cubeE</span><span class="p">[</span><span class="n">nw</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                	<span class="n">fluxtE</span><span class="o">=</span><span class="n">tol</span><span class="o">.</span><span class="n">step_vect</span><span class="p">(</span><span class="n">fluxt</span><span class="p">,</span><span class="n">sp</span><span class="o">=</span><span class="n">spe</span><span class="p">)</span><span class="c1">#50)</span>
+                <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+                    <span class="c1">#Defining the continum windows</span>
+                    <span class="n">nwt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">wave_f</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">wavec1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">wave_f</span><span class="p">[</span><span class="n">nw</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">wavec2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>  
+                    <span class="n">fluxpt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">fluxt</span><span class="p">[</span><span class="n">nwt</span><span class="p">])</span> 
+                    <span class="k">if</span> <span class="n">powlaw</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">fluxt</span><span class="o">=</span><span class="n">fluxt</span><span class="o">-</span><span class="n">fluxpt</span>
+                <span class="n">fluxe_t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">fluxtE</span><span class="p">)</span>
+                <span class="c1">#Defining the input data for the fitting model</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">fluxt</span><span class="p">,</span> <span class="n">fluxtE</span><span class="p">,</span> <span class="n">wave_i</span><span class="p">,</span> <span class="n">Infvalues</span><span class="p">,</span> <span class="n">Supvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">voigt</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="p">,</span> <span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="p">,</span> <span class="n">dataFe</span><span class="p">)</span>
+                <span class="n">nwalkers</span><span class="o">=</span><span class="mi">240</span>
+                <span class="n">niter</span><span class="o">=</span><span class="mi">1024</span>
+                <span class="c1">#Defining the initian conditions</span>
+                <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>  
+                    <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                        <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;f1o&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;dvOo&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;fwhmOo&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;alpOo&#39;</span><span class="p">]])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+                        <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P1o&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P2o&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fso&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fdo&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fao&#39;</span><span class="p">]])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="n">Inpvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P1o&#39;</span><span class="p">],</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P2o&#39;</span><span class="p">]])</span>
+                <span class="c1">#else:</span>
+                <span class="c1">#    if feii:</span>
+                <span class="c1">#        initial = np.array([*Inpvalues, valsp[&#39;Fso&#39;], valsp[&#39;Fdo&#39;], valsp[&#39;Fao&#39;]])</span>
+                
+                <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">plot_f</span><span class="p">:</span>
+                    <span class="n">tim</span><span class="o">=</span><span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tim</span><span class="o">=</span><span class="kc">False</span>
+                <span class="n">sampler</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">mcm</span><span class="o">.</span><span class="n">mcmc</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span><span class="n">nwalkers</span><span class="p">,</span><span class="n">niter</span><span class="p">,</span><span class="n">ndim</span><span class="p">,</span><span class="n">pri</span><span class="o">.</span><span class="n">lnprob_gauss_Lin</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">tim</span><span class="o">=</span><span class="n">tim</span><span class="p">,</span><span class="n">ncpu</span><span class="o">=</span><span class="n">ncpu</span><span class="p">)</span>  
+                <span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">flatchain</span>
+                <span class="n">theta_max</span>  <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">flatlnprobability</span><span class="p">)]</span>
+                
+                <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+                    <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">alph1_f</span><span class="p">,</span><span class="n">alphB_f</span><span class="o">=</span><span class="n">theta_max</span>
+                    <span class="n">model</span><span class="p">,</span><span class="o">*</span><span class="n">modsI</span><span class="o">=</span><span class="n">mod</span><span class="o">.</span><span class="n">line_model</span><span class="p">(</span><span class="n">theta_max</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">wave_i</span><span class="p">,</span> <span class="n">ret_com</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                        <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">F1o_f</span><span class="p">,</span><span class="n">dvO_f</span><span class="p">,</span><span class="n">fwhmO_f</span><span class="p">,</span><span class="n">alphaO_f</span><span class="o">=</span><span class="n">theta_max</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">f_parm</span><span class="o">=</span><span class="n">theta_max</span>
+                    <span class="n">model</span><span class="p">,</span><span class="o">*</span><span class="n">modsI</span><span class="o">=</span><span class="n">mod</span><span class="o">.</span><span class="n">line_model</span><span class="p">(</span><span class="n">theta_max</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">wave_i</span><span class="p">,</span> <span class="n">ret_com</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">,</span> <span class="n">lorentz</span><span class="o">=</span><span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="o">=</span><span class="n">outflow</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+                        <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">P1o</span><span class="p">,</span><span class="n">P2o</span><span class="p">,</span><span class="n">Fso</span><span class="p">,</span><span class="n">Fdo</span><span class="p">,</span><span class="n">Fao</span><span class="o">=</span><span class="n">theta_max</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">P1o</span><span class="p">,</span><span class="n">P2o</span><span class="o">=</span><span class="n">theta_max</span>
+                    <span class="n">model</span><span class="p">,</span><span class="o">*</span><span class="n">modsI</span><span class="o">=</span><span class="n">mod</span><span class="o">.</span><span class="n">line_model</span><span class="p">(</span><span class="n">theta_max</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">wave_i</span><span class="p">,</span> <span class="n">ret_com</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">powlaw</span><span class="o">=</span><span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="o">=</span><span class="n">feii</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">dataFe</span><span class="p">)</span>    
+                
+                <span class="n">model_all</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">model</span>
+                <span class="n">model_Inp</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">fluxt</span>
+                <span class="n">model_InpE</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">fluxtE</span>
+                <span class="k">for</span> <span class="n">myt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_lines</span><span class="p">):</span>
+                    <span class="n">model_Ind</span><span class="p">[:,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">myt</span><span class="p">]</span><span class="o">=</span><span class="n">modsI</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                    <span class="n">inNaM</span><span class="o">=</span><span class="n">facN0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                    <span class="n">velinNaM</span><span class="o">=</span><span class="n">velfacN0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                    <span class="n">fwhinNaM</span><span class="o">=</span><span class="n">fwhfacN0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                    <span class="n">valname</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+                    <span class="n">velvalname</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+                    <span class="n">fwhvalname</span><span class="o">=</span><span class="s1">&#39;None&#39;</span>
+                    <span class="n">indf</span><span class="o">=-</span><span class="mi">1</span>
+                    <span class="n">velindf</span><span class="o">=-</span><span class="mi">1</span>
+                    <span class="n">fwhindf</span><span class="o">=-</span><span class="mi">1</span>
+                    <span class="n">vt1</span><span class="o">=</span><span class="s1">&#39;AoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">myt</span><span class="p">))</span>
+                    <span class="n">vt2</span><span class="o">=</span><span class="s1">&#39;dvoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">myt</span><span class="p">))</span>
+                    <span class="n">vt3</span><span class="o">=</span><span class="s1">&#39;fwhmoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">myt</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">names0</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">names0</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">inNaM</span><span class="p">:</span>
+                            <span class="n">valname</span><span class="o">=</span><span class="s1">&#39;AoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">atp</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">names0</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">velinNaM</span><span class="p">:</span>
+                            <span class="n">velvalname</span><span class="o">=</span><span class="s1">&#39;dvoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">atp</span><span class="p">))</span>      
+                        <span class="k">if</span> <span class="n">names0</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">fwhinNaM</span><span class="p">:</span>
+                            <span class="n">fwhvalname</span><span class="o">=</span><span class="s1">&#39;fwhmoN&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">atp</span><span class="p">))</span>    
+                    <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">valname</span><span class="p">:</span>
+                            <span class="n">indf</span><span class="o">=</span><span class="n">atp</span>
+                        <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">velvalname</span><span class="p">:</span>
+                            <span class="n">velindf</span><span class="o">=</span><span class="n">atp</span>
+                        <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">fwhvalname</span><span class="p">:</span>
+                            <span class="n">fwhindf</span><span class="o">=</span><span class="n">atp</span>    
+                    <span class="k">if</span> <span class="n">indf</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indf</span><span class="p">]</span><span class="o">/</span><span class="n">fac0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span><span class="o">/</span><span class="n">flux_f</span>
+                    <span class="k">else</span><span class="p">:</span> 
+                        <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                            <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">vt1</span><span class="p">:</span>
+                                <span class="n">indfT1</span><span class="o">=</span><span class="n">atp</span>
+                        <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indfT1</span><span class="p">]</span><span class="o">/</span><span class="n">flux_f</span>   
+                    <span class="k">if</span> <span class="n">velindf</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">velindf</span><span class="p">]</span><span class="o">*</span><span class="n">velfac0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>      
+                        <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                            <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">vt2</span><span class="p">:</span>
+                                <span class="n">indfT2</span><span class="o">=</span><span class="n">atp</span>  
+                        <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indfT2</span><span class="p">]</span>        
+                    <span class="k">if</span> <span class="n">fwhindf</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">fwhindf</span><span class="p">]</span><span class="o">*</span><span class="n">fwhfac0</span><span class="p">[</span><span class="n">myt</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span> 
+                        <span class="k">for</span> <span class="n">atp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                            <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="n">atp</span><span class="p">]</span> <span class="o">==</span> <span class="n">vt3</span><span class="p">:</span>
+                                <span class="n">indfT3</span><span class="o">=</span><span class="n">atp</span>   
+                        <span class="n">model_param</span><span class="p">[</span><span class="n">myt</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">f_parm</span><span class="p">[</span><span class="n">indfT3</span><span class="p">]</span>       
+                <span class="n">model_param</span><span class="p">[</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">fluxe_t</span><span class="o">/</span><span class="n">flux_f</span>
+                <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">fluxpt</span><span class="o">/</span><span class="n">flux_f</span>
+                    <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span>
+                <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">alph1_f</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">alphB_f</span>
+                <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">F1o_f</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">dvO_f</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">fwhmO_f</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">alphaO_f</span>
+                <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">P1o</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">P2o</span>
+                <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">Fso</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">Fdo</span>
+                    <span class="n">model_param</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">Fao</span>
+                <span class="k">if</span> <span class="n">plot_f</span><span class="p">:</span>
+                    <span class="n">ptol</span><span class="o">.</span><span class="n">plot_outputfits</span><span class="p">(</span><span class="n">wave_i</span><span class="p">,</span><span class="n">fluxt</span><span class="p">,</span><span class="n">fluxtE</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">modsI</span><span class="p">,</span><span class="n">n_lines</span><span class="p">,</span><span class="n">waves0</span><span class="p">,</span><span class="n">fac0</span><span class="p">,</span><span class="n">facN0</span><span class="p">,</span><span class="n">velfac0</span><span class="p">,</span><span class="n">velfacN0</span><span class="p">,</span><span class="n">fwhfac0</span><span class="p">,</span><span class="n">fwhfacN0</span><span class="p">,</span><span class="n">names0</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="n">valsL</span><span class="p">,</span><span class="n">samples</span><span class="p">,</span><span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span><span class="n">name_out</span><span class="o">=</span><span class="n">name_out2</span><span class="p">,</span><span class="n">dir_out</span><span class="o">=</span><span class="n">dir_out</span><span class="p">,</span><span class="n">labplot</span><span class="o">=</span><span class="n">labplot</span><span class="p">,</span><span class="n">dataFe</span><span class="o">=</span><span class="n">dataFe</span><span class="p">,</span><span class="n">lorentz</span><span class="o">=</span><span class="n">lorentz</span><span class="p">,</span><span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">,</span><span class="n">outflow</span><span class="o">=</span><span class="n">outflow</span><span class="p">,</span><span class="n">powlaw</span><span class="o">=</span><span class="n">powlaw</span><span class="p">,</span><span class="n">feii</span><span class="o">=</span><span class="n">feii</span><span class="p">,</span><span class="n">res_norm</span><span class="o">=</span><span class="n">res_norm</span><span class="p">,</span><span class="n">scl</span><span class="o">=</span><span class="n">scl</span><span class="p">)</span>    
+                <span class="k">if</span> <span class="n">pgr_bar</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>  
+                    <span class="n">linet</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+                    <span class="k">for</span> <span class="n">itar</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                        <span class="n">linet</span><span class="o">=</span><span class="n">linet</span><span class="o">+</span><span class="n">vals</span><span class="p">[</span><span class="n">itar</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">f_parm</span><span class="p">[</span><span class="n">itar</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39; &#39;</span>
+                    <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="o">+</span><span class="s1">&#39;alph1=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">alph1_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; alphB=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">alphB_f</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="o">+</span><span class="s1">&#39;F1o=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">F1o_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; dvO=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">dvO_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; fwhmO=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">fwhmO_f</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; alph0=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">alphaO_f</span><span class="p">))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="o">+</span><span class="s1">&#39;P1o=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">P1o</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; P2o=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">P2o</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; Fso=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Fso</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; Fdo=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Fdo</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; Fao=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Fao</span><span class="p">))</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="o">+</span><span class="s1">&#39;P1o=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">P1o</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; P2o=&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">P2o</span><span class="p">))</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="n">linet</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">test</span><span class="p">:</span>
+                    <span class="k">return</span>        
+            <span class="k">if</span> <span class="n">pgr_bar</span><span class="p">:</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">hli</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">model_all</span><span class="p">)])</span>
+    <span class="k">for</span> <span class="n">myt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_lines</span><span class="p">):</span>
+        <span class="n">temp</span><span class="o">=</span><span class="n">model_Ind</span><span class="p">[:,:,:,</span><span class="n">myt</span><span class="p">]</span>
+        <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">temp</span><span class="p">)])</span>
+    <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_Inp</span><span class="p">)])</span>    
+    <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_InpE</span><span class="p">)])</span>    
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_Outflow</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="n">hli</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">(</span><span class="n">model_Powerlaw</span><span class="p">)])</span>        
+    <span class="n">h_k</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">keys</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">hdr</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">h_k</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">h_k</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="n">h_k</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;Model&#39;</span>    
+    <span class="n">h_k</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">myt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_lines</span><span class="p">):</span>
+        <span class="n">h_t</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">myt</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">h_t</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="n">h_t</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">h_t</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;N_Component&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span><span class="n">names0</span><span class="p">[</span><span class="n">myt</span><span class="p">])</span>
+        <span class="n">h_t</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  
+    <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">h_y</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">h_y</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;Input_Component&#39;</span>
+    <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>   
+    <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">2</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">h_y</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">h_y</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;InputE_Component&#39;</span>
+    <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">h_y</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="n">h_y</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;Outflow_Component&#39;</span>
+        <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="n">h_y</span><span class="o">=</span><span class="n">hli</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">n_lines</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">h_y</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="n">h_y</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">h_y</span><span class="p">[</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">]</span> <span class="o">=</span><span class="s1">&#39;PowerLaw_Component&#39;</span>
+        <span class="n">h_y</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>      
+    <span class="n">hlist</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">(</span><span class="n">hli</span><span class="p">)</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">update_extend</span><span class="p">()</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">file_out</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tol</span><span class="o">.</span><span class="n">sycall</span><span class="p">(</span><span class="s1">&#39;gzip -f &#39;</span><span class="o">+</span><span class="n">file_out</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">)</span>
+    
+    <span class="n">h1</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">model_param</span><span class="p">)</span>
+    <span class="n">h</span><span class="o">=</span><span class="n">h1</span><span class="o">.</span><span class="n">header</span>
+    <span class="n">keys</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">hdr</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;COMMENT&quot;</span> <span class="ow">in</span>  <span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="s1">&#39;HISTORY&#39;</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">h</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="n">h</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="n">hdr</span><span class="o">.</span><span class="n">comments</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">valsH</span><span class="p">)):</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">=</span><span class="n">valsH</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+    <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="p">)]</span> <span class="o">=</span><span class="s1">&#39;Noise_Median&#39;</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span><span class="s1">&#39;Continum&#39;</span>
+        <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ind</span><span class="o">=</span><span class="n">n_lines</span><span class="o">*</span><span class="mi">3</span>
+    <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_Narrow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_Broad&#39;</span> 
+    <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Amp_Factor_outflow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Vel_outflow&#39;</span> 
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">3</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;FWHM_outflow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">4</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_outflow&#39;</span>  
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Amp_powerlow&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">2</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Alpha_powerlow&#39;</span>    
+    <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">3</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Sigma_FeII&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">4</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Delta_FeII&#39;</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;Val_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="o">+</span><span class="mi">5</span><span class="p">)]</span><span class="o">=</span><span class="s1">&#39;Amp_FeII&#39;</span>
+    <span class="k">try</span><span class="p">:</span>    
+        <span class="k">del</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;CRVAL3&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;CRPIX3&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;CDELT3&#39;</span><span class="p">]</span>    
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No vals&#39;</span><span class="p">)</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>        
+    <span class="n">hlist</span><span class="o">=</span><span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">([</span><span class="n">h1</span><span class="p">])</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">update_extend</span><span class="p">()</span>
+    <span class="n">hlist</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">file_out2</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tol</span><span class="o">.</span><span class="n">sycall</span><span class="p">(</span><span class="s1">&#39;gzip -f &#39;</span><span class="o">+</span><span class="n">file_out2</span><span class="o">+</span><span class="s1">&#39;.fits&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Map_line</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
