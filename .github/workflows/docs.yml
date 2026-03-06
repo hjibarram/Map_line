@@ -2,7 +2,7 @@ name: Deploy documentation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
 
 permissions:
   contents: read
@@ -36,6 +36,7 @@ jobs:
         run: |
           cd docs
           make html
+          touch build/html/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
