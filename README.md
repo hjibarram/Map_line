@@ -13,6 +13,8 @@ MapLines includes tools for spectral modeling, Bayesian parameter estimation
 via MCMC, diagnostic plotting, and spatial analysis of emission-line
 properties.
 
+The full documentation can be looked at https://hjibarram.github.io/Map_line/index.html
+
 ---
 
 # Documentation
