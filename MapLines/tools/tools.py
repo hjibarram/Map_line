@@ -22,6 +22,25 @@ import warnings
 warnings.filterwarnings("ignore")
 
 def wfits_ext(name,hlist):
+    """
+    Write a FITS HDUList to disk, removing an existing compressed file if needed.
+
+    Parameters
+    ----------
+    name : str
+        Output FITS file name.
+    hlist : astropy.io.fits.HDUList
+        FITS HDUList to be written.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    If a compressed version ``name + '.gz'`` exists, it is removed before
+    writing the new file.
+    """
     sycall("rm "+name+'.gz')
     if ptt.exists(name) == False:
         hlist.writeto(name)
@@ -32,16 +51,64 @@ def wfits_ext(name,hlist):
         hlist.writeto(name)
 
 def sycall(comand):
+    """
+    Execute a shell command.
+
+    Parameters
+    ----------
+    comand : str
+        Shell command to be executed.
+
+    Returns
+    -------
+    None
+    """
     linp=comand
     os.system(comand)
 
 def conv(xt,ke=2.5):
+    """
+    Smooth a one-dimensional array with a Gaussian kernel.
+
+    Parameters
+    ----------
+    xt : array-like
+        Input vector or spectrum.
+    ke : float, optional
+        Gaussian kernel width in pixels.
+
+    Returns
+    -------
+    ndarray
+        Smoothed array.
+    """
     nsf=len(xt)
     krn=ke
     xf=filt1d(xt,ke)
     return xf
 
 def voigt(x,sigma=1.0,xo=0.0,A1=1.0,gam1=0.0):
+    """
+    Evaluate a normalized Voigt line profile.
+
+    Parameters
+    ----------
+    x : array-like
+        Wavelength or coordinate grid.
+    sigma : float, optional
+        Gaussian width of the Voigt profile.
+    xo : float, optional
+        Central position of the profile.
+    A1 : float, optional
+        Peak amplitude scaling.
+    gam1 : float, optional
+        Lorentzian width parameter.
+
+    Returns
+    -------
+    ndarray
+        Voigt profile evaluated on ``x``.
+    """
     At=A1/vprf(0, sigma, gam1)
     #sigma=sigma/2.0
     #gam=gam/2.0
@@ -52,17 +119,75 @@ def voigt(x,sigma=1.0,xo=0.0,A1=1.0,gam1=0.0):
     return y
 
 def spow_law(x, A=1.0, alpha=0.0, xo=5100.0):
-    '''Power law model'''
+    """
+    Evaluate a power-law continuum model.
+
+    Parameters
+    ----------
+    x : array-like
+        Wavelength grid.
+    A : float, optional
+        Amplitude at the reference wavelength ``xo``.
+    alpha : float, optional
+        Power-law index.
+    xo : float, optional
+        Reference wavelength.
+
+    Returns
+    -------
+    ndarray
+        Power-law continuum evaluated on ``x``.
+    """
     #ct=299792.458
     #x=x/ct*xo
     y=A*(x/xo)**(-alpha)
     return y
 
 def lorentz(x,sigma=1.0,xo=0.0,A1=1.0):
+    """
+    Evaluate a Lorentzian line profile.
+
+    Parameters
+    ----------
+    x : array-like
+        Wavelength or coordinate grid.
+    sigma : float, optional
+        Profile width parameter.
+    xo : float, optional
+        Central position of the profile.
+    A1 : float, optional
+        Peak amplitude.
+
+    Returns
+    -------
+    ndarray
+        Lorentzian profile evaluated on ``x``.
+    """
     y=A1*(0.5*sigma)**2.0/((x-xo)**2.0+(0.5*sigma)**2.0) 
     return y
 
 def gauss_K(x,sigma=1.0,xo=0.0,A1=1.0,alp=0):
+    """
+    Evaluate a skewed Gaussian line profile.
+
+    Parameters
+    ----------
+    x : array-like
+        Wavelength or coordinate grid.
+    sigma : float, optional
+        Gaussian width parameter.
+    xo : float, optional
+        Central position of the line.
+    A1 : float, optional
+        Amplitude scaling.
+    alp : float, optional
+        Skewness parameter.
+
+    Returns
+    -------
+    ndarray
+        Skewed Gaussian profile evaluated on ``x``.
+    """
     dt=alp/np.sqrt(np.abs(1+alp**2))
     xot=xo-sigma*dt*np.sqrt(2/np.pi)
     omega=np.sqrt(sigma**2.0/(1-2*dt**2/np.pi))
@@ -74,10 +199,55 @@ def gauss_K(x,sigma=1.0,xo=0.0,A1=1.0,alp=0):
     return y
 
 def gauss_M(x,sigma=1.0,xo=0.0,A1=1.0):
+    """
+    Evaluate a Gaussian line profile.
+
+    Parameters
+    ----------
+    x : array-like
+        Wavelength or coordinate grid.
+    sigma : float, optional
+        Gaussian dispersion.
+    xo : float, optional
+        Central position of the line.
+    A1 : float, optional
+        Peak amplitude.
+
+    Returns
+    -------
+    ndarray
+        Gaussian profile evaluated on ``x``.
+    """
     y=A1*np.exp(-0.5*(x-xo)**2.0/sigma**2.0)
     return y
 
 def opticFeII(x, data, sigma=1.0, xo=0.0, A1=1.0):
+    """
+    Evaluate an optical FeII template model.
+
+    Parameters
+    ----------
+    x : array-like
+        Wavelength grid.
+    data : ndarray
+        Template array containing wavelength and flux columns.
+    sigma : float, optional
+        Smoothing width applied to the template.
+    xo : float, optional
+        Wavelength shift applied to the template.
+    A1 : float, optional
+        Amplitude scaling factor.
+
+    Returns
+    -------
+    ndarray
+        Interpolated and smoothed FeII template spectrum.
+
+    Notes
+    -----
+    The implementation follows the optical FeII template approach
+    referenced in Kovacevic et al. (2010). :contentReference[oaicite:2]{index=2}
+    """
     '''Optical FeII model from Kovacevic+10'''
     #data=np.loadtxt('data/FeII_optical_Kovacevic10.txt')
     #dir=os.path.join(MapLines.__path__[0], 'data')+'/'
@@ -100,6 +270,27 @@ def opticFeII(x, data, sigma=1.0, xo=0.0, A1=1.0):
 
 
 def step_vect(fluxi,sp=20,pst=True,sigma=10):
+    """
+    Estimate a local noise or step-like uncertainty vector from a spectrum.
+
+    Parameters
+    ----------
+    fluxi : array-like
+        Input spectrum.
+    sp : int, optional
+        Window size used to estimate the local scatter.
+    pst : bool, optional
+        If True, use percentile-based robust estimation. If False, use
+        the standard deviation.
+    sigma : float, optional
+        Smoothing width used to remove large-scale structure before
+        estimating local scatter.
+
+    Returns
+    -------
+    ndarray
+        Estimated uncertainty vector.
+    """
     flux_sm=conv(fluxi,ke=sigma)
     flux=fluxi-flux_sm
     nz=len(flux)
@@ -126,6 +317,20 @@ def step_vect(fluxi,sp=20,pst=True,sigma=10):
     return flux_t
 
 def read_config_file(file):
+    """
+    Read a YAML configuration file.
+
+    Parameters
+    ----------
+    file : str
+        Path to the YAML file.
+
+    Returns
+    -------
+    dict or None
+        Parsed configuration dictionary, or ``None`` if the file could
+        not be read.
+    """
     try:
         with open(file, 'r') as stream:
             try:
@@ -138,6 +343,29 @@ def read_config_file(file):
         return None
 
 def get_priorsvalues(filename):
+    """
+    Parse the line-model configuration file and assemble fitting priors.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the YAML configuration file describing the emission-line
+        setup and priors.
+
+    Returns
+    -------
+    tuple
+        Tuple containing the prior dictionary, number of lines, continuum
+        windows, initial values, lower and upper limits, line names,
+        wavelengths, colors, scaling relations, and parameter labels.
+
+    Notes
+    -----
+    This function builds the internal parameter bookkeeping used by
+    ``MapLines.tools.line_fit`` and ``MapLines.tools.models``. It reads
+    the ``lines``, ``continum`` and ``priors`` sections from the YAML
+    file. :contentReference[oaicite:3]{index=3}
+    """
     data_lines=read_config_file(filename)
     if data_lines:
         n_lines=len(data_lines['lines'])
@@ -243,6 +471,36 @@ def get_priorsvalues(filename):
         sys.exit()    
 
 def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
+    """
+    Read a one-dimensional spectrum from several supported formats.
+
+    Parameters
+    ----------
+    file1 : str
+        Input file name.
+    flux_f : float, optional
+        Global multiplicative flux factor.
+    erft : float, optional
+        Additional multiplicative scaling applied to the error vector.
+    input_format : {'TableFits', 'SDSS', 'IrafFits', 'CSV', 'ASCII'}, optional
+        Input spectrum format.
+    error_c : bool, optional
+        If True, also read or estimate the uncertainty vector.
+
+    Returns
+    -------
+    pdl_data : ndarray
+        Flux array.
+    pdl_dataE : ndarray
+        Error array.
+    wave : ndarray
+        Wavelength array.
+
+    Notes
+    -----
+    For SDSS spectra, the routine converts ``LOGLAM`` to linear wavelength
+    and ``IVAR`` to uncertainties. :contentReference[oaicite:4]{index=4}
+    """
     if input_format == 'TableFits':
         try:
             hdu_list = fits.open(file1)
@@ -354,6 +612,40 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
     return pdl_data,pdl_dataE,wave
 
 def get_cubespectra(file1,file3,flux_f=1,erft=0,error_c=True):
+    """
+    Read a spectral cube, associated uncertainty cube, and spatial mask.
+
+    Parameters
+    ----------
+    file1 : str
+        Input spectral cube.
+    file3 : str
+        Mask file. If it does not exist, a full-valid mask is created.
+    flux_f : float, optional
+        Global multiplicative flux factor.
+    erft : float, optional
+        Additional multiplicative scaling applied to the error cube.
+    error_c : bool, optional
+        If True, read or estimate the error cube.
+
+    Returns
+    -------
+    pdl_cube : ndarray
+        Flux cube with shape ``(nz, nx, ny)``.
+    pdl_cubeE : ndarray or None
+        Error cube.
+    mask : ndarray
+        Spatial mask.
+    wave : ndarray
+        Wavelength vector.
+    hdr : astropy.io.fits.Header
+        FITS header of the cube.
+
+    Notes
+    -----
+    The function attempts multiple common FITS extension names such as
+    ``FLUX``, ``SCI``, ``ERROR``, ``ERR`` and ``IVAR``. :contentReference[oaicite:5]{index=5}
+    """
     try:
         [pdl_cube, hdr]=fits.getdata(file1, 'FLUX', header=True)
     except:
@@ -412,6 +704,35 @@ def get_cubespectra(file1,file3,flux_f=1,erft=0,error_c=True):
 
 
 def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val0=0):
+    """
+    Derive line flux, velocity, dispersion, and equivalent width maps.
+
+    Parameters
+    ----------
+    file : str
+        FITS file containing parameter maps.
+    path : str, optional
+        Directory containing the file.
+    ind1, ind2, ind3, ind4 : int, optional
+        Indices of amplitude, FWHM, velocity, and continuum maps.
+    lo : float, optional
+        Rest wavelength of the emission line in Angstrom.
+    zt : float, optional
+        Redshift correction applied to the velocity field.
+    val0 : float, optional
+        Sentinel velocity value used to identify invalid pixels.
+
+    Returns
+    -------
+    flux : ndarray
+        Integrated line-flux map.
+    vel : ndarray
+        Velocity map.
+    sigma : ndarray
+        Velocity-dispersion map.
+    ew : ndarray or None
+        Equivalent-width map if a continuum map is available.
+    """
     ct=299792.458
     file0=path+'/'+file
     [pdl_cube0, hdr0]=fits.getdata(file0, 0, header=True)
@@ -440,6 +761,36 @@ def get_fluxline(file,path='',ind1=3,ind2=7,ind3=4,ind4=9,lo=6564.632,zt=0.0,val
     return flux,vel,sigma,ew
 
 def extract_spec(filename,dir_cube_m='',ra='',dec='',rad=1.5,sig=10,smoth=False,avgra=False,head=0):
+    """
+    Extract a 1D spectrum from a circular aperture in a spectral cube.
+
+    Parameters
+    ----------
+    filename : str
+        Cube file name.
+    dir_cube_m : str, optional
+        Directory containing the cube.
+    ra, dec : str, optional
+        Sky coordinates of the aperture center. If not provided, the
+        cube center is used.
+    rad : float, optional
+        Aperture radius in arcseconds.
+    sig : float, optional
+        Smoothing width applied if ``smoth=True``.
+    smoth : bool, optional
+        If True, smooth the extracted spectrum.
+    avgra : bool, optional
+        If True, average the flux inside the aperture. Otherwise sum it.
+    head : int, optional
+        FITS HDU index to read.
+
+    Returns
+    -------
+    wave_f : ndarray
+        Wavelength vector.
+    single_T : ndarray
+        Extracted spectrum.
+    """
     file=dir_cube_m+filename
 
     [cube0, hdr0]=fits.getdata(file, head, header=True)
@@ -507,6 +858,20 @@ def extract_spec(filename,dir_cube_m='',ra='',dec='',rad=1.5,sig=10,smoth=False,
     return wave_f,single_T    
 
 def get_apertures(file):
+    """
+    Read circular and box apertures from a DS9 region file.
+
+    Parameters
+    ----------
+    file : str
+        DS9 region file.
+
+    Returns
+    -------
+    tuple of ndarray
+        Arrays containing RA, Dec, radius, box sizes, position angles,
+        colors, names, and aperture types.
+    """
     ra=[]
     dec=[]
     rad=[]
@@ -567,6 +932,21 @@ def get_apertures(file):
 
 
 def get_segment(reg_dir='./',reg_name='test.reg'):
+    """
+    Read DS9 segment regions from a region file.
+
+    Parameters
+    ----------
+    reg_dir : str, optional
+        Directory containing the region file.
+    reg_name : str, optional
+        Region file name.
+
+    Returns
+    -------
+    raL, decL, colr, widt, namet : tuple
+        Segment coordinates, colors, line widths, and labels.
+    """
     raL=[]
     decL=[]
     colr=[]
@@ -607,7 +987,44 @@ def get_segment(reg_dir='./',reg_name='test.reg'):
     namet=np.array(namet)
     return raL,decL,colr,widt,namet    
 
-def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0,rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0,nzeros=False):
+def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0,
+    rad=1.5,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0,nzeros=False):
+    """
+    Extract 1D spectra along DS9 segment regions from a spectral cube.
+
+    Parameters
+    ----------
+    file : str
+        Input cube file.
+    path : str, optional
+        Directory containing the cube.
+    wcs : astropy.wcs.WCS, optional
+        WCS object. If not provided, it is built from the FITS header.
+    reg_dir, reg_name : str, optional
+        DS9 region file location.
+    z : float, optional
+        Redshift used to transform wavelengths to rest frame.
+    rad : float, optional
+        Circular extraction radius around each segment node.
+    lA1, lA2 : float, optional
+        Wavelength range to extract.
+    plot_t : bool, optional
+        If True, display the extracted pseudo-slit.
+    sigT : float, optional
+        Smoothing width used when ``cosmetic=True``.
+    cosmetic : bool, optional
+        If True, smooth the extracted spectra for display.
+    hdu : int, optional
+        FITS HDU index.
+    nzeros : bool, optional
+        If True, replace negative values with NaN before extraction.
+
+    Returns
+    -------
+    tuple
+        Extracted spectra, wavelength array, spatial scale, geometry
+        values, header, colors, widths, names, and segment labels.
+    """
     ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     [pdl_cube, hdr]=fits.getdata(path+file, hdu, header=True)
     nz,nx,ny=pdl_cube.shape
@@ -736,6 +1153,25 @@ def extract_segment1d(file,path='',wcs=None,reg_dir='./',reg_name='test.reg',z=0
 
 
 def extract_regs(map,hdr,reg_file='file.reg',avgra=False):
+    """
+    Extract values from multiple DS9 apertures on a 2D map.
+
+    Parameters
+    ----------
+    map : ndarray
+        Input 2D map.
+    hdr : astropy.io.fits.Header
+        FITS header containing the spatial WCS.
+    reg_file : str, optional
+        DS9 region file.
+    avgra : bool, optional
+        If True, average values in each aperture. Otherwise sum them.
+
+    Returns
+    -------
+    ndarray
+        Extracted values for all apertures.
+    """
     try:
         dx=np.sqrt((hdr['CD1_1'])**2.0+(hdr['CD1_2'])**2.0)*3600.0
         dy=np.sqrt((hdr['CD2_1'])**2.0+(hdr['CD2_2'])**2.0)*3600.0
@@ -760,6 +1196,29 @@ def extract_regs(map,hdr,reg_file='file.reg',avgra=False):
     
 
 def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
+    """
+    Extract the value of a single circular aperture from a 2D map.
+
+    Parameters
+    ----------
+    map : ndarray
+        Input 2D image.
+    hdr : astropy.io.fits.Header
+        FITS header containing WCS information.
+    ra, dec : str
+        Aperture center coordinates.
+    rad : float, optional
+        Aperture radius in arcseconds.
+    pix : float, optional
+        Pixel scale in arcseconds per pixel.
+    avgra : bool, optional
+        If True, compute the average value. Otherwise compute the sum.
+
+    Returns
+    -------
+    float
+        Aperture-integrated or aperture-averaged value.
+    """
     sky1=SkyCoord(ra+' '+dec,frame=FK5, unit=(u.hourangle,u.deg))
     val1=sky1.ra.deg
     val2=sky1.dec.deg
@@ -786,6 +1245,25 @@ def extract_single_reg(map,hdr,ra='',dec='',rad=1.5,pix=0.35,avgra=False):
 
 
 def extract_segment_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
+    """
+    Extract values along DS9 segment regions from a 2D map.
+
+    Parameters
+    ----------
+    flux : ndarray
+        Input 2D map.
+    hdr : astropy.io.fits.Header
+        FITS header containing WCS information.
+    dpix : float
+        Spatial scale in arcseconds per pixel.
+    reg_dir, reg_name : str, optional
+        DS9 region file location.
+
+    Returns
+    -------
+    list of ndarray
+        Extracted 1D profiles along each segment.
+    """
     ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     nx,ny=flux.shape
     wcs = WCS(hdr)
@@ -826,6 +1304,36 @@ def extract_segment_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
     return slides    
 
 def extract_segment(file,path='',reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False,hdu=0):
+    """
+    Extract pseudo-slit spectra along DS9 segment regions from a cube.
+
+    Parameters
+    ----------
+    file : str
+        Input cube file.
+    path : str, optional
+        Directory containing the cube.
+    reg_dir, reg_name : str, optional
+        DS9 region file location.
+    z : float, optional
+        Redshift used to shift the wavelength axis to rest frame.
+    lA1, lA2 : float, optional
+        Wavelength interval to extract.
+    plot_t : bool, optional
+        If True, display the extracted pseudo-slit.
+    sigT : float, optional
+        Smoothing width used for cosmetic plotting.
+    cosmetic : bool, optional
+        If True, smooth extracted spectra.
+    hdu : int, optional
+        FITS HDU index.
+
+    Returns
+    -------
+    tuple
+        Pseudo-slit spectra, wavelength axis, pixel scale, geometric
+        metadata, header, colors, widths, and names.
+    """
     ra,dec,colr,widt,namet=get_segment(reg_dir=reg_dir,reg_name=reg_name)
     [pdl_cube, hdr]=fits.getdata(path+file, hdu, header=True)
     nz,nx,ny=pdl_cube.shape
@@ -914,6 +1422,25 @@ def extract_segment(file,path='',reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0
 
 
 def extract_line_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
+    """
+    Extract values along DS9 line regions from a 2D map.
+
+    Parameters
+    ----------
+    flux : ndarray
+        Input 2D map.
+    hdr : astropy.io.fits.Header
+        FITS header with WCS information.
+    dpix : float
+        Pixel scale in arcseconds.
+    reg_dir, reg_name : str, optional
+        DS9 region file location.
+
+    Returns
+    -------
+    list of ndarray
+        Profiles extracted along each line region.
+    """
     ra1,dec1,ra2,dec2,colr,namet=get_line(reg_dir=reg_dir,reg_name=reg_name)
     nx,ny=flux.shape
     wcs = WCS(hdr)
@@ -941,6 +1468,32 @@ def extract_line_val(flux,hdr,dpix,reg_dir='./',reg_name='test.reg'):
     return slides
 
 def extract_line(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0,plot_t=False,sigT=4,cosmetic=False):
+    """
+    Extract pseudo-slit spectra along DS9 line regions from a cube.
+
+    Parameters
+    ----------
+    file : str
+        Input cube file.
+    reg_dir, reg_name : str, optional
+        DS9 region file location.
+    z : float, optional
+        Redshift used to shift the wavelength axis to rest frame.
+    lA1, lA2 : float, optional
+        Wavelength interval to extract.
+    plot_t : bool, optional
+        If True, display the extracted pseudo-slit.
+    sigT : float, optional
+        Smoothing width used for cosmetic display.
+    cosmetic : bool, optional
+        If True, smooth extracted spectra.
+
+    Returns
+    -------
+    tuple
+        Extracted pseudo-slit spectra, wavelength axis, pixel scale,
+        geometric metadata, and FITS header.
+    """
     ra1,dec1,ra2,dec2,colr,namet=get_line(reg_dir=reg_dir,reg_name=reg_name)
     #print(ra1[0])
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
@@ -1007,6 +1560,21 @@ def extract_line(file,reg_dir='./',reg_name='test.reg',z=0,lA1=6450.0,lA2=6850.0
 
 
 def get_line(reg_dir='./',reg_name='test.reg'):
+    """
+    Read DS9 line regions from a region file.
+
+    Parameters
+    ----------
+    reg_dir : str, optional
+        Directory containing the region file.
+    reg_name : str, optional
+        Region file name.
+
+    Returns
+    -------
+    tuple of ndarray
+        Arrays containing line start/end coordinates, colors, and labels.
+    """
     ra1=[]
     dec1=[]
     ra2=[]
@@ -1042,6 +1610,34 @@ def get_line(reg_dir='./',reg_name='test.reg'):
 
 
 def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5,save=False,path='',name='BPT_map',hdr=None):
+    """
+    Build a BPT classification map.
+
+    Parameters
+    ----------
+    wha : ndarray
+        Halpha equivalent-width map.
+    niiha : ndarray
+        Log([NII]/Halpha) map.
+    oiiihb : ndarray
+        Log([OIII]/Hbeta) map.
+    ret, agn, sf, inte, comp : float, optional
+        Numeric labels assigned to retired, AGN, star-forming,
+        intermediate, and composite classes.
+    save : bool, optional
+        If True, save the classification map to a FITS file.
+    path : str, optional
+        Output directory.
+    name : str, optional
+        Output base name.
+    hdr : astropy.io.fits.Header, optional
+        Header used when saving the FITS file.
+
+    Returns
+    -------
+    ndarray
+        BPT classification map.
+    """
     nt1=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) > 0) & (np.isfinite(oiiihb)) & (np.isnan(oiiihb) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#AGN
     nt2=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.47)-1.19) <= 0) & ((oiiihb-0.61/(niiha-0.05)-1.3) > 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#COMP
     nt3=np.where((wha >=6) & ((oiiihb-0.61/(niiha-0.05)-1.3) <= 0) & (np.isfinite(oiiihb)) & (np.isnan(niiha) == False) & (np.isfinite(niiha)) & (np.isnan(niiha) == False))#SF
@@ -1068,6 +1664,32 @@ def bpt(wha,niiha,oiiihb,ret=4,agn=3,sf=1,inte=2.5,comp=5,save=False,path='',nam
     return image
 
 def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1,save=False,path='',name='WHAN_map',hdr=None):
+    """
+    Build a WHAN classification map.
+
+    Parameters
+    ----------
+    wha : ndarray
+        Halpha equivalent-width map.
+    niiha : ndarray
+        Log([NII]/Halpha) map.
+    agn, sf, wagn, ret : float, optional
+        Numeric labels assigned to strong AGN, star-forming, weak AGN,
+        and retired classes.
+    save : bool, optional
+        If True, save the classification map to a FITS file.
+    path : str, optional
+        Output directory.
+    name : str, optional
+        Output base name.
+    hdr : astropy.io.fits.Header, optional
+        Header used when saving the FITS file.
+
+    Returns
+    -------
+    ndarray
+        WHAN classification map.
+    """
     nt1=np.where((wha >  6) & (niiha >= -0.4))#sAGN
     nt2=np.where((wha >= 3) & (niiha < -0.4))#SFR
     nt3=np.where((wha >= 3) & (wha <= 6) & (niiha >= -0.4))#wAGN
@@ -1092,6 +1714,32 @@ def whan(wha,niiha,agn=4,sf=1.7,wagn=3,ret=1,save=False,path='',name='WHAN_map',
 
 
 def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHAD_map',hdr=None):
+    """
+    Build a WHAD classification map.
+
+    Parameters
+    ----------
+    logew : ndarray
+        Logarithmic equivalent-width map.
+    logsig : ndarray
+        Logarithmic velocity-dispersion map.
+    agn, sf, wagn, ret, unk : float, optional
+        Numeric labels assigned to AGN, star-forming, weak AGN, retired,
+        and uncertain classes.
+    save : bool, optional
+        If True, save the classification map to a FITS file.
+    path : str, optional
+        Output directory.
+    name : str, optional
+        Output base name.
+    hdr : astropy.io.fits.Header, optional
+        Header used when saving the FITS file.
+
+    Returns
+    -------
+    ndarray
+        WHAD classification map.
+    """
     nt1=np.where((logew>=np.log10(10)) & (logsig>=np.log10(57))) #AGN
     nt2=np.where((logew>=np.log10(6)) & (logsig<np.log10(57))) #SF
     nt3=np.where((logew>=np.log10(3)) & (logew<np.log10(10)) & (logsig>=np.log10(57))) #WAGN
@@ -1118,11 +1766,34 @@ def whad(logew,logsig,agn=5,sf=3,wagn=4,ret=2,unk=1,save=False,path='',name='WHA
 
 def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=0, border=False,logP=False,ofsval=-1,maxval=None,minval=None):
     """
-    Convert a 2D map to an STL file.
-    
-    Parameters:
-    - file_out: Output STL file name.
-    - path_out: Path to save the output STL file.
+    Convert a 2D map into a normalized STL surface.
+
+    Parameters
+    ----------
+    map : ndarray
+        Input 2D map.
+    nameid : str, optional
+        Output STL base name.
+    path_out : str, optional
+        Output directory.
+    sig : float, optional
+        Smoothing width used when ``smoth=True``.
+    smoth : bool, optional
+        If True, smooth the map before STL generation.
+    pval, mval : float, optional
+        Linear rescaling parameters applied before STL export.
+    border : bool, optional
+        If True, zero the border pixels.
+    logP : bool, optional
+        If True, apply logarithmic scaling before normalization.
+    ofsval : float, optional
+        Floor value used before smoothing.
+    maxval, minval : float, optional
+        Manual normalization bounds.
+
+    Returns
+    -------
+    None
     """
     
     indx = np.where(map == 0)
@@ -1153,13 +1824,30 @@ def get_map_to_stl(map, nameid='', path_out='',sig=2,smoth=False, pval=27, mval=
 
 def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=False, pval=27, mval=0, border=False):
     """
-    Convert a 2D map from a FITS file to an STL file.
-    
-    Parameters:
-    - file_in: Input FITS file containing the map.
-    - file_out: Output STL file name.
-    - path_in: Path to the input FITS file.
-    - path_out: Path to save the output STL file.
+    Convert all parameter maps stored in a FITS file into STL surfaces.
+
+    Parameters
+    ----------
+    file_in : str
+        Input FITS file containing parameter maps.
+    nameid : str, optional
+        Suffix appended to the STL names.
+    path_in : str, optional
+        Input directory.
+    path_out : str, optional
+        Output directory.
+    sig : float, optional
+        Smoothing width used when ``smoth=True``.
+    smoth : bool, optional
+        If True, smooth the maps before STL generation.
+    pval, mval : float, optional
+        Linear rescaling parameters.
+    border : bool, optional
+        If True, zero the border pixels.
+
+    Returns
+    -------
+    None
     """
     # Read the FITS file
     mapdata, hdr = fits.getdata(path_in + file_in, header=True)
@@ -1199,6 +1887,22 @@ def get_maps_to_stl(file_in, nameid='', path_in='', path_out='',sig=2,smoth=Fals
             map_to_stl(map, head_val+nameid, path_out)
 
 def map_to_stl(map, file_out, path_out=''):
+    """
+    Convert a 2D array into an STL triangular mesh.
+
+    Parameters
+    ----------
+    map : ndarray
+        Input 2D map.
+    file_out : str
+        Output STL base name.
+    path_out : str, optional
+        Output directory.
+
+    Returns
+    -------
+    None
+    """
     ny, nx = map.shape
     x = np.arange(nx)
     y = np.arange(ny) 
@@ -1219,6 +1923,32 @@ def map_to_stl(map, file_out, path_out=''):
     surface_mesh.save(path_out+file_out+'.stl')
 
 def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
+    """
+    Convert a JWST/NIRSpec IFU cube from MJy/sr-like units to
+    1e-17 erg/s/cm^2/Angstrom units.
+
+    Parameters
+    ----------
+    file : str
+        Input FITS cube.
+    file_out : str
+        Output FITS cube.
+    zt : float, optional
+        Redshift used to shift the spectral axis to rest frame.
+    path : str, optional
+        Input directory.
+    path_out : str, optional
+        Output directory.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The routine updates the output header to use Angstrom in the spectral
+    axis and ``E-17erg/s/cm^2/Angstrom`` as brightness unit. :contentReference[oaicite:6]{index=6}
+    """
     erg2jy=1.0e-23
     vel_light=299792458.0
     ang=1e-10
@@ -1262,6 +1992,21 @@ def jwst_nirspecIFU_MJy2erg(file,file_out,zt=0,path='',path_out=''):
     sycall('gzip -f '+filename_out)
 
 def A_l(Rv,l):
+    """
+    Evaluate the Cardelli, Clayton, and Mathis (1989) extinction law.
+
+    Parameters
+    ----------
+    Rv : float
+        Total-to-selective extinction ratio.
+    l : array-like
+        Wavelength array in Angstrom.
+
+    Returns
+    -------
+    ndarray
+        Extinction curve A(lambda)/A(V).
+    """
     #Cardelli, Clayton & Mathis (1989) extintion law
     l=l/10000.; #Amstrongs to Microns
     x=1.0/l
@@ -1293,6 +2038,23 @@ def A_l(Rv,l):
     return Arat
 
 def get_headervals(hdr,keymatch='HaBroad'):
+    """
+    Extract header keywords whose values match a given component name.
+
+    Parameters
+    ----------
+    hdr : astropy.io.fits.Header
+        FITS header containing parameter labels.
+    keymatch : str, optional
+        Substring used to identify the desired component.
+
+    Returns
+    -------
+    vals : dict
+        Dictionary of matching header keywords and values.
+    nkeys : list of str
+        Matching keyword names.
+    """
     keys=list(hdr.keys())
     vals={}
     nkeys=[]
@@ -1304,6 +2066,21 @@ def get_headervals(hdr,keymatch='HaBroad'):
 
 
 def get_map_component_index(hdr,keymatch='HaBroad'):
+    """
+    Find the amplitude, velocity, and FWHM indices of a map component.
+
+    Parameters
+    ----------
+    hdr : astropy.io.fits.Header
+        FITS header containing ``VAL_*`` parameter labels.
+    keymatch : str, optional
+        Component name to search for.
+
+    Returns
+    -------
+    indx_amp, indx_vel, indx_fwh : ndarray
+        Arrays with indices of amplitude, velocity, and FWHM maps.
+    """
     vals,nkeys=get_headervals(hdr,keymatch=keymatch)
     keys=list(vals.keys())
     n_comp=int(len(keys)/3)
@@ -1326,6 +2103,21 @@ def get_map_component_index(hdr,keymatch='HaBroad'):
     return indx_amp,indx_vel,indx_fwh
 
 def get_map_param(hdr,keymatch='Noise'):
+    """
+    Return the index of a single parameter map identified from the header.
+
+    Parameters
+    ----------
+    hdr : astropy.io.fits.Header
+        FITS header containing ``VAL_*`` labels.
+    keymatch : str, optional
+        Parameter name to search for.
+
+    Returns
+    -------
+    int
+        Index of the matching parameter map.
+    """
     keys=list(hdr.keys())
     for i in range(0, len(keys)):
         if keymatch in str(hdr[keys[i]]) and 'VAL_' in keys[i]:    
@@ -1334,6 +2126,28 @@ def get_map_param(hdr,keymatch='Noise'):
 
 
 def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2,verbose=False):
+    """
+    Rescale, smooth, and export a 2D model map as FITS and STL products.
+
+    Parameters
+    ----------
+    mapT : ndarray
+        Input 2D map.
+    name : str
+        Object name used in the output file names.
+    path_out : str, optional
+        Output directory.
+    modelbasename : str, optional
+        Base output name containing the token ``NAME``.
+    sigmat : float, optional
+        Smoothing width applied to the map.
+    verbose : bool, optional
+        If True, print normalization diagnostics.
+
+    Returns
+    -------
+    None
+    """
     indx = np.where((mapT == 0) | (np.isfinite(mapT) == False))
     indxt = np.where((np.isfinite(mapT)))
     
@@ -1372,7 +2186,46 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
     hlist.writeto(filet,overwrite=True)
     sycall('gzip -f '+filet)    
 
-def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,set_am=False,AmpT=2):
+def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',
+    psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,set_am=False,AmpT=2):
+    """
+    Build a rescaled broad-line model map from fitted parameter products.
+
+    Parameters
+    ----------
+    name : str
+        Object identifier used to replace ``NAME`` in file templates.
+    path_map : str, optional
+        Directory containing the fitted parameter cubes.
+    path_out : str, optional
+        Output directory.
+    basename : str, optional
+        Input FITS file template.
+    psfmbasename : str, optional
+        Output model base name.
+    sigmat : float, optional
+        Smoothing width applied to the final map.
+    lo : float, optional
+        Rest wavelength of the target emission line.
+    verbose : bool, optional
+        If True, print normalization diagnostics.
+    pow_cr : bool, optional
+        If True, use the power-law continuum to mask unreliable spaxels.
+    set_am : bool, optional
+        If True, use the broad-line amplitude threshold to mask spaxels.
+    AmpT : float, optional
+        Broad-line amplitude threshold used when ``set_am=True``.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The routine combines component maps identified in the FITS header,
+    builds integrated flux maps, masks unreliable spaxels, rescales the
+    result, and exports model products. 
+    """
     file=path_map+'/'+basename.replace('NAME',name)
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
     indx_amp,indx_vel,indx_fwh=get_map_component_index(hdr,keymatch='HaBroad')

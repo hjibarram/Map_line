@@ -1,4 +1,42 @@
 #!/usr/bin/env python
+"""
+MapLines.tools.line_fit
+=======================
+
+Core routines for emission-line fitting in astronomical spectra.
+
+This module implements the main spectral fitting routines used by
+MapLines to model emission lines in both single spectra and IFU
+datacubes. The fitting procedure uses Bayesian parameter estimation
+based on Markov Chain Monte Carlo (MCMC) sampling.
+
+Two main interfaces are provided:
+
+line_fit_single
+    Fits emission lines in a single spectrum.
+
+line_fit
+    Fits emission lines in each spaxel of an IFU datacube.
+
+The models can include:
+
+- Gaussian emission-line components
+- skewed line profiles
+- Voigt or Lorentzian profiles
+- outflow components
+- power-law continuum
+- Fe II templates
+
+The fitting procedure relies on:
+
+- prior definitions from YAML configuration files
+- spectral models defined in ``MapLines.tools.models``
+- likelihood functions in ``MapLines.tools.priors``
+- MCMC sampling implemented in ``MapLines.tools.mcmc``
+
+Outputs include model spectra, individual line components, and
+best-fit parameters saved in FITS format.
+"""
 import numpy as np
 import MapLines
 import MapLines.tools.models as mod
@@ -13,7 +51,93 @@ import sys
 from tqdm.notebook import tqdm
 from tqdm import tqdm as tqdmT
 
-def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,config_lines='line_prop.yml',labplot=True,input_format='TableFits',z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
+    colors=['blue','red','purple','brown','pink'],smoth=False,ker=2,
+    config_lines='line_prop.yml',labplot=True,input_format='TableFits',
+    z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,
+    feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,
+    ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+    """
+    Fit emission lines in a single astronomical spectrum.
+
+    This function performs a Bayesian fit of emission lines in a
+    one-dimensional spectrum using an MCMC sampler. The line model
+    and parameter priors are defined through a YAML configuration file.
+
+    Parameters
+    ----------
+    file1 : str
+        Input spectrum file.
+    file_out : str
+        Output file name for the fitted spectral model.
+    file_out2 : str
+        Output file name for the parameter results.
+    name_out2 : str
+        Name used for output plots.
+    dir_out : str, optional
+        Output directory for plots and results.
+    colors : list of str, optional
+        Colors used for plotting individual line components.
+    smoth : bool, optional
+        If True, apply smoothing to the input spectrum.
+    ker : int, optional
+        Kernel size used for smoothing.
+    config_lines : str, optional
+        YAML file defining emission lines and priors.
+    z : float, optional
+        Redshift used to shift wavelengths to rest frame.
+    lA1, lA2 : float
+        Wavelength range used for fitting.
+    verbose : bool, optional
+        Print best-fit parameters.
+    outflow : bool, optional
+        Include an outflow component in the model.
+    powlaw : bool, optional
+        Include a power-law continuum component.
+    feii : bool, optional
+        Include FeII emission templates.
+    voigt : bool, optional
+        Use Voigt profiles instead of Gaussian profiles.
+    lorentz : bool, optional
+        Use Lorentzian profiles.
+    skew : bool, optional
+        Use skewed Gaussian profiles.
+    ncpu : int, optional
+        Number of CPUs used by the MCMC sampler.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The fitting procedure consists of the following steps:
+
+    1. Load the spectrum and associated uncertainties.
+    2. Select the wavelength range used for fitting.
+    3. Define the spectral model and parameter priors.
+    4. Run an MCMC sampler to estimate the posterior distribution.
+    5. Compute the best-fit model parameters.
+    6. Save model spectra and parameters in FITS files.
+
+    The output FITS files include:
+
+    - total model spectrum
+    - individual emission-line components
+    - input spectrum
+    - error spectrum
+    - derived parameters
+
+    Examples
+    --------
+    >>> from MapLines.tools.line_fit import line_fit_single
+    >>> line_fit_single(
+    ...     "spectrum.fits",
+    ...     "fit_output",
+    ...     "params_output",
+    ...     "Ha_fit"
+    ... )
+    """
     pdl_data,pdl_dataE,wave=tol.get_oneDspectra(file1,flux_f=flux_f,erft=erft,input_format=input_format,error_c=error_c)
     if smoth:
         pdl_data=tol.conv(pdl_data,ke=ker)
@@ -242,7 +366,75 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',colors=['blue'
     tol.sycall('gzip -f '+file_out2+'.fits')
 
 
-def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
+def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
+    dir_out='',colors=['blue','red','purple','brown','pink'],z=0.05536,j_t=0,i_t=0,
+    powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',
+    lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,
+    error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,
+    erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
+    """
+    Fit emission lines in an IFU datacube.
+
+    This routine performs emission-line fitting for each spatial
+    pixel (spaxel) in a spectral cube. Each spectrum is fitted
+    independently using an MCMC sampler.
+
+    Parameters
+    ----------
+    file1 : str
+        Input spectral cube.
+    file2 : str
+        Auxiliary input file.
+    file3 : str
+        Mask or error cube.
+    file_out : str
+        Output FITS cube containing the fitted models.
+    file_out2 : str
+        Output FITS cube containing fitted parameters.
+    name_out2 : str
+        Base name used for plots.
+    notebook : bool, optional
+        If True, use tqdm notebook progress bars.
+    dir_out : str, optional
+        Output directory for plots.
+    z : float, optional
+        Redshift of the object.
+    config_lines : str
+        YAML file defining line models and priors.
+    outflow : bool, optional
+        Include outflow emission components.
+    powlaw : bool, optional
+        Include power-law continuum component.
+    feii : bool, optional
+        Include FeII emission templates.
+    skew : bool, optional
+        Use skewed Gaussian line profiles.
+    voigt : bool, optional
+        Use Voigt line profiles.
+    lorentz : bool, optional
+        Use Lorentzian profiles.
+    ncpu : int, optional
+        Number of CPUs used for MCMC sampling.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The routine iterates over all spatial pixels in the datacube,
+    fitting emission lines independently.
+
+    The outputs are:
+
+    - a cube containing the best-fit spectral model
+    - cubes containing individual line components
+    - cubes with fitted parameters
+    - diagnostic plots for each spaxel (optional)
+
+    The results are stored in FITS format with extensions
+    corresponding to each model component.
+    """
     pdl_cube,pdl_cubeE,mask,wave,hdr=tol.get_cubespectra(file1,file3,flux_f=flux_f,erft=erft,error_c=error_c)
     nz,nx,ny=pdl_cube.shape
     wave_f=wave/(1+z)

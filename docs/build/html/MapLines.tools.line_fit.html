@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MapLines.tools.line_fit &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MapLines.tools.mcmc" href="MapLines.tools.mcmc.html" />
+    <link rel="prev" title="MapLines.tools package" href="MapLines.tools.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="maplines-tools-line-fit">
+<h1>MapLines.tools.line_fit<a class="headerlink" href="#maplines-tools-line-fit" title="Link to this heading">¶</a></h1>
+<p>Main emission-line fitting routines used by MapLines.</p>
+<section id="module-MapLines.tools.line_fit">
+<span id="id1"></span><h2>MapLines.tools.line_fit<a class="headerlink" href="#module-MapLines.tools.line_fit" title="Link to this heading">¶</a></h2>
+<p>Core routines for emission-line fitting in astronomical spectra.</p>
+<p>This module implements the main spectral fitting routines used by
+MapLines to model emission lines in both single spectra and IFU
+datacubes. The fitting procedure uses Bayesian parameter estimation
+based on Markov Chain Monte Carlo (MCMC) sampling.</p>
+<p>Two main interfaces are provided:</p>
+<dl class="simple">
+<dt>line_fit_single</dt><dd><p>Fits emission lines in a single spectrum.</p>
+</dd>
+<dt>line_fit</dt><dd><p>Fits emission lines in each spaxel of an IFU datacube.</p>
+</dd>
+</dl>
+<p>The models can include:</p>
+<ul class="simple">
+<li><p>Gaussian emission-line components</p></li>
+<li><p>skewed line profiles</p></li>
+<li><p>Voigt or Lorentzian profiles</p></li>
+<li><p>outflow components</p></li>
+<li><p>power-law continuum</p></li>
+<li><p>Fe II templates</p></li>
+</ul>
+<p>The fitting procedure relies on:</p>
+<ul class="simple">
+<li><p>prior definitions from YAML configuration files</p></li>
+<li><p>spectral models defined in <code class="docutils literal notranslate"><span class="pre">MapLines.tools.models</span></code></p></li>
+<li><p>likelihood functions in <code class="docutils literal notranslate"><span class="pre">MapLines.tools.priors</span></code></p></li>
+<li><p>MCMC sampling implemented in <code class="docutils literal notranslate"><span class="pre">MapLines.tools.mcmc</span></code></p></li>
+</ul>
+<p>Outputs include model spectra, individual line components, and
+best-fit parameters saved in FITS format.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.line_fit.line_fit_single">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.line_fit.</span></span><span class="sig-name descname"><span class="pre">line_fit_single</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_out2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_out2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['blue',</span> <span class="pre">'red',</span> <span class="pre">'purple',</span> <span class="pre">'brown',</span> <span class="pre">'pink']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'line_prop.yml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labplot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'TableFits'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05536</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6450.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6850.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">powlaw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voigt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lorentz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/line_fit.html#line_fit_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.line_fit.line_fit_single" title="Link to this definition">¶</a></dt>
+<dd><p>Fit emission lines in a single astronomical spectrum.</p>
+<p>This function performs a Bayesian fit of emission lines in a
+one-dimensional spectrum using an MCMC sampler. The line model
+and parameter priors are defined through a YAML configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file1</strong> (<em>str</em>) – Input spectrum file.</p></li>
+<li><p><strong>file_out</strong> (<em>str</em>) – Output file name for the fitted spectral model.</p></li>
+<li><p><strong>file_out2</strong> (<em>str</em>) – Output file name for the parameter results.</p></li>
+<li><p><strong>name_out2</strong> (<em>str</em>) – Name used for output plots.</p></li>
+<li><p><strong>dir_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory for plots and results.</p></li>
+<li><p><strong>colors</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Colors used for plotting individual line components.</p></li>
+<li><p><strong>smoth</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, apply smoothing to the input spectrum.</p></li>
+<li><p><strong>ker</strong> (<em>int</em><em>, </em><em>optional</em>) – Kernel size used for smoothing.</p></li>
+<li><p><strong>config_lines</strong> (<em>str</em><em>, </em><em>optional</em>) – YAML file defining emission lines and priors.</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to shift wavelengths to rest frame.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em>) – Wavelength range used for fitting.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em>) – Wavelength range used for fitting.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print best-fit parameters.</p></li>
+<li><p><strong>outflow</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include an outflow component in the model.</p></li>
+<li><p><strong>powlaw</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include a power-law continuum component.</p></li>
+<li><p><strong>feii</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include FeII emission templates.</p></li>
+<li><p><strong>voigt</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use Voigt profiles instead of Gaussian profiles.</p></li>
+<li><p><strong>lorentz</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use Lorentzian profiles.</p></li>
+<li><p><strong>skew</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use skewed Gaussian profiles.</p></li>
+<li><p><strong>ncpu</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of CPUs used by the MCMC sampler.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The fitting procedure consists of the following steps:</p>
+<ol class="arabic simple">
+<li><p>Load the spectrum and associated uncertainties.</p></li>
+<li><p>Select the wavelength range used for fitting.</p></li>
+<li><p>Define the spectral model and parameter priors.</p></li>
+<li><p>Run an MCMC sampler to estimate the posterior distribution.</p></li>
+<li><p>Compute the best-fit model parameters.</p></li>
+<li><p>Save model spectra and parameters in FITS files.</p></li>
+</ol>
+<p>The output FITS files include:</p>
+<ul class="simple">
+<li><p>total model spectrum</p></li>
+<li><p>individual emission-line components</p></li>
+<li><p>input spectrum</p></li>
+<li><p>error spectrum</p></li>
+<li><p>derived parameters</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">MapLines.tools.line_fit</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_fit_single</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line_fit_single</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;spectrum.fits&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;fit_output&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;params_output&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;Ha_fit&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.line_fit.line_fit">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.line_fit.</span></span><span class="sig-name descname"><span class="pre">line_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_out2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_out2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notebook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['blue',</span> <span class="pre">'red',</span> <span class="pre">'purple',</span> <span class="pre">'brown',</span> <span class="pre">'pink']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05536</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">powlaw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labplot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'line_prop.yml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6450.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6850.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voigt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lorentz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pgr_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-16'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/line_fit.html#line_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.line_fit.line_fit" title="Link to this definition">¶</a></dt>
+<dd><p>Fit emission lines in an IFU datacube.</p>
+<p>This routine performs emission-line fitting for each spatial
+pixel (spaxel) in a spectral cube. Each spectrum is fitted
+independently using an MCMC sampler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file1</strong> (<em>str</em>) – Input spectral cube.</p></li>
+<li><p><strong>file2</strong> (<em>str</em>) – Auxiliary input file.</p></li>
+<li><p><strong>file3</strong> (<em>str</em>) – Mask or error cube.</p></li>
+<li><p><strong>file_out</strong> (<em>str</em>) – Output FITS cube containing the fitted models.</p></li>
+<li><p><strong>file_out2</strong> (<em>str</em>) – Output FITS cube containing fitted parameters.</p></li>
+<li><p><strong>name_out2</strong> (<em>str</em>) – Base name used for plots.</p></li>
+<li><p><strong>notebook</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use tqdm notebook progress bars.</p></li>
+<li><p><strong>dir_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory for plots.</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift of the object.</p></li>
+<li><p><strong>config_lines</strong> (<em>str</em>) – YAML file defining line models and priors.</p></li>
+<li><p><strong>outflow</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include outflow emission components.</p></li>
+<li><p><strong>powlaw</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include power-law continuum component.</p></li>
+<li><p><strong>feii</strong> (<em>bool</em><em>, </em><em>optional</em>) – Include FeII emission templates.</p></li>
+<li><p><strong>skew</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use skewed Gaussian line profiles.</p></li>
+<li><p><strong>voigt</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use Voigt line profiles.</p></li>
+<li><p><strong>lorentz</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use Lorentzian profiles.</p></li>
+<li><p><strong>ncpu</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of CPUs used for MCMC sampling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The routine iterates over all spatial pixels in the datacube,
+fitting emission lines independently.</p>
+<p>The outputs are:</p>
+<ul class="simple">
+<li><p>a cube containing the best-fit spectral model</p></li>
+<li><p>cubes containing individual line components</p></li>
+<li><p>cubes with fitted parameters</p></li>
+<li><p>diagnostic plots for each spaxel (optional)</p></li>
+</ul>
+<p>The results are stored in FITS format with extensions
+corresponding to each model component.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Map_line</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="MapLines.html">MapLine package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Map_line</a><ul>
+  <li><a href="MapLines.html">MapLine package</a><ul>
+  <li><a href="MapLines.tools.html">MapLines.tools package</a><ul>
+      <li>Previous: <a href="MapLines.tools.html" title="previous chapter">MapLines.tools package</a></li>
+      <li>Next: <a href="MapLines.tools.mcmc.html" title="next chapter">MapLines.tools.mcmc</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/MapLines.tools.line_fit.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

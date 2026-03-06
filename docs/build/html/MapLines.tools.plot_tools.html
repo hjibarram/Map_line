@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MapLines.tools.plot_tools &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MapLines.tools.priors" href="MapLines.tools.priors.html" />
+    <link rel="prev" title="MapLines.tools.models" href="MapLines.tools.models.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="maplines-tools-plot-tools">
+<h1>MapLines.tools.plot_tools<a class="headerlink" href="#maplines-tools-plot-tools" title="Link to this heading">¶</a></h1>
+<p>Plotting utilities for visualizing spectral fits and model components.</p>
+<section id="module-MapLines.tools.plot_tools">
+<span id="id1"></span><h2>MapLines.tools.plot_tools<a class="headerlink" href="#module-MapLines.tools.plot_tools" title="Link to this heading">¶</a></h2>
+<p>Visualization and diagnostic plotting utilities for MapLines.</p>
+<p>This module contains the plotting routines used to inspect and present
+the outputs of the MapLines spectral fitting workflow. The functions
+implemented here are designed to work with both one-dimensional spectra
+and two-dimensional parameter maps extracted from integral-field or
+imaging spectroscopy products.</p>
+<p>The module provides tools for:</p>
+<ul class="simple">
+<li><p>plotting grids of spatial maps derived from fitted data products</p></li>
+<li><p>overlaying apertures, circular regions, and pseudo-slit extractions</p></li>
+<li><p>visualizing spectra extracted along user-defined paths or apertures</p></li>
+<li><p>displaying velocity-structure diagnostics and simple kinematic models</p></li>
+<li><p>building and visualizing BPT, WHAN, and WHAD classification maps</p></li>
+<li><p>generating diagnostic plots for spectral fits and posterior samples</p></li>
+</ul>
+<p>These routines rely heavily on FITS headers and WCS information to place
+apertures and paths consistently on sky-projected maps. They also use
+supporting routines from <code class="docutils literal notranslate"><span class="pre">MapLines.tools.tools</span></code> for extracting regions,
+spectra, and parameter maps, and can use posterior samples from the MCMC
+module for fit visualization.</p>
+<p class="rubric">Notes</p>
+<p>The plotting functions in this module are primarily intended for
+interactive analysis, diagnostic inspection, and the production of
+publication-quality figures. In most cases they save figures directly
+to PDF files.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="MapLines.tools.tools.html#module-MapLines.tools.tools" title="MapLines.tools.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MapLines.tools.tools</span></code></a></dt><dd><p>Data extraction utilities used by many plotting routines.</p>
+</dd>
+<dt><a class="reference internal" href="MapLines.tools.line_fit.html#module-MapLines.tools.line_fit" title="MapLines.tools.line_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MapLines.tools.line_fit</span></code></a></dt><dd><p>Spectral fitting driver that generates many of the products shown by these plotting functions.</p>
+</dd>
+<dt><a class="reference internal" href="MapLines.tools.mcmc.html#module-MapLines.tools.mcmc" title="MapLines.tools.mcmc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MapLines.tools.mcmc</span></code></a></dt><dd><p>Posterior-sampling utilities used for visualizing uncertainties.</p>
+</dd>
+</dl>
+</div>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_maps_grid">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_maps_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datalist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'[10^{-16}erg/s/cm^2/arcsec^2]'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labelst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Vaule1',</span> <span class="pre">'Value2',</span> <span class="pre">'Value3']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsizest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basefigname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'maps_NAME'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sumc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerofil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indx2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">av</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.15,</span> <span class="pre">0.2,</span> <span class="pre">0.12,</span> <span class="pre">0.03]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_maps_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_maps_grid" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a grid of 2D maps or slices extracted from 3D cubes.</p>
+<p>This routine arranges multiple maps in a custom multi-panel layout and
+draws a shared color scale. It supports direct plotting of 2D arrays or
+extraction of 2D slices from 3D cubes, optional surface-brightness
+normalization, logarithmic scaling, WCS-aware axes, and panel labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datalist</strong> (<em>list</em><em> of </em><em>ndarray</em>) – List of maps or cubes to display. If an element is 3D, the function
+uses <code class="docutils literal notranslate"><span class="pre">indx</span></code> to select a slice or, if <code class="docutils literal notranslate"><span class="pre">sumc=True</span></code>, integrates
+along the spectral axis.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header used to derive the pixel scale and, optionally, the WCS.</p></li>
+<li><p><strong>fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory for the generated PDF.</p></li>
+<li><p><strong>tit</strong> (<em>str</em><em>, </em><em>optional</em>) – Quantity name used in the color-bar label.</p></li>
+<li><p><strong>lab</strong> (<em>str</em><em>, </em><em>optional</em>) – Physical units displayed in the color-bar label.</p></li>
+<li><p><strong>labelst</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Text labels placed on each panel.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Transparency used by the map display.</p></li>
+<li><p><strong>fontsizest</strong> (<em>int</em><em>, </em><em>optional</em>) – Font size for panel labels.</p></li>
+<li><p><strong>colorst</strong> (<em>str</em><em>, </em><em>optional</em>) – Color used for panel labels.</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Font size for the color-bar label.</p></li>
+<li><p><strong>basefigname</strong> (<em>str</em><em>, </em><em>optional</em>) – Output base file name. The token <code class="docutils literal notranslate"><span class="pre">NAME</span></code> is replaced by <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p></li>
+<li><p><strong>sumc</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True and the inputs are 3D cubes, sum along the spectral axis.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Display scale passed to the internal map-plotting helper.</p></li>
+<li><p><strong>sb</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, divide the maps by pixel area to display surface brightness.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, draw axes in WCS coordinates.</p></li>
+<li><p><strong>logs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot the logarithm of the maps.</p></li>
+<li><p><strong>zerofil</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, replace zero-valued or low-valued pixels with NaN.</p></li>
+<li><p><strong>valz</strong> (<em>float</em><em>, </em><em>optional</em>) – Threshold used when <code class="docutils literal notranslate"><span class="pre">zerofil=True</span></code>.</p></li>
+<li><p><strong>cont</strong> (<em>bool</em><em>, </em><em>optional</em>) – Forwarded to the internal plotting helper for contour handling.</p></li>
+<li><p><strong>maxmin</strong> (<em>list</em><em>, </em><em>optional</em>) – Two-element list with explicit <code class="docutils literal notranslate"><span class="pre">[vmin,</span> <span class="pre">vmax]</span></code> values.</p></li>
+<li><p><strong>vt</strong> (<em>str</em><em>, </em><em>optional</em>) – Reserved text parameter.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Object identifier used in the output file name.</p></li>
+<li><p><strong>indx</strong> (<em>int</em><em>, </em><em>optional</em>) – Index of the plane to extract from 3D cubes.</p></li>
+<li><p><strong>indx2</strong> (<em>int</em><em>, </em><em>optional</em>) – Secondary index used to divide one slice by another.</p></li>
+<li><p><strong>cmt</strong> (<em>matplotlib colormap</em><em>, </em><em>optional</em>) – Colormap used for the images.</p></li>
+<li><p><strong>scalef</strong> (<em>float</em><em>, </em><em>optional</em>) – Global multiplicative scaling factor.</p></li>
+<li><p><strong>facs</strong> (<em>float</em><em>, </em><em>optional</em>) – Global figure-size scaling factor.</p></li>
+<li><p><strong>av</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Margins used to construct the custom panel layout.</p></li>
+<li><p><strong>pro1</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – Panel positions in the custom grid.</p></li>
+<li><p><strong>pro2</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – Panel positions in the custom grid.</p></li>
+<li><p><strong>orientation</strong> (<em>{'vertical'</em><em>, </em><em>'horizontal'}</em><em>, </em><em>optional</em>) – Color-bar orientation.</p></li>
+<li><p><strong>location</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar location.</p></li>
+<li><p><strong>ticks</strong> (<em>list</em><em>, </em><em>optional</em>) – Explicit color-bar tick positions.</p></li>
+<li><p><strong>labels</strong> (<em>list</em><em>, </em><em>optional</em>) – Explicit color-bar tick labels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function writes the figure directly to a PDF file and then displays
+it. The internal map rendering is delegated to <code class="docutils literal notranslate"><span class="pre">get_plot_map</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_mapapertures">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_mapapertures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">titf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['$[NII]$',</span> <span class="pre">'$H_{\\alpha}$',</span> <span class="pre">'$[NII]$']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">titp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Velocity~</span> <span class="pre">shift'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'[km\\</span> <span class="pre">s^{-1}]'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[6549.859,</span> <span class="pre">6564.632,</span> <span class="pre">6585.278]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nzeros</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J102700+174900_Gas.fits.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_aper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'apertu.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmetic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'paths_J1027_C.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6520.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6610.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">av</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.03,</span> <span class="pre">0.09,</span> <span class="pre">0.03]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'G',</span> <span class="pre">'J',</span> <span class="pre">'L']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y-value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['blue',</span> <span class="pre">'green',</span> <span class="pre">'red']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['-',</span> <span class="pre">'--',</span> <span class="pre">':']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_mapapertures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_mapapertures" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a parameter map together with circular apertures and extracted spectra.</p>
+<p>This routine combines a 2D map with aperture or path overlays and a set
+of spectra extracted along user-defined segment nodes. It is useful for
+visually connecting spatial locations in a map with the corresponding
+extracted one-dimensional spectra.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>titf</strong> (<em>str</em>) – Output figure name.</p></li>
+<li><p><strong>vals_map</strong> (<em>tuple</em>) – Tuple of the form <code class="docutils literal notranslate"><span class="pre">(map,</span> <span class="pre">vmax,</span> <span class="pre">vmin)</span></code> for the main image panel.</p></li>
+<li><p><strong>nlins</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Labels used for the vertical line markers in the extracted spectra.</p></li>
+<li><p><strong>titp</strong> (<em>str</em><em>, </em><em>optional</em>) – Title of the map quantity.</p></li>
+<li><p><strong>lab</strong> (<em>str</em><em>, </em><em>optional</em>) – Units of the map quantity.</p></li>
+<li><p><strong>cont</strong> (<em>bool</em><em>, </em><em>optional</em>) – Forwarded to the internal plotting helper.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Transparency of the map.</p></li>
+<li><p><strong>lamds</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Reference wavelengths used to draw vertical markers in the spectra.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory of the input cube.</p></li>
+<li><p><strong>nzeros</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, negative values may be converted to NaN during extraction.</p></li>
+<li><p><strong>hdu</strong> (<em>int</em><em>, </em><em>optional</em>) – FITS HDU index used for extraction.</p></li>
+<li><p><strong>wcs</strong> (<em>astropy.wcs.WCS</em><em>, </em><em>optional</em>) – WCS object. If not provided, it is built from the cube header.</p></li>
+<li><p><strong>file0</strong> (<em>str</em><em>, </em><em>optional</em>) – Input cube file used for the extraction.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing DS9 region files.</p></li>
+<li><p><strong>reg_aper</strong> (<em>str</em><em>, </em><em>optional</em>) – Region file used for plotting apertures.</p></li>
+<li><p><strong>dtex</strong> (<em>float</em><em>, </em><em>optional</em>) – Text offsets for aperture labels.</p></li>
+<li><p><strong>dtey</strong> (<em>float</em><em>, </em><em>optional</em>) – Text offsets for aperture labels.</p></li>
+<li><p><strong>rad</strong> (<em>float</em><em>, </em><em>optional</em>) – Radius of the plotted extraction circles in arcseconds.</p></li>
+<li><p><strong>cosmetic</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, smooth the extracted spectra for display.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 segment file used to define the extracted path.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to shift spectra to the rest frame.</p></li>
+<li><p><strong>facs</strong> (<em>float</em><em>, </em><em>optional</em>) – Global figure-size scaling factor.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em><em>, </em><em>optional</em>) – Rest-frame wavelength interval shown in the extracted spectra.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em><em>, </em><em>optional</em>) – Rest-frame wavelength interval shown in the extracted spectra.</p></li>
+<li><p><strong>dxR</strong> (<em>float</em><em>, </em><em>optional</em>) – Horizontal offset used in the figure layout.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure as a PDF.</p></li>
+<li><p><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This routine depends on <code class="docutils literal notranslate"><span class="pre">tools.extract_segment1d</span></code> and on the helper
+function <code class="docutils literal notranslate"><span class="pre">plot_circle</span></code> to annotate extraction nodes on the map.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_velana2x">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_velana2x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">titf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals_map1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals_map2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pltlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'$Velocity\\</span> <span class="pre">shift\\</span> <span class="pre">[km\\</span> <span class="pre">s^{-1}]$'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unitplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['[km\\</span> <span class="pre">s^{-1}]',</span> <span class="pre">'[km\\</span> <span class="pre">s^{-1}]']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Velocity</span> <span class="pre">shift</span> <span class="pre">Blue',</span> <span class="pre">'Velocity</span> <span class="pre">shift</span> <span class="pre">Red']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'helic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitmod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J102700+174900_Gas.fits.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J102700+174900_Gas.fits.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlinsA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['$[NII]$',</span> <span class="pre">'$H_{\\alpha}$',</span> <span class="pre">'$[NII]$']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamdsA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[6549.859,</span> <span class="pre">6564.632,</span> <span class="pre">6585.278]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlinsB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['$[NII]$',</span> <span class="pre">'$H_{\\alpha}$',</span> <span class="pre">'$[NII]$']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamdsB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[6549.859,</span> <span class="pre">6564.632,</span> <span class="pre">6585.278]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_aper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'apertu.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'paths_J1027_C.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6520.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6610</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lB1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6520.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lB2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6610.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">av</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.03,</span> <span class="pre">0.09,</span> <span class="pre">0.03]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'G',</span> <span class="pre">'J',</span> <span class="pre">'L']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y-value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['blue',</span> <span class="pre">'green',</span> <span class="pre">'red']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['-',</span> <span class="pre">'--',</span> <span class="pre">':']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_velana2x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_velana2x" title="Link to this definition">¶</a></dt>
+<dd><p>Compare two velocity maps and their extracted pseudo-slit spectra.</p>
+<p>This function builds a composite figure with two velocity maps,
+extraction paths, the corresponding pseudo-slit spectra, and radial
+velocity profiles extracted along the same DS9-defined paths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>titf</strong> (<em>str</em>) – Output figure name.</p></li>
+<li><p><strong>vals_map1</strong> (<em>tuple</em>) – Tuples of the form <code class="docutils literal notranslate"><span class="pre">(map,</span> <span class="pre">vmax,</span> <span class="pre">vmin)</span></code> for the two maps.</p></li>
+<li><p><strong>vals_map2</strong> (<em>tuple</em>) – Tuples of the form <code class="docutils literal notranslate"><span class="pre">(map,</span> <span class="pre">vmax,</span> <span class="pre">vmin)</span></code> for the two maps.</p></li>
+<li><p><strong>dyt</strong> (<em>float</em><em>, </em><em>optional</em>) – Vertical scaling factor used in the figure layout.</p></li>
+<li><p><strong>pltlabel</strong> (<em>str</em><em>, </em><em>optional</em>) – Y-axis label for the extracted velocity curves.</p></li>
+<li><p><strong>unitplots</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Units of the two displayed maps.</p></li>
+<li><p><strong>labplots</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Titles of the two map panels.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the cube files.</p></li>
+<li><p><strong>DA</strong> (<em>float</em><em>, </em><em>optional</em>) – Angular-diameter-distance scaling to convert arcseconds into kpc.</p></li>
+<li><p><strong>model</strong> (<em>{'helic'</em><em>, </em><em>'sin'</em><em>, </em><em>'vmax'}</em><em>, </em><em>optional</em>) – Functional form used when <code class="docutils literal notranslate"><span class="pre">fitmod=True</span></code>.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Transparency of the maps.</p></li>
+<li><p><strong>fitmod</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, fit a simple kinematic model to the extracted velocity curve.</p></li>
+<li><p><strong>file0</strong> (<em>str</em><em>, </em><em>optional</em>) – Input cubes used for the blue and red spectral ranges.</p></li>
+<li><p><strong>file1</strong> (<em>str</em><em>, </em><em>optional</em>) – Input cubes used for the blue and red spectral ranges.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region files used for paths and apertures.</p></li>
+<li><p><strong>reg_aper</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region files used for paths and apertures.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region files used for paths and apertures.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift used to shift the spectral axis to the rest frame.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength windows used for the two pseudo-slit extractions.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength windows used for the two pseudo-slit extractions.</p></li>
+<li><p><strong>lB1</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength windows used for the two pseudo-slit extractions.</p></li>
+<li><p><strong>lB2</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength windows used for the two pseudo-slit extractions.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure as a PDF.</p></li>
+<li><p><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The routine uses <code class="docutils literal notranslate"><span class="pre">tools.extract_segment</span></code> and <code class="docutils literal notranslate"><span class="pre">tools.extract_segment_val</span></code>
+to obtain spatially resolved spectra and velocity profiles.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_velana">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_velana</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">titf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'helic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitmod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J102700+174900_Gas.fits.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nlins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['$[NII]$',</span> <span class="pre">'$H_{\\alpha}$',</span> <span class="pre">'$[NII]$']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[6549.859,</span> <span class="pre">6564.632,</span> <span class="pre">6585.278]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_aper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'apertu.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'paths_J1027_C.reg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6520.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lA2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6610.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pro2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">av</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.1,</span> <span class="pre">0.03,</span> <span class="pre">0.09,</span> <span class="pre">0.03]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigT</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tpt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'G',</span> <span class="pre">'J',</span> <span class="pre">'L']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'y-value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x-value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['blue',</span> <span class="pre">'green',</span> <span class="pre">'red']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['-',</span> <span class="pre">'--',</span> <span class="pre">':']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_velana"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_velana" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a velocity map together with pseudo-slit spectra and radial profiles.</p>
+<p>This function generates a multi-panel diagnostic figure showing a
+single velocity map, the extraction path, a set of pseudo-slit spectra
+along the path, and the corresponding extracted velocity profiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>titf</strong> (<em>str</em>) – Output figure name.</p></li>
+<li><p><strong>vals_map</strong> (<em>tuple</em>) – Tuple <code class="docutils literal notranslate"><span class="pre">(map,</span> <span class="pre">vmax,</span> <span class="pre">vmin)</span></code> for the velocity map.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the input cube.</p></li>
+<li><p><strong>DA</strong> (<em>float</em><em>, </em><em>optional</em>) – Conversion factor from arcseconds to kpc.</p></li>
+<li><p><strong>model</strong> (<em>{'helic'</em><em>, </em><em>'sin'</em><em>, </em><em>'vmax'}</em><em>, </em><em>optional</em>) – Functional form used when <code class="docutils literal notranslate"><span class="pre">fitmod=True</span></code>.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Transparency of the displayed map.</p></li>
+<li><p><strong>fitmod</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, fit a simple analytic model to the extracted velocity profile.</p></li>
+<li><p><strong>file0</strong> (<em>str</em><em>, </em><em>optional</em>) – Input cube file.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region files used for extraction paths and aperture overlays.</p></li>
+<li><p><strong>reg_aper</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region files used for extraction paths and aperture overlays.</p></li>
+<li><p><strong>reg_name</strong> (<em>str</em><em>, </em><em>optional</em>) – DS9 region files used for extraction paths and aperture overlays.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift applied to the wavelength axis.</p></li>
+<li><p><strong>lA1</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength window used to build the pseudo-slit spectra.</p></li>
+<li><p><strong>lA2</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength window used to build the pseudo-slit spectra.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the result to PDF.</p></li>
+<li><p><strong>dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.helic_func">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">helic_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gama</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#helic_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.helic_func" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a helical-like velocity profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>array-like</em>) – Radial coordinate.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Overall amplitude parameter.</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) – Oscillation or winding coefficient.</p></li>
+<li><p><strong>gama</strong> (<em>float</em>) – Phase term.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Systemic offset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model velocity profile.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.sin_func">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">sin_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gama</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#sin_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.sin_func" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate a sinusoidal velocity profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>array-like</em>) – Radial coordinate.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Oscillation amplitude.</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) – Radial scale parameter.</p></li>
+<li><p><strong>gama</strong> (<em>float</em>) – Phase offset.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Additive velocity offset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model velocity profile.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_bpt_map">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_bpt_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_typ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'BPT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indEwHa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">769</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indOIII</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">76</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indNII</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indHa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">124</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indHb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">63</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inte</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_bpt_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_bpt_map" title="Link to this definition">¶</a></dt>
+<dd><p>Build and plot a BPT classification map from a fitted parameter cube.</p>
+<p>This routine reads line-flux and equivalent-width maps from a FITS cube,
+computes the standard BPT diagnostic ratios, classifies each pixel, and
+displays the resulting classification map using a discrete colormap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Input FITS file containing the parameter cube.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Object identifier used in the output file name.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Map transparency.</p></li>
+<li><p><strong>orientation</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar orientation.</p></li>
+<li><p><strong>hd</strong> (<em>int</em><em>, </em><em>optional</em>) – FITS HDU index.</p></li>
+<li><p><strong>ewsing</strong> (<em>float</em><em>, </em><em>optional</em>) – Multiplicative scaling applied to the Halpha equivalent width.</p></li>
+<li><p><strong>max_typ</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum class label shown by the colormap.</p></li>
+<li><p><strong>location</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar location.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure as a PDF.</p></li>
+<li><p><strong>fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot in WCS coordinates.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Display scale passed to the internal plotting helper.</p></li>
+<li><p><strong>tit</strong> (<em>str</em><em>, </em><em>optional</em>) – Plot title.</p></li>
+<li><p><strong>cont</strong> (<em>bool</em><em>, </em><em>optional</em>) – Forwarded to the internal plotting helper.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the FITS file.</p></li>
+<li><p><strong>indEwHa</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the required parameter maps in the FITS cube.</p></li>
+<li><p><strong>indOIII</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the required parameter maps in the FITS cube.</p></li>
+<li><p><strong>indNII</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the required parameter maps in the FITS cube.</p></li>
+<li><p><strong>indHa</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the required parameter maps in the FITS cube.</p></li>
+<li><p><strong>indHb</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the required parameter maps in the FITS cube.</p></li>
+<li><p><strong>ret</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the BPT map.</p></li>
+<li><p><strong>agn</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the BPT map.</p></li>
+<li><p><strong>sf</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the BPT map.</p></li>
+<li><p><strong>inte</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the BPT map.</p></li>
+<li><p><strong>comp</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the BPT map.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The classification itself is performed by <code class="docutils literal notranslate"><span class="pre">tools.bpt</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_bpt_map2">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_bpt_map2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileB</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_typ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'BPT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indcB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">769</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indcR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">769</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indOIII</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">76</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indNII</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indHa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">124</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indHb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">63</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inte</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_bpt_map2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_bpt_map2" title="Link to this definition">¶</a></dt>
+<dd><p>Build and plot a BPT classification map from separate red and blue products.</p>
+<p>This version of the BPT plotter reads the required emission-line maps
+from two different fitted files, typically corresponding to different
+spectral windows, combines them into the classical BPT ratios, and
+plots the resulting classification map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileR</strong> (<em>str</em>) – Input fitted files for the red and blue spectral ranges.</p></li>
+<li><p><strong>fileB</strong> (<em>str</em>) – Input fitted files for the red and blue spectral ranges.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Object identifier used in the output file name.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift correction applied when deriving line maps.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Map transparency.</p></li>
+<li><p><strong>tight</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, call <code class="docutils literal notranslate"><span class="pre">plt.tight_layout()</span></code> when saving.</p></li>
+<li><p><strong>maskB</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Boolean masks applied to the blue and red products.</p></li>
+<li><p><strong>maskR</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Boolean masks applied to the blue and red products.</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Color-bar font size.</p></li>
+<li><p><strong>orientation</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar orientation.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure.</p></li>
+<li><p><strong>fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot in WCS coordinates.</p></li>
+<li><p><strong>indcB</strong> (<em>int</em><em>, </em><em>optional</em>) – Map indices used to recover the required line and continuum products.</p></li>
+<li><p><strong>indcR</strong> (<em>int</em><em>, </em><em>optional</em>) – Map indices used to recover the required line and continuum products.</p></li>
+<li><p><strong>indOIII</strong> (<em>int</em><em>, </em><em>optional</em>) – Map indices used to recover the required line and continuum products.</p></li>
+<li><p><strong>indNII</strong> (<em>int</em><em>, </em><em>optional</em>) – Map indices used to recover the required line and continuum products.</p></li>
+<li><p><strong>indHa</strong> (<em>int</em><em>, </em><em>optional</em>) – Map indices used to recover the required line and continuum products.</p></li>
+<li><p><strong>indHb</strong> (<em>int</em><em>, </em><em>optional</em>) – Map indices used to recover the required line and continuum products.</p></li>
+<li><p><strong>ret</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels.</p></li>
+<li><p><strong>agn</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels.</p></li>
+<li><p><strong>sf</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels.</p></li>
+<li><p><strong>inte</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels.</p></li>
+<li><p><strong>comp</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_whan_map2">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_whan_map2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_typ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WHaN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indcR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">769</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indNII</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">123</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indHa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">124</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wagn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_whan_map2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_whan_map2" title="Link to this definition">¶</a></dt>
+<dd><p>Build and plot a WHAN classification map from fitted red-side products.</p>
+<p>This routine derives Halpha equivalent width and [NII]/Halpha ratio
+maps from a fitted product and displays the resulting WHAN classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileR</strong> (<em>str</em>) – Input fitted file for the red spectral range.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Object identifier used in the output file name.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift correction used when deriving line maps.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Map transparency.</p></li>
+<li><p><strong>tight</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, call <code class="docutils literal notranslate"><span class="pre">plt.tight_layout()</span></code> when saving.</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Color-bar font size.</p></li>
+<li><p><strong>maskR</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Boolean mask applied to the red product.</p></li>
+<li><p><strong>orientation</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar orientation.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure as a PDF.</p></li>
+<li><p><strong>fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot in WCS coordinates.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the input file.</p></li>
+<li><p><strong>indcR</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices used to recover the continuum and line products.</p></li>
+<li><p><strong>indNII</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices used to recover the continuum and line products.</p></li>
+<li><p><strong>indHa</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices used to recover the continuum and line products.</p></li>
+<li><p><strong>ret</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAN map.</p></li>
+<li><p><strong>agn</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAN map.</p></li>
+<li><p><strong>sf</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAN map.</p></li>
+<li><p><strong>wagn</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAN map.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_whad_map2">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_whad_map2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_typ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WHaD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indcR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">769</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indHa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">124</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ret</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wagn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_whad_map2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_whad_map2" title="Link to this definition">¶</a></dt>
+<dd><p>Build and plot a WHAD classification map.</p>
+<p>This routine derives Halpha equivalent width and velocity-dispersion
+maps from a fitted red-side product, converts them to logarithmic space,
+classifies each spaxel using the WHAD diagnostic, and plots the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileR</strong> (<em>str</em>) – Input fitted red-side file.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Object identifier used in the output file name.</p></li>
+<li><p><strong>zt</strong> (<em>float</em><em>, </em><em>optional</em>) – Redshift correction used when deriving line maps.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Map transparency.</p></li>
+<li><p><strong>tight</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, call <code class="docutils literal notranslate"><span class="pre">plt.tight_layout()</span></code> when saving.</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Color-bar font size.</p></li>
+<li><p><strong>maskR</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – Boolean mask applied to the red product.</p></li>
+<li><p><strong>orientation</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar orientation.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the result as a PDF.</p></li>
+<li><p><strong>fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot in WCS coordinates.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the input file.</p></li>
+<li><p><strong>indcR</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the continuum and Halpha products.</p></li>
+<li><p><strong>indHa</strong> (<em>int</em><em>, </em><em>optional</em>) – Indices of the continuum and Halpha products.</p></li>
+<li><p><strong>ret</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAD map.</p></li>
+<li><p><strong>agn</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAD map.</p></li>
+<li><p><strong>sf</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAD map.</p></li>
+<li><p><strong>wagn</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAD map.</p></li>
+<li><p><strong>unk</strong> (<em>int</em><em>, </em><em>optional</em>) – Numeric class labels used by the WHAD map.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_single_map">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_single_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerofil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basefigname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Ha_vel_map_NAME'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sumc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indx2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_single_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_single_map" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a single map or cube slice from a FITS product.</p>
+<p>This routine reads a FITS file, extracts a 2D map or a slice from a 3D
+cube, optionally applies normalization or logarithmic scaling, and plots
+the result using the internal map-display helper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Input FITS file.</p></li>
+<li><p><strong>valmax</strong> (<em>float</em>) – Maximum and minimum values used for the display scale.</p></li>
+<li><p><strong>valmin</strong> (<em>float</em>) – Maximum and minimum values used for the display scale.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Object identifier used in the output file name.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Display scale passed to the internal plotting helper.</p></li>
+<li><p><strong>sb</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, divide by pixel area to obtain surface brightness.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot the image in WCS coordinates.</p></li>
+<li><p><strong>logs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display the logarithm of the map.</p></li>
+<li><p><strong>zerofil</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, replace zero or low-valued pixels with NaN.</p></li>
+<li><p><strong>valz</strong> (<em>float</em><em>, </em><em>optional</em>) – Threshold used when <code class="docutils literal notranslate"><span class="pre">zerofil=True</span></code>.</p></li>
+<li><p><strong>scalef</strong> (<em>float</em><em>, </em><em>optional</em>) – Multiplicative scaling applied to the data.</p></li>
+<li><p><strong>basefigname</strong> (<em>str</em><em>, </em><em>optional</em>) – Output base file name. <code class="docutils literal notranslate"><span class="pre">NAME</span></code> is replaced by <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p></li>
+<li><p><strong>sumc</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True and the input is a cube, integrate along the spectral axis.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the FITS file.</p></li>
+<li><p><strong>hd</strong> (<em>int</em><em>, </em><em>optional</em>) – FITS HDU index.</p></li>
+<li><p><strong>indx</strong> (<em>int</em><em>, </em><em>optional</em>) – Index of the plane extracted from a 3D cube.</p></li>
+<li><p><strong>indx2</strong> (<em>int</em><em>, </em><em>optional</em>) – Secondary index used to form a ratio map.</p></li>
+<li><p><strong>tit</strong> (<em>str</em><em>, </em><em>optional</em>) – Display title.</p></li>
+<li><p><strong>lab</strong> (<em>str</em><em>, </em><em>optional</em>) – Physical units shown on the color bar.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure as a PDF.</p></li>
+<li><p><strong>fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.get_plot_map">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">get_plot_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbarp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objsys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J2000'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'flux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'[10^{-16}erg/s/cm^2/arcsec^2]'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#get_plot_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.get_plot_map" title="Link to this definition">¶</a></dt>
+<dd><p>Internal helper used to display a 2D map with consistent styling.</p>
+<p>This function handles the low-level display of a 2D image, including
+colormap selection, normalization, optional contours, coordinate
+labeling, pixel-to-arcsecond scaling, and color-bar creation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plt</strong> (<em>matplotlib.pyplot</em>) – Pyplot interface used for plotting.</p></li>
+<li><p><strong>flux</strong> (<em>ndarray</em>) – 2D map to display.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em>) – Display limits.</p></li>
+<li><p><strong>vmin</strong> (<em>float</em>) – Display limits.</p></li>
+<li><p><strong>pix</strong> (<em>float</em><em>, </em><em>optional</em>) – Pixel scale in arcseconds.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Additional display scaling control.</p></li>
+<li><p><strong>ticks</strong> (<em>list</em><em>, </em><em>optional</em>) – Color-bar tick positions.</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Font size used in labels and the color bar.</p></li>
+<li><p><strong>labels</strong> (<em>list</em><em>, </em><em>optional</em>) – Custom tick labels for the color bar.</p></li>
+<li><p><strong>cmt</strong> (<em>matplotlib colormap</em><em>, </em><em>optional</em>) – Colormap used to display the image.</p></li>
+<li><p><strong>norm</strong> (<em>matplotlib.colors.Normalize</em><em>, </em><em>optional</em>) – Explicit normalization object.</p></li>
+<li><p><strong>cbarp</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, draw a color bar.</p></li>
+<li><p><strong>fwcs</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, assume the plot is being drawn in WCS coordinates.</p></li>
+<li><p><strong>objsys</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the coordinate system.</p></li>
+<li><p><strong>tit</strong> (<em>str</em><em>, </em><em>optional</em>) – Quantity name used in labels.</p></li>
+<li><p><strong>lab</strong> (<em>str</em><em>, </em><em>optional</em>) – Physical units shown on the color bar.</p></li>
+<li><p><strong>cont</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, overlay contours.</p></li>
+<li><p><strong>orientation</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar orientation.</p></li>
+<li><p><strong>location</strong> (<em>str</em><em>, </em><em>optional</em>) – Color-bar location.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Image transparency.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Handle to the displayed image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.image.AxesImage</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This is the common rendering backend used by most map-plotting routines
+in <code class="docutils literal notranslate"><span class="pre">MapLines.tools.plot_tools</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.get_plot">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">get_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Residual'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'flux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbtr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bpte</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#get_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.get_plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a 2D map with optional aperture overlays and color bar.</p>
+<p>This function displays a two-dimensional map using Matplotlib and can
+optionally overlay rectangular apertures or regions defined through
+the <code class="docutils literal notranslate"><span class="pre">outs</span></code> parameter. It supports both logarithmic scaling for
+intensity-like maps and linear scaling for diagnostic-classification
+maps such as BPT-like products.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flux</strong> (<em>ndarray</em>) – Two-dimensional map to be displayed.</p></li>
+<li><p><strong>savef</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the figure to a PDF file named
+<code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">+</span> <span class="pre">'_map.pdf'</span></code>. If False, display the figure interactively.</p></li>
+<li><p><strong>pix</strong> (<em>float</em><em>, </em><em>optional</em>) – Pixel scale in arcseconds per pixel. This is used to define the
+spatial extent of the displayed image axes.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Base name of the output figure when <code class="docutils literal notranslate"><span class="pre">savef=True</span></code>.</p></li>
+<li><p><strong>tit</strong> (<em>str</em><em>, </em><em>optional</em>) – Quantity name shown in the color-bar label.</p></li>
+<li><p><strong>outs</strong> (<em>list</em><em>, </em><em>optional</em>) – Optional list containing aperture or region coordinates and labels.
+When provided, rectangular outlines and text labels are overplotted
+on the image.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Figure title.</p></li>
+<li><p><strong>cbtr</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, draw a color bar.</p></li>
+<li><p><strong>bpte</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, use linear image scaling appropriate for classification
+maps. If False, use logarithmic scaling appropriate for flux-like
+quantities.</p></li>
+<li><p><strong>maxmin</strong> (<em>list</em><em>, </em><em>optional</em>) – Two-element list defining the minimum and maximum display values
+<code class="docutils literal notranslate"><span class="pre">[vmin,</span> <span class="pre">vmax]</span></code>. If not given, internal defaults are used.</p></li>
+<li><p><strong>ewp</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the color-bar label is displayed without the default
+flux surface-brightness units.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>By default, the input map is divided by <code class="docutils literal notranslate"><span class="pre">pix**2</span></code> when <code class="docutils literal notranslate"><span class="pre">bpte=False</span></code>
+so that it is displayed as a surface-brightness-like quantity. The
+plotting extent is centered on the map and expressed in arcseconds.</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">outs</span></code> structure is interpreted as a collection of
+rectangular regions with labels. These are drawn directly on top of
+the displayed image and are useful for highlighting apertures or
+selected spatial zones.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_apertures">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_apertures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test.reg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_apertures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_apertures" title="Link to this definition">¶</a></dt>
+<dd><p>Overlay DS9 circular apertures on an existing map axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Axis where the apertures will be drawn.</p></li>
+<li><p><strong>hdr</strong> (<em>astropy.io.fits.Header</em>) – FITS header containing WCS information.</p></li>
+<li><p><strong>plt</strong> (<em>matplotlib.pyplot</em>) – Matplotlib pyplot handle used for text annotations.</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Map dimensions.</p></li>
+<li><p><strong>ny</strong> (<em>int</em>) – Map dimensions.</p></li>
+<li><p><strong>dpix</strong> (<em>float</em>) – Pixel scale in arcseconds.</p></li>
+<li><p><strong>reg_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory containing the DS9 region file.</p></li>
+<li><p><strong>reg_file</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the DS9 aperture file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The aperture definitions are read through <code class="docutils literal notranslate"><span class="pre">tools.get_apertures</span></code> and
+plotted as circular outlines with labels.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_circle">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_circle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xpos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ypos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_circle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_circle" title="Link to this definition">¶</a></dt>
+<dd><p>Draw a labeled circular marker on a map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Axis where the circle will be drawn.</p></li>
+<li><p><strong>xpos</strong> (<em>float</em>) – Pixel coordinates of the circle center.</p></li>
+<li><p><strong>ypos</strong> (<em>float</em>) – Pixel coordinates of the circle center.</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Map dimensions.</p></li>
+<li><p><strong>ny</strong> (<em>int</em>) – Map dimensions.</p></li>
+<li><p><strong>dpix</strong> (<em>float</em>) – Pixel scale in arcseconds.</p></li>
+<li><p><strong>rad</strong> (<em>float</em><em>, </em><em>optional</em>) – Circle radius in arcseconds.</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Circle and label color.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Text label placed next to the circle.</p></li>
+<li><p><strong>dtex</strong> (<em>float</em><em>, </em><em>optional</em>) – Positional offsets for the text label.</p></li>
+<li><p><strong>dtey</strong> (<em>float</em><em>, </em><em>optional</em>) – Positional offsets for the text label.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MapLines.tools.plot_tools.plot_outputfits">
+<span class="sig-prename descclassname"><span class="pre">MapLines.tools.plot_tools.</span></span><span class="sig-name descname"><span class="pre">plot_outputfits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wave_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluxtE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modsI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waves0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velfac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velfacN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhfac0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhfacN0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valsL</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'-16'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['blue',</span> <span class="pre">'red',</span> <span class="pre">'purple',</span> <span class="pre">'brown',</span> <span class="pre">'pink']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labplot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataFe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lorentz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outflow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">powlaw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapLines/tools/plot_tools.html#plot_outputfits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MapLines.tools.plot_tools.plot_outputfits" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the result of a spectral-line fit and save a diagnostic figure.</p>
+<p>This routine generates the standard fit-diagnostic plot used by
+MapLines after fitting a spectrum. It shows the observed spectrum,
+uncertainties, best-fit model, individual components, and optionally
+posterior diagnostics derived from the MCMC samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wave_i</strong> (<em>ndarray</em>) – Wavelength array of the fitted spectral region.</p></li>
+<li><p><strong>fluxt</strong> (<em>ndarray</em>) – Observed flux vector.</p></li>
+<li><p><strong>fluxtE</strong> (<em>ndarray</em>) – Flux uncertainty vector.</p></li>
+<li><p><strong>model</strong> (<em>ndarray</em>) – Best-fit total model spectrum.</p></li>
+<li><p><strong>modsI</strong> (<em>list</em><em> of </em><em>ndarray</em>) – Individual spectral components returned by the model.</p></li>
+<li><p><strong>n_lines</strong> (<em>int</em>) – Number of fitted emission lines.</p></li>
+<li><p><strong>waves0</strong> (<em>list</em>) – Rest wavelengths of the fitted transitions.</p></li>
+<li><p><strong>fac0</strong> (<em>list</em>) – Amplitude-scaling factors and linked-component names.</p></li>
+<li><p><strong>facN0</strong> (<em>list</em>) – Amplitude-scaling factors and linked-component names.</p></li>
+<li><p><strong>velfac0</strong> (<em>list</em>) – Velocity-scaling factors and linked-component names.</p></li>
+<li><p><strong>velfacN0</strong> (<em>list</em>) – Velocity-scaling factors and linked-component names.</p></li>
+<li><p><strong>fwhfac0</strong> (<em>list</em>) – Width-scaling factors and linked-component names.</p></li>
+<li><p><strong>fwhfacN0</strong> (<em>list</em>) – Width-scaling factors and linked-component names.</p></li>
+<li><p><strong>names0</strong> (<em>list</em>) – Names of the model components.</p></li>
+<li><p><strong>vals</strong> (<em>list</em>) – Internal parameter names.</p></li>
+<li><p><strong>valsL</strong> (<em>list</em>) – Human-readable parameter labels.</p></li>
+<li><p><strong>samples</strong> (<em>ndarray</em>) – Posterior MCMC samples.</p></li>
+<li><p><strong>errp</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, show error information in the plot.</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Base font size.</p></li>
+<li><p><strong>scl</strong> (<em>str</em><em>, </em><em>optional</em>) – Label used for flux scaling.</p></li>
+<li><p><strong>colors</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Colors used for the component curves.</p></li>
+<li><p><strong>name_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output base name.</p></li>
+<li><p><strong>dir_out</strong> (<em>str</em><em>, </em><em>optional</em>) – Output directory.</p></li>
+<li><p><strong>res_norm</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, display normalized residuals.</p></li>
+<li><p><strong>labplot</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, annotate the panel with labels.</p></li>
+<li><p><strong>dataFe</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – FeII template data when used in the model.</p></li>
+<li><p><strong>lorentz</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flags describing the model family.</p></li>
+<li><p><strong>skew</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flags describing the model family.</p></li>
+<li><p><strong>outflow</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flags describing the model family.</p></li>
+<li><p><strong>powlaw</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flags describing the model family.</p></li>
+<li><p><strong>feii</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flags describing the model family.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This is the main plotting routine called by the fitting functions in
+<code class="docutils literal notranslate"><span class="pre">MapLines.tools.line_fit</span></code> after an MCMC fit is completed.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Map_line</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="MapLines.html">MapLine package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Map_line</a><ul>
+  <li><a href="MapLines.html">MapLine package</a><ul>
+  <li><a href="MapLines.tools.html">MapLines.tools package</a><ul>
+      <li>Previous: <a href="MapLines.tools.models.html" title="previous chapter">MapLines.tools.models</a></li>
+      <li>Next: <a href="MapLines.tools.priors.html" title="next chapter">MapLines.tools.priors</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/MapLines.tools.plot_tools.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

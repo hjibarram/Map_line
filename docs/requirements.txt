@@ -1,0 +1,13 @@
+sphinx
+myst-parser
+sphinx-rtd-theme
+numpy
+scipy
+matplotlib
+astropy
+emcee
+pyyaml
+corner
+cmasher
+numpy-stl
+sphinx-click

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MapLines.tools.priors &#8212; MapLine 2.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for MapLines.tools.priors</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">MapLines.tools.priors</span>
+<span class="sd">=====================</span>
+
+<span class="sd">Likelihood and prior functions used by MapLines spectral models.</span>
+
+<span class="sd">This module defines the statistical functions required for Bayesian</span>
+<span class="sd">inference in MapLines. In particular, it provides routines to evaluate:</span>
+
+<span class="sd">- the log-likelihood of a spectral model given an observed spectrum</span>
+<span class="sd">- the log-prior for the model parameters</span>
+<span class="sd">- the log-posterior probability used by the MCMC sampler</span>
+
+<span class="sd">These functions are used together with the spectral models defined in</span>
+<span class="sd">``MapLines.tools.models`` and the MCMC driver implemented in</span>
+<span class="sd">``MapLines.tools.mcmc``.</span>
+
+<span class="sd">Notes</span>
+<span class="sd">-----</span>
+<span class="sd">The likelihood assumes Gaussian uncertainties in the observed spectrum,</span>
+<span class="sd">while the prior enforces physically and empirically motivated parameter</span>
+<span class="sd">ranges defined in the configuration files.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MapLines.tools.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mod</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="sd">&#39;&#39;&#39;This module contains the functions to calculate the likelihood and prior of the models&#39;&#39;&#39;</span>
+
+
+<div class="viewcode-block" id="lnlike_gauss_Lin">
+<a class="viewcode-back" href="../../../MapLines.tools.priors.html#MapLines.tools.priors.lnlike_gauss_Lin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lnlike_gauss_Lin</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">specE</span> <span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">voigt</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="p">,</span> <span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the log-likelihood of a spectral line model.</span>
+
+<span class="sd">    The likelihood is calculated assuming Gaussian uncertainties</span>
+<span class="sd">    in the observed spectrum.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta : array_like</span>
+<span class="sd">        Model parameters.</span>
+<span class="sd">    spec : ndarray</span>
+<span class="sd">        Observed spectrum.</span>
+<span class="sd">    specE : ndarray</span>
+<span class="sd">        Uncertainty of the spectrum.</span>
+<span class="sd">    x : ndarray</span>
+<span class="sd">        Spectral axis.</span>
+<span class="sd">    waves0 : array_like</span>
+<span class="sd">        Rest wavelengths of spectral lines.</span>
+<span class="sd">    fac0, facN0 : array_like</span>
+<span class="sd">        Flux normalization parameters.</span>
+<span class="sd">    velfac0, velfacN0 : array_like</span>
+<span class="sd">        Velocity scaling factors.</span>
+<span class="sd">    fwhfac0, fwhfacN0 : array_like</span>
+<span class="sd">        Line width scaling factors.</span>
+<span class="sd">    names0 : list</span>
+<span class="sd">        Names of spectral components.</span>
+<span class="sd">    n_lines : int</span>
+<span class="sd">        Number of emission lines.</span>
+<span class="sd">    vals : dict</span>
+<span class="sd">        Additional configuration parameters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Log-likelihood value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;This function calculates the likelihood of a double model for the spectrum&#39;&#39;&#39;</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="o">.</span><span class="n">line_model</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">,</span> <span class="n">voigt</span><span class="o">=</span><span class="n">voigt</span><span class="p">,</span> <span class="n">lorentz</span><span class="o">=</span><span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="o">=</span><span class="n">outflow</span><span class="p">,</span> <span class="n">powlaw</span><span class="o">=</span><span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="o">=</span><span class="n">feii</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">LnLike</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(((</span><span class="n">spec</span><span class="o">-</span><span class="n">model</span><span class="p">)</span><span class="o">/</span><span class="n">specE</span><span class="p">)</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">LnLike</span></div>
+
+
+
+<div class="viewcode-block" id="lnprior_gauss_Lin">
+<a class="viewcode-back" href="../../../MapLines.tools.priors.html#MapLines.tools.priors.lnprior_gauss_Lin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lnprior_gauss_Lin</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">Infvalues</span><span class="p">,</span> <span class="n">Supvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">,</span> <span class="n">skew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outflow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">powlaw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">feii</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate the prior probability for model parameters.</span>
+
+<span class="sd">    The prior enforces parameter boundaries and additional</span>
+<span class="sd">    physical constraints depending on the selected model</span>
+<span class="sd">    components.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta : array_like</span>
+<span class="sd">        Model parameters.</span>
+<span class="sd">    Infvalues : array_like</span>
+<span class="sd">        Lower bounds of parameters.</span>
+<span class="sd">    Supvalues : array_like</span>
+<span class="sd">        Upper bounds of parameters.</span>
+<span class="sd">    valsp : dict</span>
+<span class="sd">        Dictionary containing prior limits for special components.</span>
+<span class="sd">    skew, outflow, powlaw, feii : bool</span>
+<span class="sd">        Flags enabling additional model components.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Log-prior value (0 or -inf).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;This function calculates the prior of a line model spectra&#39;&#39;&#39;</span>  
+    <span class="n">boolf</span><span class="o">=</span><span class="kc">True</span> 
+    <span class="k">if</span> <span class="n">skew</span><span class="p">:</span>
+        <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">alp1</span><span class="p">,</span><span class="n">alpb</span><span class="o">=</span><span class="n">theta</span>
+        <span class="n">boolf</span><span class="o">=</span><span class="p">((</span><span class="n">alp1</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">10</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">alp1</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">alpb</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">10</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">alpb</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">))</span> <span class="o">&amp;</span> <span class="n">boolf</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">outflow</span><span class="p">:</span>
+            <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">F1o</span><span class="p">,</span><span class="n">dvO</span><span class="p">,</span><span class="n">fwhmO</span><span class="p">,</span><span class="n">alpo</span><span class="o">=</span><span class="n">theta</span>
+            <span class="n">boolf</span><span class="o">=</span><span class="p">((</span><span class="n">F1o</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;f1i&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">F1o</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;f1s&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">fwhmO</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;fwhmOi&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">fwhmO</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;fwhmOs&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">dvO</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;dvOi&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dvO</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;dvOs&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">alpo</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;alpOi&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">alpo</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;alpOs&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="n">boolf</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f_parm</span><span class="o">=</span><span class="n">theta</span>
+    <span class="k">if</span> <span class="n">powlaw</span><span class="p">:</span>
+        <span class="n">boolf</span><span class="o">=</span><span class="kc">True</span> 
+        <span class="k">if</span> <span class="n">feii</span><span class="p">:</span>
+            <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">P1o</span><span class="p">,</span><span class="n">P2o</span><span class="p">,</span><span class="n">Fso</span><span class="p">,</span><span class="n">Fdo</span><span class="p">,</span><span class="n">Fao</span><span class="o">=</span><span class="n">theta</span>
+            <span class="n">boolf</span><span class="o">=</span><span class="p">((</span><span class="n">P1o</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P1i&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">P1o</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P1s&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">P2o</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P2i&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">P2o</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P2s&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">Fso</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fsi&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Fso</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fss&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">Fdo</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fdi&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Fdo</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fds&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">Fao</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fai&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Fao</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;Fas&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="n">boolf</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="o">*</span><span class="n">f_parm</span><span class="p">,</span><span class="n">P1o</span><span class="p">,</span><span class="n">P2o</span><span class="o">=</span><span class="n">theta</span>
+            <span class="n">boolf</span><span class="o">=</span><span class="p">((</span><span class="n">P1o</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P1i&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">P1o</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P1s&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">P2o</span> <span class="o">&gt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P2i&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">P2o</span> <span class="o">&lt;=</span> <span class="n">valsp</span><span class="p">[</span><span class="s1">&#39;P2s&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="n">boolf</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_parm</span><span class="p">)):</span>
+        <span class="n">bool1</span><span class="o">=</span><span class="p">(</span><span class="n">f_parm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">Supvalues</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">bool2</span><span class="o">=</span><span class="p">(</span><span class="n">f_parm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">Infvalues</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">boolf</span><span class="o">=</span><span class="p">(</span><span class="n">bool1</span> <span class="o">&amp;</span> <span class="n">bool2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">boolf</span>    
+
+    <span class="k">if</span> <span class="n">boolf</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>            </div>
+
+                
+
+<div class="viewcode-block" id="lnprob_gauss_Lin">
+<a class="viewcode-back" href="../../../MapLines.tools.priors.html#MapLines.tools.priors.lnprob_gauss_Lin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lnprob_gauss_Lin</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">specE</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">Infvalues</span><span class="p">,</span> <span class="n">Supvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">,</span> 
+    <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> 
+    <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">voigt</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="p">,</span> <span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the posterior probability of the spectral model.</span>
+
+<span class="sd">    The posterior is defined as the sum of the prior and the likelihood.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta : array_like</span>
+<span class="sd">        Model parameters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Log-posterior probability.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;This function calculates the posterior of the double model for the spectrum&#39;&#39;&#39;</span>
+    <span class="n">lp</span> <span class="o">=</span> <span class="n">lnprior_gauss_Lin</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">Infvalues</span><span class="p">,</span> <span class="n">Supvalues</span><span class="p">,</span> <span class="n">valsp</span><span class="p">,</span> <span class="n">skew</span><span class="o">=</span><span class="n">skew</span><span class="p">,</span> <span class="n">outflow</span><span class="o">=</span><span class="n">outflow</span><span class="p">,</span> <span class="n">powlaw</span><span class="o">=</span><span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="o">=</span><span class="n">feii</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lp</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lp</span> <span class="o">+</span> <span class="n">lnlike_gauss_Lin</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">specE</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">waves0</span><span class="p">,</span> <span class="n">fac0</span><span class="p">,</span> <span class="n">facN0</span><span class="p">,</span> <span class="n">velfac0</span><span class="p">,</span> <span class="n">velfacN0</span><span class="p">,</span> <span class="n">fwhfac0</span><span class="p">,</span> <span class="n">fwhfacN0</span><span class="p">,</span> <span class="n">names0</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">skew</span><span class="p">,</span> <span class="n">voigt</span><span class="p">,</span> <span class="n">lorentz</span><span class="p">,</span> <span class="n">outflow</span><span class="p">,</span> <span class="n">powlaw</span><span class="p">,</span> <span class="n">feii</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> </div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">MapLine</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery.html">Example Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../methodology.html">Methodology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Map_line</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Hector Javier Ibarra-Medel.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
