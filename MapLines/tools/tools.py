@@ -518,12 +518,18 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
             try:
                 wave=table_data.field('lambda')
             except:
-                wave=table_data.field('wave')
+                try:
+                    wave=table_data.field('wave')
+                except:
+                    wave=table_data.field('WAVE')
         if error_c:
             try:
                 pdl_dataE=table_data.field('ERROR')
             except:
-                pdl_dataE=table_data.field('fluxE')
+                try:
+                    pdl_dataE=table_data.field('fluxE')
+                except:
+                    pdl_dataE=table_data.field('FLUXE')
             if erft != 0:
                 pdl_dataE=pdl_dataE*flux_f*erft
             else:
