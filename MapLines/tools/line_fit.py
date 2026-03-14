@@ -353,33 +353,33 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
 
     keys_param=[]
     #valu_param=[]
-    #h1=fits.PrimaryHDU(model_param)
-    #h=h1.header
+    h1=fits.PrimaryHDU(model_param)
+    h=h1.header
     for i in range(0, len(valsH)):
-        #h['Val_'+str(i)]=valsH[i] 
+        h['Val_'+str(i)]=valsH[i] 
         keys_param.extend([valsH[i]])
         #valu_param.extend([model_param[i]])
-    #h['Val_'+str(n_lines*3)] ='Noise_Median'
+    h['Val_'+str(n_lines*3)] ='Noise_Median'
     #valu_param.extend([model_param[n_lines*3]])
     if cont:
-    #    h['Val_'+str(n_lines*3+1)] ='Continum'
+        h['Val_'+str(n_lines*3+1)] ='Continum'
         keys_param.extend(['Continum'])
         #valu_param.extend([model_param[n_lines*3+1]])
         ind=n_lines*3+1
     else:
         ind=n_lines*3
     if skew:
-    #    h['Val_'+str(ind+1)]='Alpha_Narrow'
-    #    h['Val_'+str(ind+2)]='Alpha_Broad'
+        h['Val_'+str(ind+1)]='Alpha_Narrow'
+        h['Val_'+str(ind+2)]='Alpha_Broad'
         keys_param.extend(['Alpha_Narrow'])
         keys_param.extend(['Alpha_Broad'])   
         #valu_param.extend([model_param[ind+1]])
         #valu_param.extend([model_param[ind+2]])        
     if outflow: 
-    #    h['Val_'+str(ind+1)]='Amp_Factor_outflow'
-    #    h['Val_'+str(ind+2)]='Vel_outflow' 
-    #    h['Val_'+str(ind+3)]='FWHM_outflow'
-    #    h['Val_'+str(ind+4)]='Alpha_outflow'
+        h['Val_'+str(ind+1)]='Amp_Factor_outflow'
+        h['Val_'+str(ind+2)]='Vel_outflow' 
+        h['Val_'+str(ind+3)]='FWHM_outflow'
+        h['Val_'+str(ind+4)]='Alpha_outflow'
         keys_param.extend(['Amp_Factor_outflow'])
         keys_param.extend(['Vel_outflow'])
         keys_param.extend(['FWHM_outflow'])
@@ -389,27 +389,27 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
         #valu_param.extend([model_param[ind+3]])
         #valu_param.extend([model_param[ind+4]])              
     if powlaw:
-    #    h['Val_'+str(ind+1)]='Amp_powerlow'
-    #    h['Val_'+str(ind+2)]='Alpha_powerlow' 
+        h['Val_'+str(ind+1)]='Amp_powerlow'
+        h['Val_'+str(ind+2)]='Alpha_powerlow' 
         keys_param.extend(['Amp_powerlow'])
         keys_param.extend(['Alpha_powerlow'])            
         #valu_param.extend([model_param[ind+1]])
         #valu_param.extend([model_param[ind+2]])         
     if feii:
-    #    h['Val_'+str(ind+3)]='Sigma_FeII'
-    #    h['Val_'+str(ind+4)]='Delta_FeII'
-    #    h['Val_'+str(ind+5)]='Amp_FeII'  
+        h['Val_'+str(ind+3)]='Sigma_FeII'
+        h['Val_'+str(ind+4)]='Delta_FeII'
+        h['Val_'+str(ind+5)]='Amp_FeII'  
         keys_param.extend(['Sigma_FeII'])
         keys_param.extend(['Delta_FeII'])
         keys_param.extend(['Amp_FeII'])            
         #valu_param.extend([model_param[ind+3]])
         #valu_param.extend([model_param[ind+4]])   
         #valu_param.extend([model_param[ind+5]])          
-    #h.update()        
-    #hlist=fits.HDUList([h1])
-    #hlist.update_extend()
-    #hlist.writeto(file_out2+'.fits', overwrite=True)
-    #tol.sycall('gzip -f '+file_out2+'.fits')
+    h.update()        
+    hlist=fits.HDUList([h1])
+    hlist.update_extend()
+    hlist.writeto(file_out2+'.fits', overwrite=True)
+    tol.sycall('gzip -f '+file_out2+'.fits')
    
 
     h1=fits.PrimaryHDU()
