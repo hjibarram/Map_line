@@ -2344,3 +2344,102 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     filet=path_out+'/'+psfmbasename.replace('NAME',name)+'.fits'
     hlist.writeto(filet,overwrite=True)
     sycall('gzip -f '+filet)    
+
+
+def numpy_to_tform(arr):
+    """
+    Convert a NumPy array dtype into a FITS table TFORM code.
+
+    This function maps the dtype and shape of a NumPy array to the
+    corresponding FITS table format descriptor used in binary tables.
+    The output string can be used as the TFORMn value when defining
+    FITS table columns.
+
+    Parameters
+    ----------
+    arr : array-like
+        Input array or object convertible to a NumPy array. The dtype
+        determines the FITS format code, while the array dimensionality
+        determines whether the column is scalar or vector.
+
+    Returns
+    -------
+    str
+        FITS TFORM code describing the data type and size of the column.
+        Examples include 'E', 'D', 'J', 'K', '5E', '20A', etc.
+
+    Notes
+    -----
+    The following dtype mappings are supported:
+
+    =================  ============
+    NumPy dtype        FITS code
+    =================  ============
+    float32            E
+    float64            D
+    int16              I
+    int32              J
+    int64              K
+    uint8              B
+    bool               L
+    =================  ============
+
+    String arrays are converted to FITS ASCII format using the length
+    of the string (e.g., '20A').
+
+    For multidimensional arrays:
+    - 1D arrays produce a scalar column format (e.g., 'E', 'J').
+    - 2D arrays produce a vector column format (e.g., '5E').
+    - Arrays with ndim > 2 are not supported by FITS tables.
+
+    Raises
+    ------
+    ValueError
+        If the dtype is not supported or if the array has more than
+        two dimensions.
+
+    Examples
+    --------
+    >>> numpy_to_tform(np.array([1.0, 2.0], dtype=np.float32))
+    'E'
+
+    >>> numpy_to_tform(np.ones((10, 5), dtype=np.float32))
+    '5E'
+
+    >>> numpy_to_tform(np.array(["abc", "def"]))
+    '12A'
+    """
+    arr = np.asarray(arr)
+
+    # tipo base
+    base = arr.dtype
+
+    fits_map = {
+        np.dtype('float32'): 'E',
+        np.dtype('float64'): 'D',
+        np.dtype('int16'):   'I',
+        np.dtype('int32'):   'J',
+        np.dtype('int64'):   'K',
+        np.dtype('uint8'):   'B',
+        np.dtype('bool'):    'L',
+        np.dtype('>i8'):     'K',
+        np.dtype('>f8'):     'D'
+    }
+
+    if base.kind in ['U', 'S']:
+        # strings
+        strlen = arr.dtype.itemsize
+        return f'{strlen}A'
+
+    if base not in fits_map:
+        raise ValueError(f'Dtype no soportado: {base}')
+
+    code = fits_map[base]
+
+    # escalar o vector
+    if arr.ndim == 1:
+        return code
+    elif arr.ndim == 2:
+        return f'{arr.shape[1]}{code}'
+    else:
+        raise ValueError("FITS no soporta ndim > 2 en tablas")
