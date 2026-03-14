@@ -414,9 +414,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
 
     h1=fits.PrimaryHDU()
     fits_new_cols=[]
+    model_param[0].shape
     if len(keys_param) > 0:
         for i in range(len(keys_param)):
-            fits_new_cols.extend([fits.Column(name=keys_param[i], format=tol.numpy_to_tform(model_param[i]), array=model_param[i])])
+            fits_new_cols.extend([fits.Column(name=keys_param[i], format=tol.numpy_to_tform(model_param[i][0]), array=model_param[i][0])])
     coldefs = fits.ColDefs(fits_new_cols)
     h2 = fits.BinTableHDU.from_columns(coldefs)
     h_y=h2.header
