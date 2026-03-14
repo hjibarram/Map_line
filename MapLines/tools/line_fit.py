@@ -305,6 +305,13 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                 model_param[ind+2]=dvO_f
                 model_param[ind+3]=fwhmO_f
                 model_param[ind+4]=alphaO_f
+            if powlaw:
+                model_param[ind+1]=P1o
+                model_param[ind+2]=P2o
+            if feii:
+                model_param[ind+3]=Fso
+                model_param[ind+4]=Fdo
+                model_param[ind+5]=Fao    
             # Make plots
             ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,res_norm=res_norm,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
             if verbose:    
