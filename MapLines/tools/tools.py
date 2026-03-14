@@ -508,10 +508,10 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
             hdu_list = fits.open(file1+'.gz')
         table_hdu = hdu_list[1]
         table_data = table_hdu.data
-        #try:
-        pdl_data=table_data.field('FLUX')
-        #except:
-        #    pdl_data=table_data.field('flux')
+        try:
+            pdl_data=table_data.field('FLUX')
+        except:
+            pdl_data=table_data.field('flux')
         try:
             wave=table_data.field('LAMBDA')
         except:
@@ -534,6 +534,8 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
                 pdl_dataE=pdl_dataE*flux_f*erft
             else:
                 pdl_dataE=pdl_dataE*flux_f
+        else:
+            pdl_cubeE=None
     elif input_format == 'SDSS':
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
