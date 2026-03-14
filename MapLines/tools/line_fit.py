@@ -207,6 +207,11 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                         initial = np.array([*Inpvalues, valsp['gam1']])
                     else:
                         initial = np.array([*Inpvalues])
+            if powlaw:
+                if feii:
+                    initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o'], valsp['Fso'], valsp['Fdo'], valsp['Fao']])
+                else:
+                    initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o']])            
 
             ndim = len(initial)
             p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
@@ -227,8 +232,13 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                     else:
                         gam1_f=0.0
                         f_parm=theta_max
-                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)
- 
+                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)  
+            if powlaw:
+                if feii:
+                    *f_parm,P1o,P2o,Fso,Fdo,Fao=theta_max
+                else:
+                    *f_parm,P1o,P2o=theta_max
+                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
             model_all[:]=model
             model_Inp[:]=fluxt
             model_InpE[:]=fluxtE
