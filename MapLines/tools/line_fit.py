@@ -193,7 +193,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                 fluxt=fluxt-fluxpt
             fluxe_t=np.nanmean(fluxtE)
             #Defining the input data for the fitting model
-            data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow)
+            data = (fluxt, fluxtE, wave_i, Infvalues, Supvalues, valsp, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii, dataFe)
             nwalkers=240
             niter=1024
             #Defining the initian conditions
