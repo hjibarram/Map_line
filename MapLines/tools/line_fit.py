@@ -169,11 +169,11 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     dataFe=None        
     if powlaw:
         if feii:
-            model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+            model_param=np.zeros(n_lines*3+5+oft)
             dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
             dataFe=np.loadtxt(dirFe+'FeII.dat')
         else:
-            model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+            model_param=np.zeros(n_lines*3+2+oft)
             dataFe=None        
     model_param[:]=np.nan    
 
