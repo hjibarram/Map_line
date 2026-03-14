@@ -318,7 +318,13 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                     if outflow:
                         print(linet+'F1o='+str(F1o_f)+' dvO='+str(dvO_f)+' fwhmO='+str(fwhmO_f)+' alph0='+str(alphaO_f))
                     else:
-                        print(linet)  
+                        if powlaw:
+                            if feii:
+                                print(linet+'P1o='+str(P1o)+' P2o='+str(P2o)+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
+                            else:
+                                print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
+                        else:
+                            print(linet) 
     hli=[]
     hli.extend([fits.PrimaryHDU(model_all)])
     for myt in range(0,n_lines):
@@ -410,7 +416,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     hlist.update_extend()
     hlist.writeto(file_out2+'.fits', overwrite=True)
     tol.sycall('gzip -f '+file_out2+'.fits')
-    print(powlaw)
 
     h1=fits.PrimaryHDU()
     fits_new_cols=[]
