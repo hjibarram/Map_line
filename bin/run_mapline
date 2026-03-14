@@ -173,13 +173,15 @@ cli.add_command(run)
 @click.option('-b', '--bcont', is_flag=True, default=False,help='flag to run deactivate autosubstract continum')
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
 @click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant profile')
+@click.option('-d', '--powlaw', is_flag=True, default=False,help='activate the power law continum')
+@click.option('-r', '--feii', is_flag=True, default=False,help='activate the FeII template fitting')
 @click.option('-i', '--input_format', type=str, default='CSV', help='input of the spectra file')
 @click.option('-q', '--line_config', type=str, default='line_prop.yml', help='line model configuration file')
 @click.option('-w', '--line_config_path', type=str, default='', help='path to the line model configuration file')
 @click.option('-m', '--smoth', is_flag=True, default=False, help='flag to activate a smothing of the spectra')
 @click.option('-h', '--ker', type=float, default=2, help='value in pixels of the smothin kernel')
 
-def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,outflow,fluxf,lorentz,input_format,line_config,line_config_path,smoth,ker):
+def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,outflow,fluxf,lorentz,powlaw,feii,input_format,line_config,line_config_path,smoth,ker):
  
     wave_ini=6350.0
     wave_fin=6850.0
@@ -208,6 +210,8 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
                     wave_AB=True
             fluxf=data['files'][0]['fluxf']
             lorentz=data['files'][0]['lorentz']
+            powlaw= data['files'][0]['powlaw']
+            feii= data['files'][0]['feii']
             input_format=data['files'][0]['input_format']
             line_config=data['files'][0]['line_config']
             line_config_path=data['files'][0]['line_config_path']
@@ -261,7 +265,8 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
     name_out2=name_out+waveR+skl+soutf
     config_lines=line_config_path+line_config
     line_fit_single(file1,file_out,file_out2,name_out2,input_format=input_format,z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,smoth=smoth,ker=ker,
-         lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf,dir_out=dir_out)
+         lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf,dir_out=dir_out,
+         powlaw=powlaw,feii=feii)
 
 
 
