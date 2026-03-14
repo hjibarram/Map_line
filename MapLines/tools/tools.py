@@ -535,7 +535,7 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
             else:
                 pdl_dataE=pdl_dataE*flux_f
         else:
-            pdl_cubeE=None
+            pdl_dataE=None
     elif input_format == 'SDSS':
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
