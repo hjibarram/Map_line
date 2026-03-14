@@ -410,7 +410,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     hlist.update_extend()
     hlist.writeto(file_out2+'.fits', overwrite=True)
     tol.sycall('gzip -f '+file_out2+'.fits')
-   
+    print(powlaw)
 
     h1=fits.PrimaryHDU()
     fits_new_cols=[]
