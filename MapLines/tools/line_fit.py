@@ -56,7 +56,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     config_lines='line_prop.yml',labplot=True,input_format='TableFits',
     z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,
     feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,
-    ncpu=10,flux_f=1.0,erft=0.75,cont=False):
+    ncpu=10,flux_f=1.0,erft=0.75,cont=False,spe=50,scl='-16'):
     """
     Fit emission lines in a single astronomical spectrum.
 
@@ -185,7 +185,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
             if error_c:
                 fluxtE=pdl_dataE[nw]
             else:
-                fluxtE=tol.step_vect(fluxt,sp=50)
+                fluxtE=tol.step_vect(fluxt,sp=spe)
             if cont:
                 #Defining the continum windows
                 nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
@@ -314,7 +314,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                 model_param[ind+4]=Fdo
                 model_param[ind+5]=Fao    
             # Make plots
-            ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,res_norm=res_norm,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii)
+            ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm,scl=scl)
             if verbose:    
                 print('Best fit parameters:')
                 linet=''
@@ -572,7 +572,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
                 if error_c:
                     fluxtE=pdl_cubeE[nw,i,j]
                 else:
-                	fluxtE=tol.step_vect(fluxt,sp=spe)#50)
+                	fluxtE=tol.step_vect(fluxt,sp=spe)
                 if cont:
                     #Defining the continum windows
                     nwt=np.where((wave_f[nw] >= wavec1) & (wave_f[nw] <= wavec2))[0]  
