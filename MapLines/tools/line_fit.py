@@ -373,6 +373,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
         keys_param.extend([valsH[i]])
         #valu_param.extend([model_param[i]])
     h['Val_'+str(n_lines*3)] ='Noise_Median'
+    keys_param.extend(['Noise_Median'])
     #valu_param.extend([model_param[n_lines*3]])
     if cont:
         h['Val_'+str(n_lines*3+1)] ='Continum'
