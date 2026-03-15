@@ -175,8 +175,9 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
         else:
             model_param=np.zeros(n_lines*3+2+oft)
             dataFe=None        
-    model_param[:]=np.nan    
-
+    model_param[:]=np.nan
+    model_param_ei=np.zeros_like(model_param)
+    model_param_es=np.zeros_like(model_param)
     for i in range(0, 1):
         for j in range(0, 1):
             #val=1
@@ -231,18 +232,28 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
             else:
                 if outflow:
                     *f_parm,F1o_f,dvO_f,fwhmO_f,alphaO_f=theta_max
+                    *f_parm_ei,F1o_f_ei,dvO_f_ei,fwhmO_f_ei,alphaO_f_ei=etheta_i
+                    *f_parm_es,F1o_f_es,dvO_f_es,fwhmO_f_es,alphaO_f_es=etheta_s
                 else:
                     if voigt:
                         *f_parm,gam1_f=theta_max
+                        *f_parm_ei,gam1_f_ei=etheta_i
+                        *f_parm_es,gam1_f_es=etheta_s
                     else:
                         gam1_f=0.0
                         f_parm=theta_max
+                        f_parm_ei=etheta_i
+                        f_parm_es=etheta_s
                 model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, skew=skew, lorentz=lorentz, outflow=outflow)  
             if powlaw:
                 if feii:
                     *f_parm,P1o,P2o,Fso,Fdo,Fao=theta_max
+                    *f_parm_ei,P1o_ei,P2o_ei,Fso_ei,Fdo_ei,Fao_ei=etheta_i
+                    *f_parm_es,P1o_es,P2o_es,Fso_es,Fdo_es,Fao_es=etheta_s
                 else:
                     *f_parm,P1o,P2o=theta_max
+                    *f_parm_ei,P1o_ei,P2o_ei=etheta_i
+                    *f_parm_es,P1o_es,P2o_es=etheta_s
                 model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
             model_all[:]=model
             model_Inp[:]=fluxt
@@ -277,25 +288,37 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                         fwhindf=atp    
                 if indf >= 0:
                     model_param[myt*3+0]=f_parm[indf]/fac0[myt]/flux_f
+                    model_param_es[myt*3+0]=f_parm_es[indf]/fac0[myt]/flux_f
+                    model_param_ei[myt*3+0]=f_parm_ei[indf]/fac0[myt]/flux_f
                 else: 
                     for atp in range(0, len(vals)):
                         if vals[atp] == vt1:
                             indfT1=atp
-                    model_param[myt*3+0]=f_parm[indfT1]/flux_f   
+                    model_param[myt*3+0]=f_parm[indfT1]/flux_f
+                    model_param_es[myt*3+0]=f_parm_es[indfT1]/flux_f
+                    model_param_ei[myt*3+0]=f_parm_ei[indfT1]/flux_f   
                 if velindf >= 0:
                     model_param[myt*3+1]=f_parm[velindf]*velfac0[myt]
+                    model_param_es[myt*3+1]=f_parm_es[velindf]*velfac0[myt]
+                    model_param_ei[myt*3+1]=f_parm_ei[velindf]*velfac0[myt]
                 else:      
                     for atp in range(0, len(vals)):
                         if vals[atp] == vt2:
                             indfT2=atp  
-                    model_param[myt*3+1]=f_parm[indfT2]        
+                    model_param[myt*3+1]=f_parm[indfT2]
+                    model_param_es[myt*3+1]=f_parm_es[indfT2]
+                    model_param_ei[myt*3+1]=f_parm_ei[indfT2]        
                 if fwhindf >= 0:
                     model_param[myt*3+2]=f_parm[fwhindf]*fwhfac0[myt]
+                    model_param_es[myt*3+2]=f_parm_es[fwhindf]*fwhfac0[myt]
+                    model_param_ei[myt*3+2]=f_parm_ei[fwhindf]*fwhfac0[myt]
                 else: 
                     for atp in range(0, len(vals)):
                         if vals[atp] == vt3:
                             indfT3=atp   
-                    model_param[myt*3+2]=f_parm[indfT3]       
+                    model_param[myt*3+2]=f_parm[indfT3]
+                    model_param_es[myt*3+2]=f_parm_es[indfT3]
+                    model_param_ei[myt*3+2]=f_parm_ei[indfT3]       
             model_param[n_lines*3]=fluxe_t/flux_f
             if cont:
                 model_param[n_lines*3+1]=fluxpt/flux_f
@@ -305,18 +328,40 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
             if skew:
                 model_param[ind+1]=alph1_f
                 model_param[ind+2]=alphB_f
+                model_param_es[ind+1]=alph1_f_es
+                model_param_es[ind+2]=alphB_f_es
+                model_param_ei[ind+1]=alph1_f_ei
+                model_param_ei[ind+2]=alphB_f_ei
             if outflow:
                 model_param[ind+1]=F1o_f
                 model_param[ind+2]=dvO_f
                 model_param[ind+3]=fwhmO_f
                 model_param[ind+4]=alphaO_f
+                model_param_es[ind+1]=F1o_f_es
+                model_param_es[ind+2]=dvO_f_es
+                model_param_es[ind+3]=fwhmO_f_es
+                model_param_es[ind+4]=alphaO_f_es
+                model_param_ei[ind+1]=F1o_f_ei
+                model_param_ei[ind+2]=dvO_f_ei
+                model_param_ei[ind+3]=fwhmO_f_ei
+                model_param_ei[ind+4]=alphaO_f_ei
             if powlaw:
                 model_param[ind+1]=P1o
                 model_param[ind+2]=P2o
+                model_param_es[ind+1]=P1o_es
+                model_param_es[ind+2]=P2o_es
+                model_param_ei[ind+1]=P1o_ei
+                model_param_ei[ind+2]=P2o_ei
             if feii:
                 model_param[ind+3]=Fso
                 model_param[ind+4]=Fdo
                 model_param[ind+5]=Fao    
+                model_param_es[ind+3]=Fso_es
+                model_param_es[ind+4]=Fdo_es
+                model_param_es[ind+5]=Fao_es 
+                model_param_ei[ind+3]=Fso_ei
+                model_param_ei[ind+4]=Fdo_ei
+                model_param_ei[ind+5]=Fao_ei   
             # Make plots
             ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm,scl=scl)
             if verbose:    
@@ -398,6 +443,10 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     if len(keys_param) > 0:
         for i in range(len(keys_param)):
             fits_new_cols.extend([fits.Column(name=keys_param[i], format=tol.numpy_to_tform(model_param[i:i+1]), array=model_param[i:i+1])])
+        for i in range(len(keys_param)):
+            fits_new_cols.extend([fits.Column(name=keys_param[i]+'_L_Error', format=tol.numpy_to_tform(model_param_ei[i:i+1]), array=model_param_ei[i:i+1])])
+        for i in range(len(keys_param)):
+            fits_new_cols.extend([fits.Column(name=keys_param[i]+'_U_Error', format=tol.numpy_to_tform(model_param_es[i:i+1]), array=model_param_es[i:i+1])])                        
     coldefs = fits.ColDefs(fits_new_cols)
     h2 = fits.BinTableHDU.from_columns(coldefs)
     h_y=h2.header
