@@ -220,9 +220,13 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
             sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
             samples = sampler.flatchain
             theta_max  = samples[np.argmax(sampler.flatlnprobability)]
-                
+            p16, p50, p84 = np.nanpercentile(samples, [16, 50, 84], axis=0)
+            etheta_i=theta_max-p16
+            etheta_s=p84-theta_max
             if skew:
                 *f_parm,alph1_f,alphB_f=theta_max
+                *f_parm_ei,alph1_f_ei,alphB_f_ei=etheta_i
+                *f_parm_es,alph1_f_es,alphB_f_es=etheta_s
                 model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True,  skew=skew)
             else:
                 if outflow:
