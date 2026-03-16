@@ -259,11 +259,11 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                     *f_parm_ei,P1o_ei,P2o_ei=etheta_i
                     *f_parm_es,P1o_es,P2o_es=etheta_s
                 model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
-            model_all[:]=model
-            model_Inp[:]=fluxt
-            model_InpE[:]=fluxtE
+            model_all[:]=model/flux_f
+            model_Inp[:]=fluxt/flux_f
+            model_InpE[:]=fluxtE/flux_f
             for myt in range(0,n_lines):
-                model_Ind[:,myt]=modsI[myt]
+                model_Ind[:,myt]=modsI[myt]/flux_f
                 inNaM=facN0[myt]
                 velinNaM=velfacN0[myt]
                 fwhinNaM=fwhfacN0[myt]
@@ -353,7 +353,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
             else:
                 indxm=0
             if powlaw:
-                model_Powerlaw[:]=modsI[n_lines+indxm]
+                model_Powerlaw[:]=modsI[n_lines+indxm]/flux_f
                 model_param[ind+1]=P1o
                 model_param[ind+2]=P2o
                 model_param_es[ind+1]=P1o_es
@@ -362,7 +362,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                 model_param_ei[ind+2]=P2o_ei
                 indxm=indxm+1
             if feii:
-                model_FeII[:]=modsI[n_lines+indxm]
+                model_FeII[:]=modsI[n_lines+indxm]/flux_f
                 model_param[ind+3]=Fso
                 model_param[ind+4]=Fdo
                 model_param[ind+5]=Fao    
