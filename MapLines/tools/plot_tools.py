@@ -1900,6 +1900,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         contm=modsI[n_lines]
     else:
         contm=0
+    contm0=np.copy(contm)   
     if feii:
         contm=contm+modsI[n_lines+1]
     #ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
@@ -1920,7 +1921,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     if powlaw:
         ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')
     if feii:
-        ax1.plot(wave_i,modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
+        ax1.plot(wave_i,contm0+modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
     if len(names0) < 5:
         fontsizeL=14
     elif len(names0) < 10:
