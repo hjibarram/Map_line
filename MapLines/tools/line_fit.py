@@ -395,6 +395,8 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
 
     keys_models=[]
     vect_models=[]                         
+    vect_models.extend([wave_i])
+    keys_models.extend(['Wave'])
     vect_models.extend([model_all])
     keys_models.extend(['Model'])
     for myt in range(0,n_lines):
