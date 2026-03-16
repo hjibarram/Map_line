@@ -1,6 +1,6 @@
 # MapLine 2.0.1 🚀
 
-![Emission Line Fitting for IFU & AGN Spectra](https://github.com/hjibarram/Map_line/blob/dev/MapLine.png?raw=true)
+![Emission Line Fitting for IFU & AGN Spectra](https://github.com/hjibarram/Map_line/blob/dev/MapLine.png)
 
 
 ## 📖 Description
