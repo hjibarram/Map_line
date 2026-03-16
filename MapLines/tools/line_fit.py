@@ -149,10 +149,14 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     model_all=np.zeros(len(nw))
     model_Inp=np.zeros(len(nw))
     model_InpE=np.zeros(len(nw))
-    if outflow:
-        model_Outflow=np.zeros(len(nw))
     valsp,n_lines,wavec1,wavec2,Inpvalues,Infvalues,Supvalues,waves0,names0,colors0,vals0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,vals,valsL,valsH=tol.get_priorsvalues(config_lines)   
     model_Ind=np.zeros([len(nw),n_lines])
+    if outflow:
+        model_Outflow=np.zeros([len(nw),n_lines])
+    if powlaw:
+        model_Powerlaw=np.zeros(len(nw))
+    if feii:
+        model_FeII=np.zeros(len(nw))
     if colors0[0] != 'NoNe':
         colors=colors0   
     if cont:
@@ -345,14 +349,20 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                 model_param_ei[ind+2]=dvO_f_ei
                 model_param_ei[ind+3]=fwhmO_f_ei
                 model_param_ei[ind+4]=alphaO_f_ei
+                indxm=n_lines
+            else:
+                indxm=0
             if powlaw:
+                model_Powerlaw[:]=modsI[n_lines+indxm]
                 model_param[ind+1]=P1o
                 model_param[ind+2]=P2o
                 model_param_es[ind+1]=P1o_es
                 model_param_es[ind+2]=P2o_es
                 model_param_ei[ind+1]=P1o_ei
                 model_param_ei[ind+2]=P2o_ei
+                indxm=indxm+1
             if feii:
+                model_FeII[:]=modsI[n_lines+indxm]
                 model_param[ind+3]=Fso
                 model_param[ind+4]=Fdo
                 model_param[ind+5]=Fao    
@@ -381,33 +391,32 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                             else:
                                 print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
                         else:
-                            print(linet) 
-    hli=[]
-    hli.extend([fits.PrimaryHDU(model_all)])
+                            print(linet)
+
+    keys_models=[]
+    vect_models=[]                         
+    vect_models,extend([model_all])
     for myt in range(0,n_lines):
         temp=model_Ind[:,myt]
         hli.extend([fits.ImageHDU(temp)])
-    hli.extend([fits.ImageHDU(model_Inp)])    
-    hli.extend([fits.ImageHDU(model_InpE)])    
-    if outflow:
-        hli.extend([fits.ImageHDU(model_Outflow)])    
-    h_k=hli[0].header
-    h_k['EXTNAME'] ='Model'    
-    h_k.update()
+    keys_models.extend(['Model'])
     for myt in range(0,n_lines):
-        h_t=hli[1+myt].header
-        h_t['EXTNAME'] ='N_Component'.replace('N',names0[myt])
-        h_t.update()  
-    h_y=hli[1+n_lines].header
-    h_y['EXTNAME'] ='Input_Component'
-    h_y.update()   
-    h_y=hli[2+n_lines].header
-    h_y['EXTNAME'] ='InputE_Component'
-    h_y.update()  
+        temp=model_Ind[:,myt]
+        vect_models,extend([temp])
+        keys_models.extend(['N_Component'.replace('N',names0[myt])])
+    keys_models.extend(['Input_Component'])
+    vect_models,extend([model_Inp])
+    keys_models.extend(['InputE_Component'])
+    vect_models,extend([model_InpE])
     if outflow:
-        h_y=hli[3+n_lines].header
-        h_y['EXTNAME'] ='Outflow_Component'
-        h_y.update()  
+        keys_models.extend(['Outflow_Component'])
+        vect_models,extend([model_Outflow])
+    if powlaw: 
+        keys_models.extend(['Powerlaw_Component'])
+        vect_models,extend([model_Powerlaw])        
+    if feii:
+        keys_models.extend(['FeII_Component'])
+        vect_models,extend([model_FeII])        
     hlist=fits.HDUList(hli)
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
