@@ -399,21 +399,21 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     keys_models.extend(['Model'])
     for myt in range(0,n_lines):
         temp=model_Ind[:,myt]
-        vect_models,extend([temp])
+        vect_models.extend([temp])
         keys_models.extend(['N_Component'.replace('N',names0[myt])])
     keys_models.extend(['Input_Component'])
-    vect_models,extend([model_Inp])
+    vect_models.extend([model_Inp])
     keys_models.extend(['InputE_Component'])
-    vect_models,extend([model_InpE])
+    vect_models.extend([model_InpE])
     if outflow:
         keys_models.extend(['Outflow_Component'])
-        vect_models,extend([model_Outflow])
+        vect_models.extend([model_Outflow])
     if powlaw: 
         keys_models.extend(['Powerlaw_Component'])
-        vect_models,extend([model_Powerlaw])        
+        vect_models.extend([model_Powerlaw])        
     if feii:
         keys_models.extend(['FeII_Component'])
-        vect_models,extend([model_FeII])
+        vect_models.extend([model_FeII])
     h1=fits.PrimaryHDU()
     fits_new_cols=[]
     if len(keys_models) > 0:
