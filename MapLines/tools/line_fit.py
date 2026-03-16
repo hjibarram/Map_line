@@ -396,9 +396,6 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     keys_models=[]
     vect_models=[]                         
     vect_models,extend([model_all])
-    for myt in range(0,n_lines):
-        temp=model_Ind[:,myt]
-        hli.extend([fits.ImageHDU(temp)])
     keys_models.extend(['Model'])
     for myt in range(0,n_lines):
         temp=model_Ind[:,myt]
@@ -416,8 +413,17 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
         vect_models,extend([model_Powerlaw])        
     if feii:
         keys_models.extend(['FeII_Component'])
-        vect_models,extend([model_FeII])        
-    hlist=fits.HDUList(hli)
+        vect_models,extend([model_FeII])
+    h1=fits.PrimaryHDU()
+    fits_new_cols=[]
+    if len(keys_models) > 0:
+        for i in range(len(keys_models)):
+            fits_new_cols.extend([fits.Column(name=keys_models[i], format=tol.numpy_to_tform(vect_models[i]), array=vect_models[i])])
+    coldefs = fits.ColDefs(fits_new_cols)
+    h2 = fits.BinTableHDU.from_columns(coldefs)
+    h_y=h2.header
+    h_y['EXTNAME']='Models'
+    hlist=fits.HDUList([h1,h2])
     hlist.update_extend()
     hlist.writeto(file_out+'.fits', overwrite=True)
     tol.sycall('gzip -f '+file_out+'.fits')
