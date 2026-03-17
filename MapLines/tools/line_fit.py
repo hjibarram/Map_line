@@ -395,6 +395,8 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                                 print(linet+'P1o='+str(P1o)+' P2o='+str(P2o)+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
                             else:
                                 print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
+                        elif feii:
+                            print(linet+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
                         else:
                             print(linet)
 
@@ -580,15 +582,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
             model_param=np.zeros([n_lines*3+4+oft,nx,ny])
         else:
             model_param=np.zeros([n_lines*3+oft,nx,ny])
-    dataFe=None        
-    if powlaw:
-        if feii:
-            model_param=np.zeros([n_lines*3+5+oft,nx,ny])
-            dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
-            dataFe=np.loadtxt(dirFe+'FeII.dat')
-        else:
-            model_param=np.zeros([n_lines*3+2+oft,nx,ny])
-            dataFe=None
+    dataFe=None
+    if feii:
+        model_param=np.zeros([n_lines*3+5+oft,nx,ny])
+        dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
+        dataFe=np.loadtxt(dirFe+'FeII.dat')
+    else:
+        model_param=np.zeros([n_lines*3+2+oft,nx,ny])
+        dataFe=None
     model_param[:,:,:]=np.nan    
     if pgr_bar:
         if notebook:
@@ -635,9 +636,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
                         initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o'], valsp['Fso'], valsp['Fdo'], valsp['Fao']])
                     else:
                         initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o']])
-                #else:
-                #    if feii:
-                #        initial = np.array([*Inpvalues, valsp['Fso'], valsp['Fdo'], valsp['Fao']])
+                elif feii:
+                    initial = np.array([*Inpvalues, valsp['Fso'], valsp['Fdo'], valsp['Fao']])
                 
                 ndim = len(initial)
                 p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
@@ -664,7 +664,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
                     else:
                         *f_parm,P1o,P2o=theta_max
                     model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
-                
+                elif feii:
+                    *f_parm,Fso,Fdo,Fao=theta_max
+                    model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe) 
                 model_all[:,i,j]=model
                 model_Inp[:,i,j]=fluxt
                 model_InpE[:,i,j]=fluxtE
@@ -734,10 +736,14 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
                 if powlaw:
                     model_param[ind+1,i,j]=P1o
                     model_param[ind+2,i,j]=P2o
-                if feii:
-                    model_param[ind+3,i,j]=Fso
-                    model_param[ind+4,i,j]=Fdo
-                    model_param[ind+5,i,j]=Fao
+                    if feii:
+                        model_param[ind+3,i,j]=Fso
+                        model_param[ind+4,i,j]=Fdo
+                        model_param[ind+5,i,j]=Fao
+                elif feii:
+                    model_param[ind+1,i,j]=Fso
+                    model_param[ind+2,i,j]=Fdo
+                    model_param[ind+3,i,j]=Fao
                 if plot_f:
                     ptol.plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,velfac0,velfacN0,fwhfac0,fwhfacN0,names0,vals,valsL,samples,colors=colors,name_out=name_out2,dir_out=dir_out,labplot=labplot,dataFe=dataFe,lorentz=lorentz,skew=skew,outflow=outflow,powlaw=powlaw,feii=feii,res_norm=res_norm,scl=scl)    
                 if pgr_bar == False:  
@@ -755,6 +761,8 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
                                     print(linet+'P1o='+str(P1o)+' P2o='+str(P2o)+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
                                 else:
                                     print(linet+'P1o='+str(P1o)+' P2o='+str(P2o))
+                            elif feii:
+                                print(linet+' Fso='+str(Fso)+' Fdo='+str(Fdo)+' Fao='+str(Fao))
                             else:
                                 print(linet)
                 if test:

@@ -115,7 +115,10 @@ def lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=False, outflow=Fa
         else:
             *f_parm,P1o,P2o=theta
             boolf=((P1o >= valsp['P1i']) & (P1o <= valsp['P1s'])) & ((P2o >= valsp['P2i']) & (P2o <= valsp['P2s'])) & boolf
-
+    elif feii:
+        boolf=True
+        *f_parm,Fso,Fdo,Fao=theta
+        boolf=((Fso >= valsp['Fsi']) & (Fso <= valsp['Fss'])) & ((Fdo >= valsp['Fdi']) & (Fdo <= valsp['Fds'])) & ((Fao >= valsp['Fai']) & (Fao <= valsp['Fas'])) & boolf
     for i in range(0, len(f_parm)):
         bool1=(f_parm[i] <= Supvalues[i])
         bool2=(f_parm[i] >= Infvalues[i])
