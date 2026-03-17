@@ -171,14 +171,13 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
         else:
             model_param=np.zeros(n_lines*3+oft)
     dataFe=None        
-    if powlaw:
-        if feii:
-            model_param=np.zeros(n_lines*3+5+oft)
-            dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
-            dataFe=np.loadtxt(dirFe+'FeII.dat')
-        else:
-            model_param=np.zeros(n_lines*3+2+oft)
-            dataFe=None        
+    if feii:
+        model_param=np.zeros(n_lines*3+5+oft)
+        dirFe=os.path.join(MapLines.__path__[0], 'data')+'/'
+        dataFe=np.loadtxt(dirFe+'FeII.dat')
+    else:
+        model_param=np.zeros(n_lines*3+2+oft)
+        dataFe=None        
     model_param[:]=np.nan
     model_param_ei=np.zeros_like(model_param)
     model_param_es=np.zeros_like(model_param)
@@ -260,6 +259,11 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                     *f_parm_ei,P1o_ei,P2o_ei=etheta_i
                     *f_parm_es,P1o_es,P2o_es=etheta_s
                 model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)    
+            elif feii:
+                *f_parm,Fso,Fdo,Fao=theta_max
+                *f_parm_ei,Fso_ei,Fdo_ei,Fao_ei=etheta_i
+                *f_parm_es,Fso_es,Fdo_es,Fao_es=etheta_s
+                model,*modsI=mod.line_model(theta_max, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=wave_i, ret_com=True, powlaw=powlaw, feii=feii, data=dataFe)
             model_all[:]=model/flux_f
             model_Inp[:]=fluxt/flux_f
             model_InpE[:]=fluxtE/flux_f
