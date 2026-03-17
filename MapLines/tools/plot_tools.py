@@ -1898,14 +1898,13 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
     if powlaw:
         contm=modsI[n_lines]
+        indfe=1
     else:
         contm=0
+        indfe=0
     contm0=np.copy(contm)   
     if feii:
-        if powlaw:
-            contm=contm+modsI[n_lines+1]
-        else:
-            contm=contm+modsI[n_lines]
+        contm=contm+modsI[n_lines+indfe]
     #ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
     for namel in names0:
         if namel != 'None':
@@ -1924,7 +1923,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     if powlaw:
         ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')
     if feii:
-        ax1.plot(wave_i,contm0+modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
+        ax1.plot(wave_i,contm0+modsI[n_lines+indfe],linewidth=1,color='red',label=r'FeII')         
     if len(names0) < 5:
         fontsizeL=14
     elif len(names0) < 10:
@@ -1976,6 +1975,8 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
             labels2 = [*valsL,r'$P_1$',r'$P_2$',r'$\sigma_{FeII}$',r'$\Delta\lambda_{FeII}$',r'$A_{FeII}$']
         else:
             labels2 = [*valsL,r'$P_1$',r'$P_2$']
+    elif feii:
+        labels2 = [*valsL,r'$\sigma_{FeII}$',r'$\Delta\lambda_{FeII}$',r'$A_{FeII}$']
                                
     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
