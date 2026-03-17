@@ -1902,7 +1902,10 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
         contm=0
     contm0=np.copy(contm)   
     if feii:
-        contm=contm+modsI[n_lines+1]
+        if powlaw:
+            contm=contm+modsI[n_lines+1]
+        else:
+            contm=contm+modsI[n_lines]
     #ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
     for namel in names0:
         if namel != 'None':
