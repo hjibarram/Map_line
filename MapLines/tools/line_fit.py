@@ -217,8 +217,9 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
                 if feii:
                     initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o'], valsp['Fso'], valsp['Fdo'], valsp['Fao']])
                 else:
-                    initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o']])            
-
+                    initial = np.array([*Inpvalues, valsp['P1o'], valsp['P2o']])
+            elif feii:
+                    initial = np.array([*Inpvalues, valsp['Fso'], valsp['Fdo'], valsp['Fao']])
             ndim = len(initial)
             p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
             tim=True #allways allow to print the time stamp
