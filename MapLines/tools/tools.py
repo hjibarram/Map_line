@@ -2283,7 +2283,7 @@ def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
     """
     ct=299792.458
     file0=path+'/'+file
-    hdu_list = fits.open(file1)
+    hdu_list = fits.open(file0)
     try:    
         table_hdu = hdu_list['Models']
     except:
