@@ -2132,6 +2132,174 @@ def get_map_param(hdr,keymatch='Noise'):
             indx=int(keys[i].replace('VAL_',''))
     return indx
 
+def fwhm_numeric(wave,flux, dpix=4):
+    """
+    Estimate the full width at half maximum (FWHM) of a spectral line
+    using a numerical interpolation around the half-maximum level.
+
+    The method identifies the region where the flux exceeds half of the
+    peak value and performs linear interpolation on both sides of the
+    profile to determine the wavelengths corresponding to the half-maximum.
+    The resulting width is converted to velocity units assuming a
+    Doppler approximation.
+
+    Parameters
+    ----------
+    wave : ndarray
+        1D array of wavelengths. Must be ordered (monotonic increasing
+        or decreasing) and in consistent units.
+    flux : ndarray
+        1D array of flux values corresponding to `wave`. Can contain NaNs,
+        which are ignored when computing the maximum flux.
+    dpix : int, optional
+        Number of pixels around the half-maximum crossing used to define
+        the interpolation window on each side of the line. Default is 4.
+
+    Returns
+    -------
+    fwhm : float
+        Estimated FWHM of the line in velocity units (km/s). Returns NaN
+        if the FWHM cannot be determined (e.g., insufficient data points
+        above half-maximum).
+    wave0 : float
+        Estimate the central wavelength of the line based on the half-maximum crossings.
+    Notes
+    -----
+    - The FWHM is computed in wavelength units and then converted to
+      velocity using:
+
+          FWHM = (Δλ / λ₀) * c
+
+      where λ₀ is the central wavelength and c is the speed of light
+      in km/s.
+    - The method assumes a single-peaked profile. Complex or multi-peaked
+      profiles may yield unreliable results.
+    - The interpolation uses `scipy.interpolate.interp1d` with linear
+      interpolation.
+    - Edge effects are mitigated by limiting the interpolation window
+      within array bounds.
+
+    Raises
+    ------
+    ValueError
+        If input arrays have incompatible shapes.
+
+    See Also
+    --------
+    scipy.interpolate.interp1d : Interpolation method used internally.
+
+    """
+    ct=299792.458
+    max_flux=np.nanmax(flux)
+    half_max=max_flux/2.0
+    indices=np.where(flux >= half_max)[0]
+    if len(indices) < 2:
+        print('Warning, Not enough points above half maximum to determine FWHM.')
+        return np.nan
+    if indices[0]-dpix <0:
+        indx0a=0
+    else:
+        indx0a=indices[0]-dpix
+    indx0b=indices[0]+dpix    
+    if indices[-1]+dpix >= len(wave):
+        indx1b=len(wave)-1
+    else:
+        indx1b=indices[-1]+dpix
+    indx1a=indices[-1]-dpix    
+    wave1=interp1d(flux[indx0a:indx0b], wave[indx0a:indx0b], kind='linear',bounds_error=False,fill_value=0.)(half_max)
+    wave2=interp1d(flux[indx1a:indx1b], wave[indx1a:indx1b], kind='linear',bounds_error=False,fill_value=0.)(half_max)
+    deltawave=wave2-wave1
+    wave0=(wave1+wave2)/2.0
+    fwhm=deltawave/wave0*ct
+    return fwhm,wave0
+
+def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
+    """
+    Extract integrated flux, velocity shift, and FWHM from a modeled
+    spectral line stored in the MapLine output FITS table.
+
+    This function reads a FITS file containing model components, 
+    reconstructs the total model for a given line
+    by summing selected components, and computes key physical parameters:
+    total flux, velocity offset, and line width (FWHM).
+
+    Parameters
+    ----------
+    file : str
+        Name of the FITS file containing the model output.
+    base : str
+        Base identifier (currently unused in the function, reserved for
+        future extensions or consistency with external interfaces).
+    path : str, optional
+        Directory path to the FITS file. Default is current directory.
+    keymatch : str, optional
+        Substring used to identify the relevant model components in the
+        FITS table (e.g., 'HaBroad'). Only columns containing both
+        `keymatch` and 'Component' will be included in the total model.
+    lam0 : float, optional
+        Rest-frame wavelength of the emission line (in same units as the
+        wavelength array). Default corresponds to Hα (6564.632 Å).
+
+    Returns
+    -------
+    FluxT : float
+        Integrated flux of the reconstructed line profile.
+    Vel : float
+        Velocity shift of the line centroid with respect to `lam0`,
+        in km/s (Doppler approximation).
+    FWHM : float
+        Full width at half maximum of the line in km/s.
+
+    Returns None if the required 'Models' extension is not found.
+
+    Notes
+    -----
+    - The function expects a FITS extension named 'Models' containing:
+        - A wavelength column named 'Wave'
+        - Multiple model component columns with names including
+          both `keymatch` and 'Component'
+    - The total model is constructed as the sum of all matching components.
+    - The FWHM and centroid are computed using `fwhm_numeric`.
+    - The integrated flux is computed using `simpson_r`.
+    - Velocity is derived using:
+
+          Vel = ((λ_obs - λ₀) / λ₀) * c
+
+      where c is the speed of light in km/s.
+    - No explicit checks are performed for missing columns, NaNs,
+      or inconsistent units.
+
+    Raises
+    ------
+    IOError
+        If the FITS file cannot be opened.
+
+    See Also
+    --------
+    fwhm_numeric : Function used to estimate FWHM and centroid.
+    simpson_r : Function used for numerical integration.
+
+    """
+    ct=299792.458
+    file0=path+'/'+file
+    hdu_list = fits.open(file1)
+    try:    
+        table_hdu = hdu_list['Models']
+    except:
+        print('Error: No Models found in the FITS file, please provide the model output file')
+        return None
+    table_data = table_hdu.data
+    Wave=table_data.field('Wave')
+    keys=list(table_data.names)
+    modelT=0
+    for keys0 in keys:
+        if keymatch in keys0 and 'Component' in keys0:
+            modelT=table_data.field(keys0)+modelT
+    FWHM,wave0=fwhm_numeric(Wave,modelT)
+    FluxT=simpson_r(modelT,Wave,2,len(Wave)-2,typ=0)
+    Vel=(wave0-lam0)/lam0*ct
+    return FluxT,Vel,FWHM
+
 
 def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2,verbose=False):
     """
@@ -2443,3 +2611,78 @@ def numpy_to_tform(arr):
         return f'{arr.shape[1]}{code}'
     else:
         raise ValueError("FITS no soporta ndim > 2 en tablas")
+
+
+def simpson_r(f,x,i1,i2,typ=0):
+    """
+    Compute the numerical integral of a function using Simpson's rule
+    over a specified index range.
+
+    This implementation applies the composite Simpson's 1/3 rule on
+    uniformly spaced samples between indices `i1` and `i2`. If the number
+    of intervals is odd, it is automatically increased by one to satisfy
+    Simpson's requirement of an even number of intervals.
+
+    Parameters
+    ----------
+    f : ndarray
+        1D array of function values to be integrated.
+    x : ndarray
+        1D array of coordinates corresponding to `f`. It is assumed to be
+        ordered and approximately uniformly spaced within the integration
+        range.
+    i1 : int
+        Starting index of the integration interval.
+    i2 : int
+        Ending index of the integration interval (inclusive).
+    typ : int, optional
+        Output type:
+        - 0 : Return the integral value (default).
+        - 1 : Return the average value over the interval, i.e.,
+              integral divided by (x[i2] - x[i1]).
+
+    Returns
+    -------
+    float
+        Numerical integral of `f` over the interval [x[i1], x[i2]] if
+        `typ=0`, or the mean value over the interval if `typ=1`.
+
+    Notes
+    -----
+    - Simpson's rule requires an even number of intervals. If the number
+      of intervals (`i2 - i1`) is odd, the function extends the upper
+      limit by one index.
+    - The spacing `h` is computed as (x[i2] - x[i1]) / n, assuming
+      approximately uniform sampling.
+    - No explicit checks are performed to ensure uniform spacing or
+      valid index bounds.
+    - The function does not handle NaNs or masked values explicitly.
+
+    Raises
+    ------
+    IndexError
+        If `i1` or `i2` are outside the valid range of the input arrays.
+
+    See Also
+    --------
+    scipy.integrate.simpson : More robust and general Simpson integration.
+
+    """
+    n=(i2-i1)*1.0
+    if n % 2:
+        n=n+1.0
+        i2=i2+1
+    b=x[i2]
+    a=x[i1]
+    h=(b-a)/n
+    s= f[i1]+f[i2]
+    n=int(n)
+    dx=b-a
+    for i in range(1, n, 2):
+        s += 4 * f[i1+i]
+    for i in range(2, n-1, 2):
+        s += 2 * f[i1+i]
+    if typ == 0:
+        return s*h/3.0
+    if typ == 1:
+        return s*h/3.0/dx        
