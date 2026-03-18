@@ -2249,7 +2249,8 @@ def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
         in km/s (Doppler approximation).
     FWHM : float
         Full width at half maximum of the line in km/s.
-
+    Ampt : float
+        The maximum amplitude of the reconstructed line profile.
     Returns None if the required 'Models' extension is not found.
 
     Notes
@@ -2298,7 +2299,9 @@ def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
     FWHM,wave0=fwhm_numeric(Wave,modelT)
     FluxT=simpson_r(modelT,Wave,2,len(Wave)-2,typ=0)
     Vel=(wave0-lam0)/lam0*ct
-    return FluxT,Vel,FWHM
+    AmpT=np.nanmax(modelT)
+    hdu_list.close()
+    return FluxT,Vel,FWHM,AmpT
 
 
 def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2,verbose=False):
