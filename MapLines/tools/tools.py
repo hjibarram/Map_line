@@ -2213,7 +2213,7 @@ def fwhm_numeric(wave,flux, dpix=4):
     fwhm=deltawave/wave0*ct
     return fwhm,wave0
 
-def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
+def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632, fwhm_lim=0.0):
     """
     Extract integrated flux, velocity shift, and FWHM from a modeled
     spectral line stored in the MapLine output FITS table.
@@ -2239,7 +2239,10 @@ def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
     lam0 : float, optional
         Rest-frame wavelength of the emission line (in same units as the
         wavelength array). Default corresponds to Hα (6564.632 Å).
-
+    fwhm_lim : float, optional
+        Minimum FWHM (in km/s) required for a component to be included in
+        the total model. If set to 0, all components matching `keymatch`
+        are included regardless of their width.
     Returns
     -------
     FluxT : float
@@ -2295,7 +2298,12 @@ def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632):
     modelT=0
     for keys0 in keys:
         if keymatch in keys0 and 'Component' in keys0:
-            modelT=table_data.field(keys0)+modelT
+            if fwhm_lim > 0:
+                fwhm,wave0t=fwhm_numeric(Wave,table_data.field(keys0))
+                if fwhm > fwhm_lim:
+                    modelT=table_data.field(keys0)+modelT
+            else:
+                modelT=table_data.field(keys0)+modelT
     FWHM,wave0=fwhm_numeric(Wave,modelT)
     FluxT=simpson_r(modelT,Wave,2,len(Wave)-2,typ=0)
     Vel=(wave0-lam0)/lam0*ct
