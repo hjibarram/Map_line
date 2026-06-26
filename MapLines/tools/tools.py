@@ -2374,7 +2374,8 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
     sycall('gzip -f '+filet)    
 
 def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',
-    psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,set_am=False,AmpT=2):
+    psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,noise_cr=False,
+    set_am=False,AmpT=2):
     """
     Build a rescaled broad-line model map from fitted parameter products.
 
@@ -2398,6 +2399,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         If True, print normalization diagnostics.
     pow_cr : bool, optional
         If True, use the power-law continuum to mask unreliable spaxels.
+    noise_cr: bool, optional
+        If True, use the noise map to mask unreliable spaxels.
     set_am : bool, optional
         If True, use the broad-line amplitude threshold to mask spaxels.
     AmpT : float, optional
@@ -2453,13 +2456,23 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
             indx_pow=get_map_param(hdr,keymatch='Amp_powerlow')
             amp_pow=pdl_cube[indx_pow,:,:]
             mintc=np.nanmin(amp_pow)
-            indx2=np.where(np.isfinite(amp_pow) == False)
             mapT[np.where(amp_pow==mintc)]=np.nan
-            mapT[indx2]=np.nan
             if verbose:
-                print('Power-law used')
+                print('Power-law map used')
         except:
             pass
+    if noise_cr:
+        #Use the noise to define the usefull spaxels
+        try:
+            # We define the inf values as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
+            indx_noise=get_map_param(hdr,keymatch='Noise_Median')
+            noise=pdl_cube[indx_noise,:,:]
+            indx2=np.where(np.isfinite(noise) == False)
+            mapT[indx2]=np.nan
+            if verbose:
+                print('Noise map used')
+        except:
+            pass        
     #mapT=np.log10(mapT)
     mapT[np.where(np.isfinite(mapT) == False)]=-2
     #map[0:4,0:ny]=0
