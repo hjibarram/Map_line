@@ -2448,7 +2448,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         mapT[np.where(amp_val == AmpT)]=np.nan
     if pow_cr:
         #Use the power line continum to define the usefull spaxels
-        try:
+        #try:
+        if True:
             # We define the lowest power line continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
             indx_pow=get_map_param(hdr,keymatch='Amp_powerlow')
             amp_pow=pdl_cube[indx_pow,:,:]
@@ -2456,8 +2457,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
             indx2=np.where(np.isfinite(mapT) == False)
             mapT[np.where(amp_pow==mintc)]=np.nan
             mapT[indx2]=np.nan
-        except:
-            pass
+        #except:
+        #    pass
     #mapT=np.log10(mapT)
     mapT[np.where(np.isfinite(mapT) == False)]=-2
     #map[0:4,0:ny]=0
