@@ -2453,7 +2453,9 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
             indx_pow=get_map_param(hdr,keymatch='Amp_powerlow')
             amp_pow=pdl_cube[indx_pow,:,:]
             mintc=np.nanmin(amp_pow)
+            indx2=np.where(np.isfinite(mapT) == False)
             mapT[np.where(amp_pow==mintc)]=np.nan
+            mapT[indx2]=np.nan
         except:
             pass
     #mapT=np.log10(mapT)
