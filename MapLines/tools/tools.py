@@ -2375,7 +2375,7 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
 
 def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',
     psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,noise_cr=False,
-    set_am=False,AmpT=2,lineBase='HaBroad',indx_am='1',cont_key='Continum',cminval=0):
+    set_am=False,AmpT=2,lineBase='HaBroad',indx_am='1',cont_key='Continum',cminval=0,margin=False):
     """
     Build a rescaled broad-line model map from fitted parameter products.
 
@@ -2413,6 +2413,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         It defines wich component to use for the first mask the valid spaxels, defaul "Continum".
     cminval: float, optional
         It defines the minimum value threshold for the first mask the valid spaxels, defaul 0.
+    margin: bool, optional
+        If True, activate a mask of the borders of the FoV
 
     Returns
     -------
@@ -2447,6 +2449,11 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     mapE=pdl_cube[indx_noi,:,:]
     mapT=np.nansum(fluxT,axis=0)
     nx,ny=mapT.shape
+    if margin:
+        mapT[0:1,0:ny]=np.nan
+        mapT[nx-1:nx,0:ny]=np.nan
+        mapT[0:nx,0:1]=np.nan
+        mapT[0:nx,ny-1:ny]=np.nan
     mapT[indx]=np.nan
     cont1[indx]=np.nan
     mintc=np.nanmin(cont1)# We define the lowest continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
