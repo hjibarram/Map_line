@@ -2449,6 +2449,7 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     mapT[np.where(cont1==mintc)]=np.nan
     if set_am:
         #Use the Amplitude of the briad component to define the usefull spaxels, AmpT is the threshold for the amplitude value defined in MapLine, below which the map is set to NaN. This is because in some cases there are very low amplitude values that produce very high flux/continuum ratios, which are not realistic.
+        print(lineBase+indx_am+'_Amplitude')
         indx_amp=get_map_param(hdr,keymatch=lineBase+indx_am+'_Amplitude')
         amp_val=pdl_cube[indx_amp,:,:]
         amp_val=np.round(amp_val,3)
