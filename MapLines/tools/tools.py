@@ -2506,6 +2506,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     mapT=(mapT-minval)/(maxval-minval)*1+0
     maxval=np.nanmax(mapT[indxt])
     minval=np.nanmin(mapT[indxt])
+    if minval < 0:
+        minval=0
     if verbose:
         print(maxval,minval,'Map2')
     mapT[np.where(np.isfinite(mapT) == False)]=minval
