@@ -2375,7 +2375,7 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
 
 def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',
     psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,noise_cr=False,
-    set_am=False,AmpT=2,lineBase='HaBroad',indx_am='1'):
+    set_am=False,AmpT=2,lineBase='HaBroad',indx_am='1',cont_key='Continum'):
     """
     Build a rescaled broad-line model map from fitted parameter products.
 
@@ -2409,6 +2409,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         It defines de name of the emision line component to use in the map generation.
     indx_am : str, optional
         It defines wich broad component to use to mask the threshold spaxels, defaul "1".
+    cont_key: str, optional
+        It defines wich component to use for the first mask the valid spaxels, defaul "Continum".
 
     Returns
     -------
@@ -2424,7 +2426,7 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
     indx_amp,indx_vel,indx_fwh=get_map_component_index(hdr,keymatch=lineBase)
     indx_noi=get_map_param(hdr,keymatch='Noise')
-    indx_con=get_map_param(hdr,keymatch='Continum')
+    indx_con=get_map_param(hdr,keymatch=cont_key)
     nz,nx,ny=pdl_cube.shape
     n_comp=len(indx_amp)
     fluxT=np.zeros((n_comp,nx,ny))
