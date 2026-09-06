@@ -2442,7 +2442,7 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         sigmaT[i,:,:]=sigma
         ewT[i,:,:]=ew
     cont1=pdl_cube[indx_con,:,:]
-    indx = np.where((cont1 == cminval) | (np.isfinite(cont1) == False))
+    indx = np.where((cont1 <= cminval) | (np.isfinite(cont1) == False))
     indxt = np.where((np.isfinite(cont1)))
     mapE=pdl_cube[indx_noi,:,:]
     mapT=np.nansum(fluxT,axis=0)
