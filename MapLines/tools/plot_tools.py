@@ -62,7 +62,7 @@ import cmasher as cmr
 from scipy.optimize import curve_fit
 from pathlib import Path
 from matplotlib.widgets import Button, RadioButtons
-from matplotlib.colors import NormalizeWCS
+from matplotlib.colors import Normalize
 
 
 def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcsec^2]',labelst=['Vaule1','Value2','Value3'],
