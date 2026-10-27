@@ -9,6 +9,8 @@ warnings.filterwarnings("ignore")
 from MapLines.tools.line_fit import line_fit,line_fit_single
 import MapLines.tools.tools as tol
 import os.path as ptt
+import yaml
+import MapLines.tools.plot_tools as ptol
 
 @click.group('run_mapline', short_help='CLI for the emission line mapper')
 def cli():
@@ -291,6 +293,64 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
          lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf,dir_out=dir_out,
          powlaw=powlaw,feii=feii,res_norm=res_norm,labplot=labplot,spe=spe,scl=scl,colors=colors)
 
+# The function plot_interactive_models must be placed in MapLines/tools/plot_tools.py.
+@cli.command('interactive', short_help='Explore an IFU modelsV2 FITS interactively')
+@click.option('-g', '--config_file', type=click.Path(exists=True, dir_okay=False), default=None,
+              help='Optional YAML config file (interactive: or files: format).')
+@click.option('-m', '--models', type=click.Path(exists=True, dir_okay=False), default=None,
+              help='Path to the MapLine modelsV2 FITS[.gz] file.')
+@click.option('--hdu', default=None, help='Initial HDU index or EXTNAME.')
+@click.option('--map-mode', type=click.Choice(['integrated', 'channel']), default=None)
+@click.option('--channel', type=int, default=None, help='Zero-based spectral channel.')
+@click.option('--wavelength', type=float, default=None, help='Choose channel nearest this wavelength [Angstrom].')
+@click.option('--x', type=int, default=None, help='Initial spaxel x index.')
+@click.option('--y', type=int, default=None, help='Initial spaxel y index.')
+@click.option('--cmap', type=str, default=None, help='Matplotlib colormap name.')
+@click.option('--res-norm/--no-res-norm', default=None, help='Normalise residuals by observed flux.')
+@click.option('--show-error/--hide-error', default=None, help='Show 1-sigma error.')
+@click.option('--wcs/--no-wcs', 'wcs_axes', default=None, help='Use celestial WCS on map.')
+@click.option('--output-dir', type=click.Path(file_okay=False), default=None)
+@click.option('--scl', type=str, default=None, help='Flux exponent for plot label.')
+
+def interactive(config_file, **kwargs):
+    settings = {}
+    if config_file:
+        with open(config_file, 'r', encoding='utf-8') as stream:
+            data = yaml.safe_load(stream) or {}
+        if not isinstance(data, dict):
+            raise click.ClickException('Expected a YAML mapping.')
+        if 'interactive' in data:
+            settings = data['interactive']
+        elif 'files' in data:
+            items = data['files']
+            if not isinstance(items, list) or not items:
+                raise click.ClickException('YAML files: must be a non-empty list.')
+            settings = items[0]
+        else:
+            settings = data
+        if not isinstance(settings, dict):
+            raise click.ClickException('YAML interactive settings must be a mapping.')
+
+    aliases = {'models_file': 'models', 'file_models': 'models',
+               'map_mode': 'map_mode', 'path_out': 'output_dir',
+               'res_norm': 'res_norm', 'wcs_axes': 'wcs_axes'}
+    options = ['models', 'hdu', 'map_mode', 'channel', 'wavelength',
+               'x', 'y', 'cmap', 'res_norm', 'show_error', 'wcs_axes',
+               'output_dir', 'scl']
+    for src, dst in aliases.items():
+        if src in settings and dst not in settings:
+            settings[dst] = settings[src]
+    defaults = dict(hdu=0, map_mode='integrated', channel=None, wavelength=None,
+                    x=None, y=None, cmap='viridis', res_norm=False,
+                    show_error=True, wcs_axes=False, output_dir='.', scl='-16')
+    merged = {key: (kwargs[key] if kwargs[key] is not None else
+                    settings.get(key, defaults.get(key))) for key in options}
+    if not merged['models']:
+        raise click.UsageError('Provide --models or models: in --config_file.')
+    try:
+        ptol.plot_interactive_models(models_file=merged.pop('models'), **merged)
+    except (OSError, ValueError, KeyError) as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 if __name__ == "__main__":
