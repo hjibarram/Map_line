@@ -2207,35 +2207,43 @@ def plot_interactive_models(models_file, hdu=0, map_mode='integrated',
 
     def redraw_map():
         nonlocal image, marker, colorbar
-        if image is not None:
-            image.remove()
-        if marker is not None:
-            marker.remove()
-        if colorbar is not None:
-            colorbar.remove()
-            colorbar = None
         arr = cubes[state['hdu']]
         if state['map_mode'] == 'channel':
             dat = arr[state['channel'], :, :]
         else:
+            # NaN-free pixels should not become zero-valued detections.
             dat = np.nansum(arr, axis=0)
             all_nan = np.all(~np.isfinite(arr), axis=0)
             dat[all_nan] = np.nan
-        # Array is [x,y], but imshow wants [y,x].
+        # MapLine cube axes: (wavelength, x, y); imshow: (y, x).
         dat = dat.T
         finite = dat[np.isfinite(dat)]
         if finite.size:
             lo, hi = np.nanpercentile(finite, [2, 98])
-            if lo == hi:
+            if not np.isfinite(lo) or not np.isfinite(hi):
+                lo, hi = 0.0, 1.0
+            elif lo >= hi:
                 lo, hi = float(np.nanmin(finite)), float(np.nanmax(finite))
-            if lo == hi:
-                hi = lo + 1
+                if lo >= hi:
+                    hi = lo + 1.0
         else:
-            lo, hi = 0, 1
-        image = ax_map.imshow(dat, origin='lower', cmap=cmap,
-                              norm=Normalize(vmin=lo, vmax=hi), interpolation='nearest')
-        marker, = ax_map.plot(state['x'], state['y'], 's', ms=9, mec='white',
-                              mfc='none', mew=1.3)
+            lo, hi = 0.0, 1.0
+
+        # Create Matplotlib artists only once.  Recreating the colorbar after
+        # removing an AxesImage is fragile with manually positioned axes,
+        # especially on macOS GUI backends.
+        if image is None:
+            image = ax_map.imshow(dat, origin='lower', cmap=cmap,
+                                  vmin=lo, vmax=hi, interpolation='nearest')
+            marker, = ax_map.plot([state['x']], [state['y']], 's', ms=9,
+                                  mec='white', mfc='none', mew=1.3)
+            colorbar = fig.colorbar(image, ax=ax_map, fraction=.045, pad=.03)
+        else:
+            image.set_data(dat)
+            image.set_clim(lo, hi)
+            marker.set_data([state['x']], [state['y']])
+            # set_clim already notifies the attached colorbar.
+
         title = names[state['hdu']]
         if state['map_mode'] == 'channel':
             title += f'  ch={state["channel"]}, {wave[state["channel"]]:.2f} Å'
@@ -2248,7 +2256,6 @@ def plot_interactive_models(models_file, hdu=0, map_mode='integrated',
         else:
             ax_map.coords[0].set_axislabel('RA')
             ax_map.coords[1].set_axislabel('Dec')
-        colorbar = fig.colorbar(image, ax=ax_map, fraction=.045, pad=.03)
         info.set_text(f'Pixel (x, y) = ({state["x"]}, {state["y"]})')
 
     def redraw(all_panels=True):
