@@ -229,13 +229,26 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
     else:
         objsys='J2000' 
         wcs=None       
-
+    vmax=[]
+    vmin=[]
     if len(maxmin) > 0:
-        vmax=maxmin[1]
-        vmin=maxmin[0]
+        if len(maxin) == 2:
+            for it in range(0, n_maps):
+                vmax.extend([maxmin[1]])
+                vmin.extend([maxmin[0]])
+        else:
+            try:
+                for it in range(0, n_maps):
+                    vmax.extend([maxmin[it][1]])
+                    vmin.extend([maxmin[it][0]])
+            except:
+                for it in range(0, n_maps):
+                    vmax.extend([np.nanmmax(mapslist[0])*1.1])
+                    vmin.extend([0.001])
     else:
-        vmax=np.nanmmax(mapslist[0])*1.1
-        vmin=0.001
+        for it in range(0, n_maps):
+            vmax.extend([np.nanmmax(mapslist[0])*1.1])
+            vmin.extend([0.001])
     facx=0.99
     facy=0.99
     nx=np.nanmax(pro1)+1
@@ -258,7 +271,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
     for it in range(0, n_maps):
         flux=mapslist[it]
         ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy],projection=wcs)
-        ict=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,
+        ict=get_plot_map(plt,flux,vmax[it],vmin[it],fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,
                          orientation=orientation,location=location,cmt=cmt,cbarp=False,norm=norm,fontsize=fontsize)
         plt.text(0.05, 0.96, labelst[it % len(labelst)], fontsize=fontsizest, color=colorst, va='center',transform=ax.transAxes)
         ax.tick_params(axis='both', which='major', labelsize=fontsize-2)
