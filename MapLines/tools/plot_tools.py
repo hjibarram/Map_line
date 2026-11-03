@@ -265,8 +265,10 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
         ax.yaxis.set_major_locator(plt.MaxNLocator(5))
         ax.xaxis.set_major_locator(plt.MaxNLocator(5))
         if pro1[it] != 0:
-            ax.set_ylabel('').set_visible(False)
-            plt.setp(ax.get_yticklabels(), visible=False)
+            ax.yaxis.label.set_visible(False)
+            ax.tick_params(axis='y', labelleft=False)
+            #ax.set_ylabel('').set_visible(False)
+            #plt.setp(ax.get_yticklabels(), visible=False)
         if pro2[it] != 0:
             ax.set_xlabel('').set_visible(False)
             plt.setp(ax.get_xticklabels(), visible=False)  
