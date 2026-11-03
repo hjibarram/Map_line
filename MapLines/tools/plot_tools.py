@@ -221,7 +221,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
             mapslist[it]=np.log10(mapslist[it])
     if fwcs:
         wcs = WCS(hdr).celestial
-        plt.subplot(projection=wcs)
+        #plt.subplot(projection=wcs)
         try:
             objsys=hdr['RADESYS']
         except:
@@ -256,7 +256,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
     fig = plt.figure(figsize=(xfi,yfi))
     for it in range(0, n_maps):
         flux=mapslist[it]
-        ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy])
+        ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy],projection=wcs if fwcs else None)
         ict=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,
                          orientation=orientation,location=location,cmt=cmt,cbarp=False,norm=norm)
         plt.text(0.05, 0.96, labelst[it % len(labelst)], fontsize=fontsizest, color=colorst, va='center',transform=ax.transAxes)
