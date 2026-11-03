@@ -232,7 +232,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
     vmax=[]
     vmin=[]
     if len(maxmin) > 0:
-        if len(maxin) == 2:
+        if len(maxmin) == 2:
             for it in range(0, n_maps):
                 vmax.extend([maxmin[1]])
                 vmin.extend([maxmin[0]])
