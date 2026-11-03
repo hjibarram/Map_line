@@ -69,7 +69,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
                    alpha=0.6,fontsizest=20,colorst='black',fontsize=20,basefigname='maps_NAME',sumc=False,scale=0,sb=False,
                    fwcs=False,logs=False,zerofil=False,valz=None,cont=False,maxmin=[],vt='',name='Name',
                    indx=0,indx2=None,cmt=None,scalef=1.0,facs=1,av=[0.15,0.2,0.12,0.03],pro1=[0,0,0],pro2=[0,1,2],
-                   orientation=None,location=None,ticks=None,labels=None):
+                   orientation=None,location=None,ticks=None,labels=None,norm=None):
     """
     Plot a grid of 2D maps or slices extracted from 3D cubes.
 
@@ -148,6 +148,8 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
         Explicit color-bar tick positions.
     labels : list, optional
         Explicit color-bar tick labels.
+    norm : matplotlib.colors.Normalize, optional
+        Explicit normalization object.    
 
     Returns
     -------
@@ -231,7 +233,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
         vmax=maxmin[1]
         vmin=maxmin[0]
     else:
-        vmax=np.nammax(mapslist[0])*1.1
+        vmax=np.nanmmax(mapslist[0])*1.1
         vmin=0.001
     facx=0.99
     facy=0.99
@@ -255,7 +257,8 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
     for it in range(0, n_maps):
         flux=mapslist[it]
         ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy])
-        ict=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,orientation=orientation,location=location,cmt=cmt,cbarp=False)
+        ict=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,
+                         orientation=orientation,location=location,cmt=cmt,cbarp=False,norm=norm)
         plt.text(0.05, 0.96, labelst[it % len(labelst)], fontsize=fontsizest, color=colorst, va='center',transform=ax.transAxes)
         ax.tick_params(axis='both', which='major', labelsize=20)
         ax.yaxis.set_major_locator(plt.MaxNLocator(5))
@@ -270,18 +273,21 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
             if pro1[it] == np.nanmax(pro1) and orientation == 'vertical':
                 ax2 = fig.add_axes([dx1+pro1[it]*dx+dx, dy1+pro2[it]*dy, dx*0.05, dy]) 
             elif pro2[it] == np.nanmax(pro2) and orientation == 'horizontal':
-                ax2 = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy+dy, dx, dy*0.05]) 
-            ax2.tick_params(axis='both',which='major',labelsize=18)
-            if ticks is not None:
-                cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location,ticks=ticks,pad=0.01)
+                ax2 = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy+dy, dx, dy*0.05])
             else:
-                cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location)
-            if location == 'top':
-                cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
-            else:
-                cbar.set_label(r"$"+lab+"$",fontsize=fontsize)
-            if labels is not None:
-                cbar.set_ticklabels(labels)    
+                ax2 = None
+            if ax2 is not None:     
+                ax2.tick_params(axis='both',which='major',labelsize=18)
+                if ticks is not None:
+                    cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location,ticks=ticks,pad=0.01)
+                else:
+                    cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location)
+                if location == 'top':
+                    cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
+                else:
+                    cbar.set_label(r"$"+lab+"$",fontsize=fontsize)
+                if labels is not None:
+                    cbar.set_ticklabels(labels)    
     plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
     plt.show()
     plt.close()
