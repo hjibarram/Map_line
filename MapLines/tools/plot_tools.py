@@ -259,9 +259,9 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
         flux=mapslist[it]
         ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy],projection=wcs)
         ict=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,
-                         orientation=orientation,location=location,cmt=cmt,cbarp=False,norm=norm)
+                         orientation=orientation,location=location,cmt=cmt,cbarp=False,norm=norm,fontsize=fontsize)
         plt.text(0.05, 0.96, labelst[it % len(labelst)], fontsize=fontsizest, color=colorst, va='center',transform=ax.transAxes)
-        ax.tick_params(axis='both', which='major', labelsize=20)
+        ax.tick_params(axis='both', which='major', labelsize=fontsize-2)
         ax.yaxis.set_major_locator(plt.MaxNLocator(5))
         ax.xaxis.set_major_locator(plt.MaxNLocator(5))
         if pro1[it] != 0:
@@ -278,7 +278,7 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
             else:
                 ax2 = None
             if ax2 is not None:     
-                ax2.tick_params(axis='both',which='major',labelsize=18)
+                ax2.tick_params(axis='both',which='major',labelsize=fontsize-2)
                 if ticks is not None:
                     cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location,ticks=ticks,pad=0.01)
                 else:
