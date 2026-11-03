@@ -267,11 +267,9 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
         if pro1[it] != 0:
             ax.yaxis.label.set_visible(False)
             ax.tick_params(axis='y', labelleft=False)
-            #ax.set_ylabel('').set_visible(False)
-            #plt.setp(ax.get_yticklabels(), visible=False)
         if pro2[it] != 0:
-            ax.set_xlabel('').set_visible(False)
-            plt.setp(ax.get_xticklabels(), visible=False)  
+            ax.xaxis.label.set_visible(False)
+            ax.tick_params(axis='x', labelbottom=False)
         if pro1[it] == np.nanmax(pro1) or pro2[it] == np.nanmax(pro2):
             if pro1[it] == np.nanmax(pro1) and orientation == 'vertical':
                 ax2 = fig.add_axes([dx1+pro1[it]*dx+dx, dy1+pro2[it]*dy, dx*0.05, dy]) 
