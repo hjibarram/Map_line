@@ -1,6 +1,9 @@
-# MapLine 2.0.1
+# MapLine 2.0.1 🚀
 
-## Description
+![Emission Line Fitting for IFU & AGN Spectra](https://github.com/hjibarram/Map_line/blob/dev/MapLine.png?raw=true)
+
+
+## 📖 Description
 
 **MapLine** is an emission line fitting software optimized for active galactic nuclei (AGN) spectra, whether one-dimensional or obtained through integral field spectroscopy (IFS). Its main purpose is to characterize the broad and narrow components of various emission lines in the optical range. It allows modifying aspects such as the number of components to fit, the lines to consider, the flux profile (Gaussian, double Gaussian, Lorentzian, skew), the spectral fitting range, the input/output file type, continuum extraction, among others. The software is written in Python and has a modular structure, making it easy to customize and adapt to different analysis needs.
 
@@ -63,7 +66,7 @@ MapLines provides several features for emission-line analysis:
 
 ---
 
-# Installation
+# 🛠 Installation
 
 MapLines requires **Python ≥ 3.10** and the scientific Python ecosystem.
 
@@ -151,7 +154,7 @@ These files define:
 
 ---
 
-# Project Structure
+# 📦 Project Structure
 
 The core functionality is organized in the following modules:
 
@@ -199,7 +202,7 @@ These demonstrate typical use cases such as:
 
 ---
 
-# Documentation Structure
+# 📖 Documentation Structure
 
 The Sphinx documentation is organized into two main sections.
 

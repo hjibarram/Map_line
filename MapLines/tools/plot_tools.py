@@ -60,13 +60,16 @@ import MapLines.tools.mcmc as mcm
 import corner
 import cmasher as cmr
 from scipy.optimize import curve_fit
+from pathlib import Path
+from matplotlib.widgets import Button, RadioButtons
+from matplotlib.colors import Normalize
 
 
 def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcsec^2]',labelst=['Vaule1','Value2','Value3'],
                    alpha=0.6,fontsizest=20,colorst='black',fontsize=20,basefigname='maps_NAME',sumc=False,scale=0,sb=False,
                    fwcs=False,logs=False,zerofil=False,valz=None,cont=False,maxmin=[],vt='',name='Name',
                    indx=0,indx2=None,cmt=None,scalef=1.0,facs=1,av=[0.15,0.2,0.12,0.03],pro1=[0,0,0],pro2=[0,1,2],
-                   orientation=None,location=None,ticks=None,labels=None):
+                   orientation=None,location=None,ticks=None,labels=None,norm=None):
     """
     Plot a grid of 2D maps or slices extracted from 3D cubes.
 
@@ -145,6 +148,8 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
         Explicit color-bar tick positions.
     labels : list, optional
         Explicit color-bar tick labels.
+    norm : matplotlib.colors.Normalize, optional
+        Explicit normalization object.    
 
     Returns
     -------
@@ -216,20 +221,34 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
             mapslist[it]=np.log10(mapslist[it])
     if fwcs:
         wcs = WCS(hdr).celestial
-        plt.subplot(projection=wcs)
+        #plt.subplot(projection=wcs)
         try:
             objsys=hdr['RADESYS']
         except:
             objsys='J2000'
     else:
-        objsys='J2000'        
-
+        objsys='J2000' 
+        wcs=None       
+    vmax=[]
+    vmin=[]
     if len(maxmin) > 0:
-        vmax=maxmin[1]
-        vmin=maxmin[0]
+        if len(maxmin) == 2:
+            for it in range(0, n_maps):
+                vmax.extend([maxmin[1]])
+                vmin.extend([maxmin[0]])
+        else:
+            try:
+                for it in range(0, n_maps):
+                    vmax.extend([maxmin[it][1]])
+                    vmin.extend([maxmin[it][0]])
+            except:
+                for it in range(0, n_maps):
+                    vmax.extend([np.nanmmax(mapslist[0])*1.1])
+                    vmin.extend([0.001])
     else:
-        vmax=np.nammax(mapslist[0])*1.1
-        vmin=0.001
+        for it in range(0, n_maps):
+            vmax.extend([np.nanmmax(mapslist[0])*1.1])
+            vmin.extend([0.001])
     facx=0.99
     facy=0.99
     nx=np.nanmax(pro1)+1
@@ -251,34 +270,38 @@ def plot_maps_grid(datalist,hdr,fig_path='',tit='',lab='[10^{-16}erg/s/cm^2/arcs
     fig = plt.figure(figsize=(xfi,yfi))
     for it in range(0, n_maps):
         flux=mapslist[it]
-        ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy])
-        ict=get_plot_map(plt,flux,vmax,vmin,fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,orientation=orientation,location=location,cmt=cmt,cbarp=False)
+        ax = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy, dx, dy],projection=wcs)
+        ict=get_plot_map(plt,flux,vmax[it],vmin[it],fwcs=fwcs,objsys=objsys,pix=pix,tit=tit,scale=scale,lab=lab,cont=cont,alpha=alpha,
+                         orientation=orientation,location=location,cmt=cmt,cbarp=False,norm=norm,fontsize=fontsize)
         plt.text(0.05, 0.96, labelst[it % len(labelst)], fontsize=fontsizest, color=colorst, va='center',transform=ax.transAxes)
-        ax.tick_params(axis='both', which='major', labelsize=20)
+        ax.tick_params(axis='both', which='major', labelsize=fontsize-2)
         ax.yaxis.set_major_locator(plt.MaxNLocator(5))
         ax.xaxis.set_major_locator(plt.MaxNLocator(5))
         if pro1[it] != 0:
-            ax.set_ylabel('').set_visible(False)
-            plt.setp(ax.get_yticklabels(), visible=False)
+            ax.yaxis.label.set_visible(False)
+            ax.tick_params(axis='y', labelleft=False)
         if pro2[it] != 0:
-            ax.set_xlabel('').set_visible(False)
-            plt.setp(ax.get_xticklabels(), visible=False)  
+            ax.xaxis.label.set_visible(False)
+            ax.tick_params(axis='x', labelbottom=False)
         if pro1[it] == np.nanmax(pro1) or pro2[it] == np.nanmax(pro2):
             if pro1[it] == np.nanmax(pro1) and orientation == 'vertical':
                 ax2 = fig.add_axes([dx1+pro1[it]*dx+dx, dy1+pro2[it]*dy, dx*0.05, dy]) 
             elif pro2[it] == np.nanmax(pro2) and orientation == 'horizontal':
-                ax2 = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy+dy, dx, dy*0.05]) 
-            ax2.tick_params(axis='both',which='major',labelsize=18)
-            if ticks is not None:
-                cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location,ticks=ticks,pad=0.01)
+                ax2 = fig.add_axes([dx1+pro1[it]*dx, dy1+pro2[it]*dy+dy, dx, dy*0.05])
             else:
-                cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location)
-            if location == 'top':
-                cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
-            else:
-                cbar.set_label(r"$"+lab+"$",fontsize=fontsize)
-            if labels is not None:
-                cbar.set_ticklabels(labels)    
+                ax2 = None
+            if ax2 is not None:     
+                ax2.tick_params(axis='both',which='major',labelsize=fontsize-2)
+                if ticks is not None:
+                    cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location,ticks=ticks,pad=0.01)
+                else:
+                    cbar=plt.colorbar(ict,cax=ax2,orientation=orientation,location=location)
+                if location == 'top':
+                    cbar.set_label(r"$"+tit+r"\ "+lab+"$",fontsize=fontsize)
+                else:
+                    cbar.set_label(r"$"+lab+"$",fontsize=fontsize)
+                if labels is not None:
+                    cbar.set_ticklabels(labels)    
     plt.savefig(fig_path+basefigname.replace('NAME',name)+'.pdf')
     plt.show()
     plt.close()
@@ -1898,10 +1921,13 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.plot(wave_i,model,linewidth=1,color='green',label=r'Model')
     if powlaw:
         contm=modsI[n_lines]
+        indfe=1
     else:
         contm=0
+        indfe=0
+    contm0=np.copy(contm)   
     if feii:
-        contm=contm+modsI[n_lines+1]
+        contm=contm+modsI[n_lines+indfe]
     #ax1.plot(wave_i,fluxt-model-np.nanmax(fluxt)*0.25,linewidth=1,color='olive',label=r'Residual')                  
     for namel in names0:
         if namel != 'None':
@@ -1920,7 +1946,7 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     if powlaw:
         ax1.plot(wave_i,modsI[n_lines],linewidth=1,color='orange',label=r'PowerLaw')
     if feii:
-        ax1.plot(wave_i,modsI[n_lines+1],linewidth=1,color='red',label=r'FeII')         
+        ax1.plot(wave_i,contm0+modsI[n_lines+indfe],linewidth=1,color='red',label=r'FeII')         
     if len(names0) < 5:
         fontsizeL=14
     elif len(names0) < 10:
@@ -1972,6 +1998,8 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
             labels2 = [*valsL,r'$P_1$',r'$P_2$',r'$\sigma_{FeII}$',r'$\Delta\lambda_{FeII}$',r'$A_{FeII}$']
         else:
             labels2 = [*valsL,r'$P_1$',r'$P_2$']
+    elif feii:
+        labels2 = [*valsL,r'$\sigma_{FeII}$',r'$\Delta\lambda_{FeII}$',r'$A_{FeII}$']
                                
     fig = corner.corner(samples[:,0:len(labels2)],show_titles=True,labels=labels2,plot_datapoints=True,quantiles=[0.16, 0.5, 0.84],title_kwargs={"fontsize": 12},label_kwargs={"fontsize": 16})
     fig.set_size_inches(15.8*len(labels2)/8.0, 15.8*len(labels2)/8.0)    
@@ -1991,3 +2019,331 @@ def plot_outputfits(wave_i,fluxt,fluxtE,model,modsI,n_lines,waves0,fac0,facN0,ve
     ax1.legend(fontsize=14)
     plt.tight_layout()
     plt.savefig(dir_out+'spectra_mod_NAME.pdf'.replace('NAME',name_out))
+
+
+"""Interactive IFU model viewer for MapLines.tools.plot_tools.
+
+Paste this module's contents at the end of MapLines/tools/plot_tools.py,
+or import the public function from this module.
+"""
+
+
+def plot_interactive_models(models_file, hdu=0, map_mode='integrated',
+                            channel=None, wavelength=None, x=None, y=None,
+                            cmap='viridis', res_norm=False, show_error=True,
+                            wcs_axes=False, output_dir='.', figsize=(14, 6),
+                            scl='-16', colors=None, show=True):
+    """Interactively examine MapLine IFU ``modelsV2`` FITS files.
+
+    Parameters
+    ----------
+    models_file : str
+        Existing multi-HDU MapLine models FITS (.fits or .fits.gz).
+    hdu : int or str
+        Initial HDU to display (index or EXTNAME, case insensitive).
+    map_mode : {'integrated', 'channel'}
+        Integrate selected extension over spectral pixels or show one slice.
+        'integrated' is a simple sum (not multiplied by d-lambda).
+    channel : int, optional
+        Spectral pixel of the channel map; defaults to midpoint.
+    wavelength : float, optional
+        Choose channel nearest this wavelength in the model's frame.
+    x, y : int, optional
+        Initial spatial pixel indices, zero based.
+    wcs_axes : bool
+        Display map with celestial WCS when the FITS WCS is usable.
+    show : bool
+        Call plt.show(block=True) (a GUI backend is required).
+
+    Returns
+    -------
+    viewer : dict
+        References to figure, widgets, and callbacks. Keeping this object
+        alive can help in interactive/notebook environments.
+
+    Controls
+    --------
+    Click the right-hand map to select a spaxel. The HDU dropdown chooses
+    the map component; the mode selector changes integrated/channel maps.
+    Channel +/- buttons step along wavelength. Press 's' to export the
+    current figure, or use the Save button.
+    """
+
+    # Read arrays independently of open FITS context: needed for callbacks.
+    with fits.open(models_file, memmap=False) as hdul:
+        names = [str(h.header.get('EXTNAME', f'HDU{i}')) for i, h in enumerate(hdul)]
+        cubes = [None if h.data is None else np.asarray(h.data, dtype=float)
+                 for h in hdul]
+        header = hdul[0].header.copy()
+
+    valid = [i for i, d in enumerate(cubes) if d is not None and d.ndim == 3]
+    if not valid:
+        raise ValueError('Expected at least one 3-D model HDU (nw, nx, ny).')
+    shape = cubes[valid[0]].shape
+    if any(cubes[i].shape != shape for i in valid):
+        raise ValueError('The model HDUs do not share a common cube shape.')
+    nw, nx, ny = shape
+
+    def resolve(h):
+        if isinstance(h, int) or str(h).isdigit():
+            out = int(h)
+            if out not in valid:
+                raise ValueError(f'Invalid 3-D HDU {h}. Available: {valid}')
+            return out
+        matches = [i for i in valid if names[i].lower() == str(h).lower()]
+        if not matches:
+            raise ValueError(f'Unknown HDU {h!r}; available: {[names[i] for i in valid]}')
+        return matches[0]
+
+    def index_like(name):
+        return next((i for i in valid if names[i].lower() == name.lower()), None)
+
+    # MapLine stores rest-frame wavelengths in its FITS header.
+    crval = float(header.get('CRVAL3', 0.0))
+    crpix = float(header.get('CRPIX3', 1.0))
+    step = float(header.get('CD3_3', header.get('CDELT3', 1.0)))
+    wave = crval + (np.arange(nw) + 1.0 - crpix) * step
+    if wavelength is not None:
+        channel = int(np.argmin(abs(wave - float(wavelength))))
+    if channel is None:
+        channel = nw // 2
+    if not 0 <= int(channel) < nw:
+        raise ValueError(f'channel must be in [0, {nw - 1}]')
+    if map_mode not in ('integrated', 'channel'):
+        raise ValueError("map_mode must be 'integrated' or 'channel'")
+    if colors is None:
+        colors = ['tab:blue', 'tab:red', 'tab:purple', 'tab:brown',
+                  'tab:pink', 'tab:cyan', 'tab:orange']
+
+    state = dict(hdu=resolve(hdu), map_mode=map_mode, channel=int(channel),
+                 x=nx // 2 if x is None else int(x),
+                 y=ny // 2 if y is None else int(y))
+    if not (0 <= state['x'] < nx and 0 <= state['y'] < ny):
+        raise ValueError(f'x must be in [0,{nx-1}] and y in [0,{ny-1}]')
+
+    wcs2d = None
+    if wcs_axes:
+        try:
+            wcs2d = WCS(header).celestial
+            if wcs2d.pixel_n_dim != 2:
+                wcs2d = None
+        except Exception:
+            wcs2d = None
+
+    fig = plt.figure(figsize=figsize)
+    ax_spec = fig.add_axes([.075, .37, .48, .54])
+    ax_res = fig.add_axes([.075, .14, .48, .19], sharex=ax_spec)
+    if wcs2d is not None:
+        ax_map = fig.add_axes([.615, .29, .33, .59], projection=wcs2d)
+    else:
+        ax_map = fig.add_axes([.615, .29, .33, .59])
+    ax_modes = fig.add_axes([.61, .065, .13, .13])
+    ax_prev = fig.add_axes([.755, .11, .07, .065])
+    ax_next = fig.add_axes([.835, .11, .07, .065])
+    ax_save = fig.add_axes([.91, .11, .07, .065])
+    ax_hdu = fig.add_axes([.61, .92, .35, .055])
+
+    mode_radio = RadioButtons(ax_modes, ('integrated', 'channel'),
+                              active=(0 if map_mode == 'integrated' else 1))
+    prev_btn = Button(ax_prev, '<')
+    next_btn = Button(ax_next, '>')
+    save_btn = Button(ax_save, 'Save')
+
+    # Matplotlib TextBox provides a compact HDU selector. It accepts an HDU
+    # number or EXTNAME; this is portable across GUI backends.
+    from matplotlib.widgets import TextBox
+    hdu_box = TextBox(ax_hdu, 'Map HDU ', initial=str(state['hdu']))
+    info = fig.text(.64, .215, '', fontsize=9)
+
+    def spec_at(i):
+        return cubes[i][:, state['x'], state['y']]
+
+    def component_indices():
+        excluded = {'model', 'input_component', 'inpute_component'}
+        return [i for i in valid if names[i].lower() not in excluded]
+
+    def redraw_spec():
+        ax_spec.clear()
+        ax_res.clear()
+        m = index_like('Model')
+        obs = index_like('Input_Component')
+        err = index_like('InputE_Component')
+        cont = index_like('PowerLaw_Component')
+        if cont is None:
+            cont = index_like('Powerlaw_Component')
+        model = spec_at(m) if m is not None else None
+        flux = spec_at(obs) if obs is not None else None
+        error = spec_at(err) if err is not None else None
+        baseline = spec_at(cont) if cont is not None else np.zeros(nw)
+
+        if flux is not None:
+            ax_spec.plot(wave, flux, color='black', lw=1, label='Spectrum')
+        if show_error and error is not None:
+            ax_spec.plot(wave, error, color='0.65', lw=.9, label=r'$1\sigma$ Error')
+        if model is not None:
+            ax_spec.plot(wave, model, color='green', lw=1.2, label='Model')
+        line_indices = [i for i in component_indices()
+                        if names[i].lower() not in ('powerlaw_component',
+                                                    'outflow_component', 'feii_component')]
+        for idx, i in enumerate(line_indices):
+            # Plot narrow/broad individual profiles on top of continuum.
+            ax_spec.plot(wave, baseline + spec_at(i), lw=1.0,
+                         color=colors[idx % len(colors)], label=names[i].replace('_Component', ''))
+        for special, color in [('PowerLaw_Component', 'darkorange'),
+                               ('FeII_Component', 'red'),
+                               ('Outflow_Component', 'orange')]:
+            i = index_like(special)
+            if i is not None:
+                ax_spec.plot(wave, baseline + spec_at(i) if special != 'PowerLaw_Component'
+                             else spec_at(i), color=color, lw=1, label=special.replace('_Component', ''))
+        if model is not None and flux is not None:
+            res = flux - model
+            if res_norm:
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    res = np.where(flux != 0, 100 * res / flux, np.nan)
+                ax_res.set_ylabel('Res [%]')
+            else:
+                ax_res.set_ylabel('Res')
+            ax_res.plot(wave, res, color='olive', lw=1)
+            if show_error and error is not None:
+                if res_norm:
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        e = np.where(flux != 0, 100 * error / flux, np.nan)
+                else:
+                    e = error
+                ax_res.plot(wave, e, color='0.65', lw=.7)
+                ax_res.plot(wave, -e, color='0.65', lw=.7)
+        ax_res.axhline(0, color='black', ls='--', lw=.8)
+        ax_spec.set_title(f'Spectral decomposition   x={state["x"]}, y={state["y"]}')
+        ax_spec.set_ylabel(r'Flux [$10^{'+str(scl)+r'}$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]')
+        ax_spec.legend(fontsize=7, ncol=2, loc='best')
+        ax_spec.tick_params(labelbottom=False)
+        ax_res.set_xlabel(r'Wavelength [$\AA$]')
+        ax_res.grid(alpha=.15)
+
+    image = None
+    marker = None
+    colorbar = None
+
+    def redraw_map():
+        nonlocal image, marker, colorbar
+        arr = cubes[state['hdu']]
+        if state['map_mode'] == 'channel':
+            dat = arr[state['channel'], :, :]
+        else:
+            # NaN-free pixels should not become zero-valued detections.
+            dat = np.nansum(arr, axis=0)
+            all_nan = np.all(~np.isfinite(arr), axis=0)
+            dat[all_nan] = np.nan
+        # MapLine cube axes: (wavelength, x, y); imshow: (y, x).
+        dat = dat.T
+        finite = dat[np.isfinite(dat)]
+        if finite.size:
+            lo, hi = np.nanpercentile(finite, [2, 98])
+            if not np.isfinite(lo) or not np.isfinite(hi):
+                lo, hi = 0.0, 1.0
+            elif lo >= hi:
+                lo, hi = float(np.nanmin(finite)), float(np.nanmax(finite))
+                if lo >= hi:
+                    hi = lo + 1.0
+        else:
+            lo, hi = 0.0, 1.0
+
+        # Create Matplotlib artists only once.  Recreating the colorbar after
+        # removing an AxesImage is fragile with manually positioned axes,
+        # especially on macOS GUI backends.
+        if image is None:
+            image = ax_map.imshow(dat, origin='lower', cmap=cmap,
+                                  vmin=lo, vmax=hi, interpolation='nearest')
+            marker, = ax_map.plot([state['x']], [state['y']], 's', ms=9,
+                                  mec='white', mfc='none', mew=1.3)
+            colorbar = fig.colorbar(image, ax=ax_map, fraction=.045, pad=.03)
+        else:
+            image.set_data(dat)
+            image.set_clim(lo, hi)
+            marker.set_data([state['x']], [state['y']])
+            # set_clim already notifies the attached colorbar.
+
+        title = names[state['hdu']]
+        if state['map_mode'] == 'channel':
+            title += f'  ch={state["channel"]}, {wave[state["channel"]]:.2f} Å'
+        else:
+            title += '  (spectral sum)'
+        ax_map.set_title(title, fontsize=10)
+        if wcs2d is None:
+            ax_map.set_xlabel('x [spaxel]')
+            ax_map.set_ylabel('y [spaxel]')
+        else:
+            ax_map.coords[0].set_axislabel('RA')
+            ax_map.coords[1].set_axislabel('Dec')
+        info.set_text(f'Pixel (x, y) = ({state["x"]}, {state["y"]})')
+
+    def redraw(all_panels=True):
+        if all_panels:
+            redraw_spec()
+        redraw_map()
+        fig.canvas.draw_idle()
+
+    def on_click(event):
+        if event.inaxes is not ax_map or event.xdata is None or event.ydata is None:
+            return
+        xsel, ysel = int(round(event.xdata)), int(round(event.ydata))
+        if not (0 <= xsel < nx and 0 <= ysel < ny):
+            return
+        state.update(x=xsel, y=ysel)
+        redraw()
+
+    def choose_hdu(text):
+        try:
+            state['hdu'] = resolve(text.strip())
+        except ValueError as exc:
+            print(exc)
+            return
+        redraw(all_panels=False)
+
+    def choose_mode(value):
+        state['map_mode'] = value
+        redraw(all_panels=False)
+
+    def step_channel(delta):
+        state['channel'] = min(nw - 1, max(0, state['channel'] + delta))
+        if state['map_mode'] != 'channel':
+            mode_radio.set_active(1)
+        else:
+            redraw(all_panels=False)
+
+    def save_current(event=None):
+        directory = Path(output_dir).expanduser()
+        directory.mkdir(parents=True, exist_ok=True)
+        stem = Path(models_file).name.replace('.fits.gz', '').replace('.fits', '')
+        outfile = directory / f'{stem}_x{state["x"]}_y{state["y"]}.pdf'
+        fig.savefig(outfile, bbox_inches='tight')
+        print(f'Saved {outfile}')
+        return outfile
+
+    def keypress(event):
+        if event.key == 's' and event.inaxes is not ax_hdu:
+            save_current()
+        elif event.key in ('left', 'right', 'up', 'down') and event.inaxes is not ax_hdu:
+            dx, dy = {'left': (-1, 0), 'right': (1, 0),
+                      'up': (0, 1), 'down': (0, -1)}[event.key]
+            state['x'] = max(0, min(nx - 1, state['x'] + dx))
+            state['y'] = max(0, min(ny - 1, state['y'] + dy))
+            redraw()
+
+    cid_click = fig.canvas.mpl_connect('button_press_event', on_click)
+    cid_key = fig.canvas.mpl_connect('key_press_event', keypress)
+    hdu_box.on_submit(choose_hdu)
+    mode_radio.on_clicked(choose_mode)
+    prev_btn.on_clicked(lambda event: step_channel(-1))
+    next_btn.on_clicked(lambda event: step_channel(+1))
+    save_btn.on_clicked(save_current)
+    redraw()
+    print('Map HDUs:', ', '.join(f'{i}: {names[i]}' for i in valid))
+    viewer = dict(fig=fig, ax_map=ax_map, ax_spec=ax_spec, ax_res=ax_res,
+                  state=state, click_id=cid_click, key_id=cid_key,
+                  save=save_current, cubes=cubes, wavelength=wave,
+                  widgets=(hdu_box, mode_radio, prev_btn, next_btn, save_btn))
+    if show:
+        plt.show(block=True)
+    return viewer

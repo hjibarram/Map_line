@@ -9,6 +9,8 @@ warnings.filterwarnings("ignore")
 from MapLines.tools.line_fit import line_fit,line_fit_single
 import MapLines.tools.tools as tol
 import os.path as ptt
+import yaml
+import MapLines.tools.plot_tools as ptol
 
 @click.group('run_mapline', short_help='CLI for the emission line mapper')
 def cli():
@@ -173,13 +175,15 @@ cli.add_command(run)
 @click.option('-b', '--bcont', is_flag=True, default=False,help='flag to run deactivate autosubstract continum')
 @click.option('-f', '--fluxf', type=float, default=1.0, help='flux factor')
 @click.option('-l', '--lorentz', is_flag=True, default=False,help='activate the lorenztiant profile')
+@click.option('-d', '--powlaw', is_flag=True, default=False,help='activate the power law continum')
+@click.option('-r', '--feii', is_flag=True, default=False,help='activate the FeII template fitting')
 @click.option('-i', '--input_format', type=str, default='CSV', help='input of the spectra file')
 @click.option('-q', '--line_config', type=str, default='line_prop.yml', help='line model configuration file')
 @click.option('-w', '--line_config_path', type=str, default='', help='path to the line model configuration file')
 @click.option('-m', '--smoth', is_flag=True, default=False, help='flag to activate a smothing of the spectra')
 @click.option('-h', '--ker', type=float, default=2, help='value in pixels of the smothin kernel')
 
-def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,outflow,fluxf,lorentz,input_format,line_config,line_config_path,smoth,ker):
+def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,outflow,fluxf,lorentz,powlaw,feii,input_format,line_config,line_config_path,smoth,ker):
  
     wave_ini=6350.0
     wave_fin=6850.0
@@ -203,11 +207,17 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
             waveR=data['files'][0]['wave_range']
             wave_ini=data['files'][0]['wave_ini']
             wave_fin=data['files'][0]['wave_fin']
+            try:
+                res_norm=data['files'][0]['res_norm']
+            except:
+                res_norm=False
             if not 'None' in str(wave_ini) and wave_ini > 0:
                 if not 'None' in str(wave_fin) and wave_fin > 0:
                     wave_AB=True
             fluxf=data['files'][0]['fluxf']
             lorentz=data['files'][0]['lorentz']
+            powlaw= data['files'][0]['powlaw']
+            feii= data['files'][0]['feii']
             input_format=data['files'][0]['input_format']
             line_config=data['files'][0]['line_config']
             line_config_path=data['files'][0]['line_config_path']
@@ -216,6 +226,25 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
         else:
             print('Error: The config file is not for 1D spectra')
             return
+    try:
+        labplot=data['files'][0]['labplot']
+    except:
+        labplot=True
+    try:
+        spe=data['files'][0]['spe']#with of the RMS error measurement 
+    except:
+        spe=50
+    try:
+        scl=data['files'][0]['scl']
+    except:
+        scl='-16' 
+    try:
+        colors=data['files'][0]['colors'] 
+    except:
+        #try:
+        #    colors = colors.split(",")
+        #except:
+        colors=['blue','red','purple','brown','pink']  
 
     if name_out == 'None':
         name_out=name
@@ -261,8 +290,67 @@ def runoned(config_file,name,path,path_out,zt,ncpus,error,bcont,name_out,kskew,o
     name_out2=name_out+waveR+skl+soutf
     config_lines=line_config_path+line_config
     line_fit_single(file1,file_out,file_out2,name_out2,input_format=input_format,z=zt,lA1=lA1,lA2=lA2,ncpu=ncpus,smoth=smoth,ker=ker,
-         lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf,dir_out=dir_out)
+         lorentz=lorentz,skew=skew,flux_f=flux_f,erft=0.75,cont=cont,error_c=error_c,config_lines=config_lines,outflow=outf,dir_out=dir_out,
+         powlaw=powlaw,feii=feii,res_norm=res_norm,labplot=labplot,spe=spe,scl=scl,colors=colors)
 
+# The function plot_interactive_models must be placed in MapLines/tools/plot_tools.py.
+@cli.command('interactive', short_help='Explore an IFU modelsV2 FITS interactively')
+@click.option('-g', '--config_file', type=click.Path(exists=True, dir_okay=False), default=None,
+              help='Optional YAML config file (interactive: or files: format).')
+@click.option('-m', '--models', type=click.Path(exists=True, dir_okay=False), default=None,
+              help='Path to the MapLine modelsV2 FITS[.gz] file.')
+@click.option('--hdu', default=None, help='Initial HDU index or EXTNAME.')
+@click.option('--map-mode', type=click.Choice(['integrated', 'channel']), default=None)
+@click.option('--channel', type=int, default=None, help='Zero-based spectral channel.')
+@click.option('--wavelength', type=float, default=None, help='Choose channel nearest this wavelength [Angstrom].')
+@click.option('--x', type=int, default=None, help='Initial spaxel x index.')
+@click.option('--y', type=int, default=None, help='Initial spaxel y index.')
+@click.option('--cmap', type=str, default=None, help='Matplotlib colormap name.')
+@click.option('--res-norm/--no-res-norm', default=None, help='Normalise residuals by observed flux.')
+@click.option('--show-error/--hide-error', default=None, help='Show 1-sigma error.')
+@click.option('--wcs/--no-wcs', 'wcs_axes', default=None, help='Use celestial WCS on map.')
+@click.option('--output-dir', type=click.Path(file_okay=False), default=None)
+@click.option('--scl', type=str, default=None, help='Flux exponent for plot label.')
+
+def interactive(config_file, **kwargs):
+    settings = {}
+    if config_file:
+        with open(config_file, 'r', encoding='utf-8') as stream:
+            data = yaml.safe_load(stream) or {}
+        if not isinstance(data, dict):
+            raise click.ClickException('Expected a YAML mapping.')
+        if 'interactive' in data:
+            settings = data['interactive']
+        elif 'files' in data:
+            items = data['files']
+            if not isinstance(items, list) or not items:
+                raise click.ClickException('YAML files: must be a non-empty list.')
+            settings = items[0]
+        else:
+            settings = data
+        if not isinstance(settings, dict):
+            raise click.ClickException('YAML interactive settings must be a mapping.')
+
+    aliases = {'models_file': 'models', 'file_models': 'models',
+               'map_mode': 'map_mode', 'path_out': 'output_dir',
+               'res_norm': 'res_norm', 'wcs_axes': 'wcs_axes'}
+    options = ['models', 'hdu', 'map_mode', 'channel', 'wavelength',
+               'x', 'y', 'cmap', 'res_norm', 'show_error', 'wcs_axes',
+               'output_dir', 'scl']
+    for src, dst in aliases.items():
+        if src in settings and dst not in settings:
+            settings[dst] = settings[src]
+    defaults = dict(hdu=0, map_mode='integrated', channel=None, wavelength=None,
+                    x=None, y=None, cmap='viridis', res_norm=False,
+                    show_error=True, wcs_axes=False, output_dir='.', scl='-16')
+    merged = {key: (kwargs[key] if kwargs[key] is not None else
+                    settings.get(key, defaults.get(key))) for key in options}
+    if not merged['models']:
+        raise click.UsageError('Provide --models or models: in --config_file.')
+    try:
+        ptol.plot_interactive_models(models_file=merged.pop('models'), **merged)
+    except (OSError, ValueError, KeyError) as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 if __name__ == "__main__":

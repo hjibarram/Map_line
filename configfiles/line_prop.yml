@@ -69,4 +69,19 @@ priors:
   dvOo: -100.0 #initial velocity value of the outflow line
   dvOs: 100.0 #maximum velocity limit of the outflow line
   dvOi: -200.0 #minimum velocity limit of the outflow line
+  P1o: 0.01 #initial value of the power law Amplitude
+  P1s: 10.0 #maximum value of the power law Amplitude
+  P1i: 0.0 #minimum value of the power law Amplitude
+  P2o: 1 #initial value of the power law index
+  P2s: 10 #maximum value of the power law index
+  P2i: -4 #minimum value of the power law index
+  Fso: 0.01 #initial value of the FeII dispersion
+  Fss: 0.0 #maximum value of the FeII dispersion
+  Fsi: 500.0 #minimum value of the FeII dispersion
+  Fdo: 0.0 #initial value of the FeII shift
+  Fds: 1000.0 #maximum value of the FeII shift   
+  Fdi: -1000.0 #minimum value of the FeII shift
+  Fao: 0.01 #initial value of the FeII template Amplitude
+  Fas: 50.0 #maximum value of the FeII template Amplitude
+  Fai: 0.0 #minimum value of the FeII template Amplitude   
 ...

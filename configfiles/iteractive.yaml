@@ -1,0 +1,15 @@
+# For: run_mapline interactive --config_file interactive_example.yaml
+interactive:
+  models: MK883_HG2b_modelsV2_HbOIII.fits.gz
+  hdu: 1                 # 0=Model, 1=OIII5007B, 4=OIII5007R, etc.
+  map_mode: integrated   # integrated or channel
+  channel: 535           # used when map_mode=channel
+  # wavelength: 5007.0  # alternative to channel (rest-frame Angstrom)
+  x: 19
+  y: 20
+  cmap: viridis
+  res_norm: false
+  show_error: true
+  wcs_axes: false
+  output_dir: ./interactive_plots
+  scl: '-16'

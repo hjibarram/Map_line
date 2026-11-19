@@ -194,9 +194,9 @@ def line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
             *f_parm,P0,Pa0,Fes,Fde,FA=theta
         else:
             *f_parm,P0,Pa0=theta
-    #else:
-    #    if feii:
-    #        *f_parm,Fes,Fde,FA=theta
+    else:
+        if feii:
+            *f_parm,Fes,Fde,FA=theta
 
 
     A1=[]

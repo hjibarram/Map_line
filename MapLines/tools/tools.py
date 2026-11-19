@@ -518,16 +518,24 @@ def get_oneDspectra(file1,flux_f=1,erft=0,input_format='SDSS',error_c=True):
             try:
                 wave=table_data.field('lambda')
             except:
-                wave=table_data.field('wave')
+                try:
+                    wave=table_data.field('wave')
+                except:
+                    wave=table_data.field('WAVE')
         if error_c:
             try:
                 pdl_dataE=table_data.field('ERROR')
             except:
-                pdl_dataE=table_data.field('fluxE')
+                try:
+                    pdl_dataE=table_data.field('fluxE')
+                except:
+                    pdl_dataE=table_data.field('FLUXE')
             if erft != 0:
                 pdl_dataE=pdl_dataE*flux_f*erft
             else:
                 pdl_dataE=pdl_dataE*flux_f
+        else:
+            pdl_dataE=None
     elif input_format == 'SDSS':
         hdu_list = fits.open(file1)
         table_hdu = hdu_list[1]
@@ -2124,6 +2132,185 @@ def get_map_param(hdr,keymatch='Noise'):
             indx=int(keys[i].replace('VAL_',''))
     return indx
 
+def fwhm_numeric(wave,flux, dpix=4):
+    """
+    Estimate the full width at half maximum (FWHM) of a spectral line
+    using a numerical interpolation around the half-maximum level.
+
+    The method identifies the region where the flux exceeds half of the
+    peak value and performs linear interpolation on both sides of the
+    profile to determine the wavelengths corresponding to the half-maximum.
+    The resulting width is converted to velocity units assuming a
+    Doppler approximation.
+
+    Parameters
+    ----------
+    wave : ndarray
+        1D array of wavelengths. Must be ordered (monotonic increasing
+        or decreasing) and in consistent units.
+    flux : ndarray
+        1D array of flux values corresponding to `wave`. Can contain NaNs,
+        which are ignored when computing the maximum flux.
+    dpix : int, optional
+        Number of pixels around the half-maximum crossing used to define
+        the interpolation window on each side of the line. Default is 4.
+
+    Returns
+    -------
+    fwhm : float
+        Estimated FWHM of the line in velocity units (km/s). Returns NaN
+        if the FWHM cannot be determined (e.g., insufficient data points
+        above half-maximum).
+    wave0 : float
+        Estimate the central wavelength of the line based on the half-maximum crossings.
+    Notes
+    -----
+    - The FWHM is computed in wavelength units and then converted to
+      velocity using:
+
+          FWHM = (Δλ / λ₀) * c
+
+      where λ₀ is the central wavelength and c is the speed of light
+      in km/s.
+    - The method assumes a single-peaked profile. Complex or multi-peaked
+      profiles may yield unreliable results.
+    - The interpolation uses `scipy.interpolate.interp1d` with linear
+      interpolation.
+    - Edge effects are mitigated by limiting the interpolation window
+      within array bounds.
+
+    Raises
+    ------
+    ValueError
+        If input arrays have incompatible shapes.
+
+    See Also
+    --------
+    scipy.interpolate.interp1d : Interpolation method used internally.
+
+    """
+    ct=299792.458
+    max_flux=np.nanmax(flux)
+    half_max=max_flux/2.0
+    indices=np.where(flux >= half_max)[0]
+    if len(indices) < 2:
+        print('Warning, Not enough points above half maximum to determine FWHM.')
+        return np.nan
+    if indices[0]-dpix <0:
+        indx0a=0
+    else:
+        indx0a=indices[0]-dpix
+    indx0b=indices[0]+dpix    
+    if indices[-1]+dpix >= len(wave):
+        indx1b=len(wave)-1
+    else:
+        indx1b=indices[-1]+dpix
+    indx1a=indices[-1]-dpix    
+    wave1=interp1d(flux[indx0a:indx0b], wave[indx0a:indx0b], kind='linear',bounds_error=False,fill_value=0.)(half_max)
+    wave2=interp1d(flux[indx1a:indx1b], wave[indx1a:indx1b], kind='linear',bounds_error=False,fill_value=0.)(half_max)
+    deltawave=wave2-wave1
+    wave0=(wave1+wave2)/2.0
+    fwhm=deltawave/wave0*ct
+    return fwhm,wave0
+
+def get_1D_Totalmodelparam(file,base,path='',keymatch='HaBroad',lam0=6564.632, fwhm_lim=0.0):
+    """
+    Extract integrated flux, velocity shift, and FWHM from a modeled
+    spectral line stored in the MapLine output FITS table.
+
+    This function reads a FITS file containing model components, 
+    reconstructs the total model for a given line
+    by summing selected components, and computes key physical parameters:
+    total flux, velocity offset, and line width (FWHM).
+
+    Parameters
+    ----------
+    file : str
+        Name of the FITS file containing the model output.
+    base : str
+        Base identifier (currently unused in the function, reserved for
+        future extensions or consistency with external interfaces).
+    path : str, optional
+        Directory path to the FITS file. Default is current directory.
+    keymatch : str, optional
+        Substring used to identify the relevant model components in the
+        FITS table (e.g., 'HaBroad'). Only columns containing both
+        `keymatch` and 'Component' will be included in the total model.
+    lam0 : float, optional
+        Rest-frame wavelength of the emission line (in same units as the
+        wavelength array). Default corresponds to Hα (6564.632 Å).
+    fwhm_lim : float, optional
+        Minimum FWHM (in km/s) required for a component to be included in
+        the total model. If set to 0, all components matching `keymatch`
+        are included regardless of their width.
+    Returns
+    -------
+    FluxT : float
+        Integrated flux of the reconstructed line profile.
+    Vel : float
+        Velocity shift of the line centroid with respect to `lam0`,
+        in km/s (Doppler approximation).
+    FWHM : float
+        Full width at half maximum of the line in km/s.
+    Ampt : float
+        The maximum amplitude of the reconstructed line profile.
+    Returns None if the required 'Models' extension is not found.
+
+    Notes
+    -----
+    - The function expects a FITS extension named 'Models' containing:
+        - A wavelength column named 'Wave'
+        - Multiple model component columns with names including
+          both `keymatch` and 'Component'
+    - The total model is constructed as the sum of all matching components.
+    - The FWHM and centroid are computed using `fwhm_numeric`.
+    - The integrated flux is computed using `simpson_r`.
+    - Velocity is derived using:
+
+          Vel = ((λ_obs - λ₀) / λ₀) * c
+
+      where c is the speed of light in km/s.
+    - No explicit checks are performed for missing columns, NaNs,
+      or inconsistent units.
+
+    Raises
+    ------
+    IOError
+        If the FITS file cannot be opened.
+
+    See Also
+    --------
+    fwhm_numeric : Function used to estimate FWHM and centroid.
+    simpson_r : Function used for numerical integration.
+
+    """
+    ct=299792.458
+    file0=path+'/'+file
+    hdu_list = fits.open(file0)
+    try:    
+        table_hdu = hdu_list['Models']
+    except:
+        print('Error: No Models found in the FITS file, please provide the model output file')
+        return None
+    table_data = table_hdu.data
+    Wave=table_data.field('Wave')
+    keys=list(table_data.names)
+    modelT=0
+    for keys0 in keys:
+        if keymatch in keys0 and 'Component' in keys0:
+            if fwhm_lim > 0:
+                fwhm,wave0t=fwhm_numeric(Wave,table_data.field(keys0))
+                if fwhm > fwhm_lim:
+                    modelT=table_data.field(keys0)+modelT
+            else:
+                modelT=table_data.field(keys0)+modelT
+    FWHM,wave0=fwhm_numeric(Wave,modelT)
+    FluxT=simpson_r(modelT,Wave,2,len(Wave)-2,typ=0)
+    Vel=(wave0-lam0)/lam0*ct
+    AmpT=np.nanmax(modelT)
+    hdu_list.close()
+    return FluxT,Vel,FWHM,AmpT
+
 
 def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2,verbose=False):
     """
@@ -2187,7 +2374,8 @@ def rescale_mapmodel(mapT,name,path_out='./',modelbasename='psf_NAME',sigmat=0.2
     sycall('gzip -f '+filet)    
 
 def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_HaNII.fits.gz',
-    psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,set_am=False,AmpT=2):
+    psfmbasename='psf_NAME',sigmat=0.2,lo=6564.632,verbose=False,pow_cr=False,noise_cr=False,
+    set_am=False,AmpT=2,lineBase='HaBroad',indx_am='1',cont_key='Continum',cminval=0,margin=False):
     """
     Build a rescaled broad-line model map from fitted parameter products.
 
@@ -2211,10 +2399,22 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         If True, print normalization diagnostics.
     pow_cr : bool, optional
         If True, use the power-law continuum to mask unreliable spaxels.
+    noise_cr: bool, optional
+        If True, use the noise map to mask unreliable spaxels.
     set_am : bool, optional
         If True, use the broad-line amplitude threshold to mask spaxels.
     AmpT : float, optional
         Broad-line amplitude threshold used when ``set_am=True``.
+    lineBase : str, optional
+        It defines de name of the emision line component to use in the map generation.
+    indx_am : str, optional
+        It defines wich broad component to use to mask the threshold spaxels, defaul "1".
+    cont_key: str, optional
+        It defines wich component to use for the first mask the valid spaxels, defaul "Continum".
+    cminval: float, optional
+        It defines the minimum value threshold for the first mask the valid spaxels, defaul 0.
+    margin: bool, optional
+        If True, activate a mask of the borders of the FoV
 
     Returns
     -------
@@ -2228,9 +2428,9 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     """
     file=path_map+'/'+basename.replace('NAME',name)
     [pdl_cube, hdr]=fits.getdata(file, 0, header=True)
-    indx_amp,indx_vel,indx_fwh=get_map_component_index(hdr,keymatch='HaBroad')
+    indx_amp,indx_vel,indx_fwh=get_map_component_index(hdr,keymatch=lineBase)
     indx_noi=get_map_param(hdr,keymatch='Noise')
-    indx_con=get_map_param(hdr,keymatch='Continum')
+    indx_con=get_map_param(hdr,keymatch=cont_key)
     nz,nx,ny=pdl_cube.shape
     n_comp=len(indx_amp)
     fluxT=np.zeros((n_comp,nx,ny))
@@ -2244,18 +2444,24 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
         sigmaT[i,:,:]=sigma
         ewT[i,:,:]=ew
     cont1=pdl_cube[indx_con,:,:]
-    indx = np.where((cont1 == 0) | (np.isfinite(cont1) == False))
+    indx = np.where((cont1 <= cminval) | (np.isfinite(cont1) == False))
     indxt = np.where((np.isfinite(cont1)))
     mapE=pdl_cube[indx_noi,:,:]
     mapT=np.nansum(fluxT,axis=0)
     nx,ny=mapT.shape
+    if margin:
+        mapT[0:1,0:ny]=np.nan
+        mapT[nx-1:nx,0:ny]=np.nan
+        mapT[0:nx,0:1]=np.nan
+        mapT[0:nx,ny-1:ny]=np.nan
     mapT[indx]=np.nan
     cont1[indx]=np.nan
     mintc=np.nanmin(cont1)# We define the lowest continuum value as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
     mapT[np.where(cont1==mintc)]=np.nan
     if set_am:
         #Use the Amplitude of the briad component to define the usefull spaxels, AmpT is the threshold for the amplitude value defined in MapLine, below which the map is set to NaN. This is because in some cases there are very low amplitude values that produce very high flux/continuum ratios, which are not realistic.
-        indx_amp=get_map_param(hdr,keymatch='HaBroad1_Amplitude')
+        print(lineBase+indx_am+'_Amplitude')
+        indx_amp=get_map_param(hdr,keymatch=lineBase+indx_am+'_Amplitude')
         amp_val=pdl_cube[indx_amp,:,:]
         amp_val=np.round(amp_val,3)
         mapT[np.where(amp_val == AmpT)]=np.nan
@@ -2267,8 +2473,22 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
             amp_pow=pdl_cube[indx_pow,:,:]
             mintc=np.nanmin(amp_pow)
             mapT[np.where(amp_pow==mintc)]=np.nan
+            if verbose:
+                print('Power-law map used')
         except:
             pass
+    if noise_cr:
+        #Use the noise to define the usefull spaxels
+        try:
+            # We define the inf values as the one for which we set the map to NaN, to avoid problems with the logarithm and the normalization. This is because in some cases there are very low continuum values that produce very high flux/continuum ratios, which are not realistic.
+            indx_noise=get_map_param(hdr,keymatch='Noise_Median')
+            noise=pdl_cube[indx_noise,:,:]
+            indx2=np.where(np.isfinite(noise) == False)
+            mapT[indx2]=np.nan
+            if verbose:
+                print('Noise map used')
+        except:
+            pass        
     #mapT=np.log10(mapT)
     mapT[np.where(np.isfinite(mapT) == False)]=-2
     #map[0:4,0:ny]=0
@@ -2293,6 +2513,8 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     mapT=(mapT-minval)/(maxval-minval)*1+0
     maxval=np.nanmax(mapT[indxt])
     minval=np.nanmin(mapT[indxt])
+    if minval < 0:
+        minval=0
     if verbose:
         print(maxval,minval,'Map2')
     mapT[np.where(np.isfinite(mapT) == False)]=minval
@@ -2336,3 +2558,177 @@ def get_mapmodel(name,path_map='./',path_out='./',basename='NAME-2iter_param_V2_
     filet=path_out+'/'+psfmbasename.replace('NAME',name)+'.fits'
     hlist.writeto(filet,overwrite=True)
     sycall('gzip -f '+filet)    
+
+
+def numpy_to_tform(arr):
+    """
+    Convert a NumPy array dtype into a FITS table TFORM code.
+
+    This function maps the dtype and shape of a NumPy array to the
+    corresponding FITS table format descriptor used in binary tables.
+    The output string can be used as the TFORMn value when defining
+    FITS table columns.
+
+    Parameters
+    ----------
+    arr : array-like
+        Input array or object convertible to a NumPy array. The dtype
+        determines the FITS format code, while the array dimensionality
+        determines whether the column is scalar or vector.
+
+    Returns
+    -------
+    str
+        FITS TFORM code describing the data type and size of the column.
+        Examples include 'E', 'D', 'J', 'K', '5E', '20A', etc.
+
+    Notes
+    -----
+    The following dtype mappings are supported:
+
+    =================  ============
+    NumPy dtype        FITS code
+    =================  ============
+    float32            E
+    float64            D
+    int16              I
+    int32              J
+    int64              K
+    uint8              B
+    bool               L
+    =================  ============
+
+    String arrays are converted to FITS ASCII format using the length
+    of the string (e.g., '20A').
+
+    For multidimensional arrays:
+    - 1D arrays produce a scalar column format (e.g., 'E', 'J').
+    - 2D arrays produce a vector column format (e.g., '5E').
+    - Arrays with ndim > 2 are not supported by FITS tables.
+
+    Raises
+    ------
+    ValueError
+        If the dtype is not supported or if the array has more than
+        two dimensions.
+
+    Examples
+    --------
+    >>> numpy_to_tform(np.array([1.0, 2.0], dtype=np.float32))
+    'E'
+
+    >>> numpy_to_tform(np.ones((10, 5), dtype=np.float32))
+    '5E'
+
+    >>> numpy_to_tform(np.array(["abc", "def"]))
+    '12A'
+    """
+    arr = np.asarray(arr)
+
+    # tipo base
+    base = arr.dtype
+
+    fits_map = {
+        np.dtype('float32'): 'E',
+        np.dtype('float64'): 'D',
+        np.dtype('int16'):   'I',
+        np.dtype('int32'):   'J',
+        np.dtype('int64'):   'K',
+        np.dtype('uint8'):   'B',
+        np.dtype('bool'):    'L',
+        np.dtype('>i8'):     'K',
+        np.dtype('>f8'):     'D'
+    }
+
+    if base.kind in ['U', 'S']:
+        # strings
+        strlen = arr.dtype.itemsize
+        return f'{strlen}A'
+
+    if base not in fits_map:
+        raise ValueError(f'Dtype no soportado: {base}')
+
+    code = fits_map[base]
+
+    # escalar o vector
+    if arr.ndim == 1:
+        return code
+    elif arr.ndim == 2:
+        return f'{arr.shape[1]}{code}'
+    else:
+        raise ValueError("FITS no soporta ndim > 2 en tablas")
+
+
+def simpson_r(f,x,i1,i2,typ=0):
+    """
+    Compute the numerical integral of a function using Simpson's rule
+    over a specified index range.
+
+    This implementation applies the composite Simpson's 1/3 rule on
+    uniformly spaced samples between indices `i1` and `i2`. If the number
+    of intervals is odd, it is automatically increased by one to satisfy
+    Simpson's requirement of an even number of intervals.
+
+    Parameters
+    ----------
+    f : ndarray
+        1D array of function values to be integrated.
+    x : ndarray
+        1D array of coordinates corresponding to `f`. It is assumed to be
+        ordered and approximately uniformly spaced within the integration
+        range.
+    i1 : int
+        Starting index of the integration interval.
+    i2 : int
+        Ending index of the integration interval (inclusive).
+    typ : int, optional
+        Output type:
+        - 0 : Return the integral value (default).
+        - 1 : Return the average value over the interval, i.e.,
+              integral divided by (x[i2] - x[i1]).
+
+    Returns
+    -------
+    float
+        Numerical integral of `f` over the interval [x[i1], x[i2]] if
+        `typ=0`, or the mean value over the interval if `typ=1`.
+
+    Notes
+    -----
+    - Simpson's rule requires an even number of intervals. If the number
+      of intervals (`i2 - i1`) is odd, the function extends the upper
+      limit by one index.
+    - The spacing `h` is computed as (x[i2] - x[i1]) / n, assuming
+      approximately uniform sampling.
+    - No explicit checks are performed to ensure uniform spacing or
+      valid index bounds.
+    - The function does not handle NaNs or masked values explicitly.
+
+    Raises
+    ------
+    IndexError
+        If `i1` or `i2` are outside the valid range of the input arrays.
+
+    See Also
+    --------
+    scipy.integrate.simpson : More robust and general Simpson integration.
+
+    """
+    n=(i2-i1)*1.0
+    if n % 2:
+        n=n+1.0
+        i2=i2+1
+    b=x[i2]
+    a=x[i1]
+    h=(b-a)/n
+    s= f[i1]+f[i2]
+    n=int(n)
+    dx=b-a
+    for i in range(1, n, 2):
+        s += 4 * f[i1+i]
+    for i in range(2, n-1, 2):
+        s += 2 * f[i1+i]
+    if typ == 0:
+        return s*h/3.0
+    if typ == 1:
+        return s*h/3.0/dx        
