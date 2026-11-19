@@ -155,3 +155,81 @@ def lnprob_gauss_Lin(theta, spec, specE, x, Infvalues, Supvalues, valsp,
     else:
         return lp + lnlike_gauss_Lin(theta, spec, specE, x, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii, data) 
 
+
+
+def lnprob_gauss_Lin_batch(thetas, *args):
+    """
+    Evaluate the log-posterior probability for multiple parameter sets.
+
+    This function extends the original spectral model posterior
+    evaluation to a batch of parameter vectors. Each parameter
+    set is evaluated independently using the existing
+    ``lnprob_gauss_Lin`` function.
+
+    The original prior constraints, Gaussian likelihood, and
+    spectral model evaluation are preserved.
+
+    This implementation provides a CPU reference for validating
+    future vectorized CUDA posterior evaluations.
+
+    Parameters
+    ----------
+    thetas : array_like
+        Model parameter vectors with shape (nwalkers_batch, ndim).
+
+        Each row contains the parameters associated with one
+        MCMC walker.
+
+    *args : tuple
+        Additional arguments passed directly to
+        ``lnprob_gauss_Lin``.
+
+        These include the observed spectrum, uncertainties,
+        spectral axis, parameter boundaries, model configuration,
+        and optional spectral components.
+
+    Returns
+    -------
+    log_prob : ndarray
+        Log-posterior probability for each parameter vector.
+
+        The returned array has shape (nwalkers_batch,).
+
+        Parameter sets violating the original prior constraints
+        return negative infinity.
+
+    Notes
+    -----
+    The posterior probability is evaluated using the original
+    MapLine prior and likelihood functions.
+
+    This function does not modify the Bayesian model, prior
+    distributions, or MCMC sampling algorithm.
+
+    Evaluations are currently performed sequentially on CPU.
+    GPU acceleration will require a vectorized implementation
+    of the corresponding spectral models.
+
+    This function can be used as a numerical reference for
+    future CUDA implementations.
+
+    Examples
+    --------
+    >>> logp = lnprob_gauss_Lin_batch(thetas, *data)
+    >>> logp.shape
+    (nwalkers_batch,)
+    """
+    thetas = np.asarray(thetas)
+
+    if thetas.ndim != 2:
+        raise ValueError(
+            "thetas must have shape (nwalkers_batch, ndim)"
+        )
+
+    return np.asarray(
+        [
+            lnprob_gauss_Lin(theta, *args)
+            for theta in thetas
+        ],
+        dtype=np.float64,
+    )
