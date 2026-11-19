@@ -56,7 +56,7 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
     config_lines='line_prop.yml',labplot=True,input_format='TableFits',
     z=0.05536,lA1=6450.0,lA2=6850.0,verbose=True,outflow=False,powlaw=False,
     feii=False,res_norm=True,voigt=False,lorentz=False,skew=False,error_c=True,
-    ncpu=10,flux_f=1.0,erft=0.75,cont=False,spe=50,scl='-16'):
+    ncpu=10,flux_f=1.0,erft=0.75,cont=False,spe=50,scl='-16',backend='auto'):
     """
     Fit emission lines in a single astronomical spectrum.
 
@@ -222,7 +222,9 @@ def line_fit_single(file1,file_out,file_out2,name_out2,dir_out='',
             ndim = len(initial)
             p0 = [np.array(initial) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
             tim=True #allways allow to print the time stamp
-            sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
+            #sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)
+            sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu,
+                                                 backend=backend,lnprob_gpu=pri.lnprob_gauss_Lin_gpu,nburn=1000)  
             samples = sampler.flatchain
             theta_max  = samples[np.argmax(sampler.flatlnprobability)]
             p16, p50, p84 = np.nanpercentile(samples, [16, 50, 84], axis=0)
@@ -486,7 +488,7 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
     powlaw=False,feii=False,labplot=True,config_lines='line_prop.yml',
     lA1=6450.0,lA2=6850.0,outflow=False,voigt=False,lorentz=False,skew=False,
     error_c=True,test=False,plot_f=True,ncpu=10,pgr_bar=True,flux_f=1.0,
-    erft=0,cont=False,res_norm=True,spe=50,scl='-16'):
+    erft=0,cont=False,res_norm=True,spe=50,scl='-16',backend='auto'):
     """
     Fit emission lines in an IFU datacube.
 
@@ -645,7 +647,9 @@ def line_fit(file1,file2,file3,file_out,file_out2,name_out2,notebook=False,
                     tim=True
                 else:
                     tim=False
-                sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)  
+                #sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu)
+                sampler, pos, prob, state = mcm.mcmc(p0,nwalkers,niter,ndim,pri.lnprob_gauss_Lin,data,tim=tim,ncpu=ncpu,
+                                                     backend=backend,lnprob_gpu=pri.lnprob_gauss_Lin_gpu,nburn=1000)   
                 samples = sampler.flatchain
                 theta_max  = samples[np.argmax(sampler.flatlnprobability)]
                 

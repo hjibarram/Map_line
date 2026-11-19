@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """
 MapLines.tools.priors
 =====================
@@ -11,16 +12,52 @@ inference in MapLines. In particular, it provides routines to evaluate:
 - the log-likelihood of a spectral model given an observed spectrum
 - the log-prior for the model parameters
 - the log-posterior probability used by the MCMC sampler
+- the posterior probability for multiple parameter sets
+- optional GPU-accelerated likelihood and posterior evaluations
 
 These functions are used together with the spectral models defined in
 ``MapLines.tools.models`` and the MCMC driver implemented in
 ``MapLines.tools.mcmc``.
+
+The module supports posterior probability calculations for spectral
+models with different emission-line profiles and optional components,
+including asymmetric profiles, outflows, power-law continua, and FeII
+emission templates.
+
+In addition to standard CPU calculations, the module provides
+interfaces for evaluating multiple MCMC parameter vectors using
+vectorized spectral models. CUDA acceleration is supported through
+CuPy, allowing spectral models and their likelihoods to be evaluated
+simultaneously for batches of walkers.
 
 Notes
 -----
 The likelihood assumes Gaussian uncertainties in the observed spectrum,
 while the prior enforces physically and empirically motivated parameter
 ranges defined in the configuration files.
+
+The original CPU likelihood, prior, and posterior functions are
+preserved to maintain compatibility with existing MapLine fitting
+routines and scientific results.
+
+The batched CPU posterior implementation provides a reference for
+validating numerical consistency with GPU-accelerated calculations.
+
+In the CUDA implementation, parameter priors are evaluated using
+the original CPU functions, while spectral models and likelihoods
+are evaluated on the GPU. Only parameter sets satisfying the prior
+constraints are submitted for GPU evaluation.
+
+The GPU-computed log-posterior values are returned as NumPy arrays
+to maintain compatibility with the ``emcee`` ensemble sampler.
+
+CUDA acceleration is optional and requires CuPy, a compatible NVIDIA
+GPU, and a vectorized spectral model implementation supporting the
+selected components. Unsupported CUDA configurations must be handled
+by the calling code before starting the MCMC sampling process.
+
+The underlying Bayesian formulation, prior constraints, and MCMC
+sampling algorithm remain unchanged.
 """
 import MapLines.tools.models as mod
 import numpy as np
@@ -68,6 +105,158 @@ def lnlike_gauss_Lin(theta, spec, specE , x, waves0, fac0, facN0, velfac0, velfa
     model=mod.line_model(theta, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, x=x, skew=skew, voigt=voigt, lorentz=lorentz, outflow=outflow, powlaw=powlaw, feii=feii, data=data)
     LnLike = -0.5*np.nansum(((spec-model)/specE)**2.0)
     return LnLike
+
+
+def lnlike_gauss_Lin_gpu(thetas, spec, specE, x, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0,
+    names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii, data):
+    """
+    Compute vectorized log-likelihoods of spectral line models on CUDA.
+
+    This function extends the original ``lnlike_gauss_Lin`` to
+    evaluate multiple parameter sets simultaneously using CuPy.
+
+    The likelihood assumes Gaussian uncertainties in the observed
+    spectrum and preserves the original chi-squared formulation:
+
+        ln(L) = -0.5 * nansum(((spec - model) / specE)**2)
+
+    Spectral models are evaluated using the vectorized interface
+    of ``MapLines.tools.models.line_model``.
+
+    Parameters
+    ----------
+    thetas : array_like
+        Model parameter vectors with shape (nwalkers_batch, ndim).
+
+    spec : array_like
+        Observed spectrum with shape (nwavelength,).
+
+    specE : array_like
+        Uncertainty of the observed spectrum.
+
+    x : array_like
+        Spectral axis used for model evaluation.
+
+    waves0 : array_like
+        Rest wavelengths of spectral lines.
+
+    fac0, facN0 : array_like
+        Flux normalization parameters.
+
+    velfac0, velfacN0 : array_like
+        Velocity scaling factors.
+
+    fwhfac0, fwhfacN0 : array_like
+        Line-width scaling factors.
+
+    names0 : list
+        Names of spectral components.
+
+    n_lines : int
+        Number of emission lines.
+
+    vals : dict
+        Additional model configuration parameters.
+
+    skew, voigt, lorentz, outflow, powlaw, feii : bool
+        Flags controlling the spectral model components.
+
+    data : optional
+        Additional information passed to the spectral model.
+
+    Returns
+    -------
+    log_likelihood : cupy.ndarray
+        Log-likelihood values with shape (nwalkers_batch,).
+
+    Raises
+    ------
+    ValueError
+        If the input dimensions are inconsistent.
+
+    NotImplementedError
+        If the selected spectral model is not supported by
+        the CUDA vectorized implementation.
+
+    Notes
+    -----
+    The numerical formulation is the same as the original
+    CPU likelihood, including the use of ``nansum``.
+
+    Spectral model evaluation and likelihood calculations
+    are performed on the GPU.
+
+    This function does not evaluate parameter priors.
+    Posterior calculations are handled separately by
+    ``lnprob_gauss_Lin_gpu``.
+
+    The function requires CuPy and a functional CUDA runtime.
+    The original CPU likelihood remains unchanged.
+    """
+    import cupy as cp
+
+    thetas_gpu = cp.asarray(thetas)
+
+    if thetas_gpu.ndim != 2:
+        raise ValueError(
+            "thetas must have shape (nwalkers_batch, ndim)"
+        )
+
+    spec_gpu = cp.asarray(spec)
+    specE_gpu = cp.asarray(specE)
+    x_gpu = cp.asarray(x)
+
+    if spec_gpu.ndim != 1:
+        raise ValueError(
+            "spec must be a one-dimensional array"
+        )
+
+    if specE_gpu.shape != spec_gpu.shape:
+        raise ValueError(
+            "specE must have the same shape as spec"
+        )
+
+    if x_gpu.shape != spec_gpu.shape:
+        raise ValueError(
+            "x must have the same shape as spec"
+        )
+
+    models = mod.line_model(
+        thetas_gpu,
+        waves0, fac0, facN0,
+        velfac0, velfacN0,
+        fwhfac0, fwhfacN0,
+        names0, n_lines, vals,
+        x=x_gpu,
+        skew=skew,
+        voigt=voigt,
+        lorentz=lorentz,
+        outflow=outflow,
+        powlaw=powlaw,
+        feii=feii,
+        data=data,
+        vectorized=True,
+        backend="cuda",
+    )
+
+    if models.shape != (
+        thetas_gpu.shape[0], spec_gpu.size
+    ):
+        raise ValueError(
+            "Vectorized model returned an invalid shape"
+        )
+
+    residuals = (
+        spec_gpu[None, :] - models
+    ) / specE_gpu[None, :]
+
+    log_likelihood = -0.5 * cp.nansum(
+        residuals**2.0,
+        axis=1,
+    )
+
+    return log_likelihood
+
 
 
 def lnprior_gauss_Lin(theta, Infvalues, Supvalues, valsp, skew=False, outflow=False, powlaw=False, feii=False):
@@ -154,6 +343,177 @@ def lnprob_gauss_Lin(theta, spec, specE, x, Infvalues, Supvalues, valsp,
         return -np.inf
     else:
         return lp + lnlike_gauss_Lin(theta, spec, specE, x, waves0, fac0, facN0, velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow, powlaw, feii, data) 
+
+
+
+def lnprob_gauss_Lin_gpu(thetas, spec, specE, x, Infvalues, Supvalues, valsp, waves0, fac0, facN0,
+    velfac0, velfacN0, fwhfac0, fwhfacN0, names0, n_lines, vals, skew, voigt, lorentz, outflow,
+    powlaw, feii, data):
+    """
+    Compute vectorized posterior probabilities using CUDA.
+
+    This function extends the original ``lnprob_gauss_Lin``
+    to evaluate multiple MCMC parameter vectors simultaneously.
+
+    The posterior is defined as the sum of the prior and the
+    Gaussian log-likelihood.
+
+    The original parameter constraints are preserved by
+    evaluating ``lnprior_gauss_Lin`` independently for each
+    walker on the CPU.
+
+    Parameter sets satisfying the priors are evaluated together
+    on the GPU using ``lnlike_gauss_Lin_gpu``. Invalid parameter
+    sets are assigned negative infinity without evaluating
+    their spectral models.
+
+    Parameters
+    ----------
+    thetas : array_like
+        Model parameter vectors with shape (nwalkers_batch, ndim).
+
+    spec : array_like
+        Observed spectrum.
+
+    specE : array_like
+        Uncertainty of the observed spectrum.
+
+    x : array_like
+        Spectral axis.
+
+    Infvalues, Supvalues : array_like
+        Lower and upper boundaries of the model parameters.
+
+    valsp : dict
+        Dictionary containing prior limits for optional
+        spectral components.
+
+    waves0 : array_like
+        Rest wavelengths of spectral lines.
+
+    fac0, facN0 : array_like
+        Flux normalization parameters.
+
+    velfac0, velfacN0 : array_like
+        Velocity scaling factors.
+
+    fwhfac0, fwhfacN0 : array_like
+        Line-width scaling factors.
+
+    names0 : list
+        Names of spectral components.
+
+    n_lines : int
+        Number of emission lines.
+
+    vals : dict
+        Additional model configuration parameters.
+
+    skew, voigt, lorentz, outflow, powlaw, feii : bool
+        Flags controlling the spectral model components
+        and associated prior constraints.
+
+    data : optional
+        Additional information passed to the spectral model.
+
+    Returns
+    -------
+    log_prob : numpy.ndarray
+        Log-posterior probability values with shape
+        (nwalkers_batch,).
+
+        Parameter sets violating the original priors return
+        negative infinity.
+
+    Notes
+    -----
+    This function preserves the original prior constraints
+    and Gaussian likelihood definition.
+
+    Priors are evaluated on the CPU using the existing
+    ``lnprior_gauss_Lin`` function.
+
+    Only parameter sets satisfying the prior constraints
+    are transferred to the GPU for spectral model evaluation.
+
+    The resulting log-likelihood values are transferred back
+    to NumPy for compatibility with the ``emcee`` sampler.
+
+    No changes are introduced to the underlying Bayesian
+    model or MCMC sampling algorithm.
+
+    CUDA acceleration is optional and the original CPU
+    posterior evaluation remains available.
+
+    Examples
+    --------
+    >>> logp = lnprob_gauss_Lin_gpu(thetas, *data)
+    >>> logp.shape
+    (nwalkers_batch,)
+    """
+    import cupy as cp
+
+    thetas = np.asarray(thetas)
+
+    if thetas.ndim != 2:
+        raise ValueError(
+            "thetas must have shape (nwalkers_batch, ndim)"
+        )
+
+    nwalkers_batch = thetas.shape[0]
+
+    # Evaluate the original priors on CPU.
+    log_prior = np.asarray(
+        [
+            lnprior_gauss_Lin(
+                theta,
+                Infvalues,
+                Supvalues,
+                valsp,
+                skew=skew,
+                outflow=outflow,
+                powlaw=powlaw,
+                feii=feii,
+            )
+            for theta in thetas
+        ],
+        dtype=np.float64,
+    )
+
+    # Preserve the original rejection criterion.
+    valid = np.isfinite(log_prior)
+
+    log_prob = np.full(
+        nwalkers_batch,
+        -np.inf,
+        dtype=np.float64,
+    )
+
+    # Avoid GPU execution if every walker is rejected.
+    if not np.any(valid):
+        return log_prob
+
+    # Transfer only valid parameter vectors.
+    valid_thetas = cp.asarray(thetas[valid])
+
+    # Evaluate their likelihoods simultaneously on CUDA.
+    log_likelihood = lnlike_gauss_Lin_gpu(
+        valid_thetas,
+        spec, specE, x,
+        waves0, fac0, facN0,
+        velfac0, velfacN0,
+        fwhfac0, fwhfacN0,
+        names0, n_lines, vals,
+        skew, voigt, lorentz,
+        outflow, powlaw, feii, data,
+    )
+
+    # Transfer the likelihood values back to CPU.
+    log_prob[valid] = (
+        log_prior[valid]
+        + cp.asnumpy(log_likelihood)
+    )
+    return log_prob
 
 
 
